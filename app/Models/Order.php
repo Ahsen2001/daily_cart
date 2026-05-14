@@ -26,6 +26,7 @@ class Order extends Model
         'total_amount',
         'currency',
         'delivery_address',
+        'cancellation_reason',
         'order_status',
         'payment_status',
         'placed_at',

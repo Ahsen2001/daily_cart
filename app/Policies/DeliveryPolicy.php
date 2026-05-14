@@ -22,4 +22,9 @@ class DeliveryPolicy
     {
         return $user->rider?->id === $delivery->rider_id;
     }
+
+    public function assign(User $user, Delivery $delivery): bool
+    {
+        return $user->isAdminUser();
+    }
 }

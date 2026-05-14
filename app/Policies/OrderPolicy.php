@@ -22,4 +22,14 @@ class OrderPolicy
     {
         return $user->vendor?->id === $order->vendor_id;
     }
+
+    public function cancel(User $user, Order $order): bool
+    {
+        return $user->customer?->id === $order->customer_id && $order->order_status === 'pending';
+    }
+
+    public function manage(User $user, Order $order): bool
+    {
+        return $user->vendor?->id === $order->vendor_id;
+    }
 }

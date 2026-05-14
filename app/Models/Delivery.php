@@ -18,8 +18,10 @@ class Delivery extends Model
         'pickup_address',
         'delivery_address',
         'scheduled_at',
+        'accepted_at',
         'picked_up_at',
         'delivered_at',
+        'failed_reason',
         'status',
     ];
 
@@ -27,6 +29,7 @@ class Delivery extends Model
     {
         return [
             'scheduled_at' => 'datetime',
+            'accepted_at' => 'datetime',
             'picked_up_at' => 'datetime',
             'delivered_at' => 'datetime',
             'deleted_at' => 'datetime',
