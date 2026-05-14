@@ -72,6 +72,9 @@
                         <div class="flex justify-between"><dt>{{ __('Service') }}</dt><dd>{{ \App\Services\CurrencyService::formatLkr($order->service_charge) }}</dd></div>
                         <div class="flex justify-between border-t pt-2 font-semibold"><dt>{{ __('Total') }}</dt><dd>{{ \App\Services\CurrencyService::formatLkr($order->total_amount) }}</dd></div>
                     </dl>
+                    @if ($order->payment)
+                        <a href="{{ route('customer.payments.show', $order) }}" class="mt-4 inline-block text-sm font-medium text-indigo-700 underline">{{ __('Manage payment') }}</a>
+                    @endif
                 </div>
 
                 @if ($order->order_status === 'pending')
@@ -83,6 +86,13 @@
                             <textarea name="reason" rows="3" class="w-full rounded-md border-gray-300 shadow-sm" required placeholder="{{ __('Cancellation reason') }}">{{ old('reason') }}</textarea>
                             <x-danger-button>{{ __('Cancel Order') }}</x-danger-button>
                         </form>
+                    </div>
+                @endif
+
+                @if ($order->order_status === 'delivered' && $order->payment?->status === 'paid')
+                    <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                        <h3 class="mb-3 font-semibold text-gray-900">{{ __('Refund') }}</h3>
+                        <a href="{{ route('customer.refunds.create', $order) }}" class="text-sm font-medium text-indigo-700 underline">{{ __('Request refund') }}</a>
                     </div>
                 @endif
             </div>

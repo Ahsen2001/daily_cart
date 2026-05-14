@@ -12,10 +12,13 @@ class WalletTransaction extends Model
 
     protected $fillable = [
         'user_id',
+        'transaction_type',
         'type',
         'source',
         'amount',
+        'balance_after',
         'currency',
+        'reference',
         'description',
     ];
 
@@ -23,6 +26,7 @@ class WalletTransaction extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'balance_after' => 'decimal:2',
         ];
     }
 

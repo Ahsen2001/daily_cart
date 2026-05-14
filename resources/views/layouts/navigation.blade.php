@@ -38,6 +38,12 @@
                         <x-nav-link :href="route('admin.deliveries.index')" :active="request()->routeIs('admin.deliveries.*')">
                             {{ __('Deliveries') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('admin.finance.index')" :active="request()->routeIs('admin.finance.*')">
+                            {{ __('Finance') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('admin.refunds.index')" :active="request()->routeIs('admin.refunds.*')">
+                            {{ __('Refunds') }}
+                        </x-nav-link>
                     @endif
 
                     @if (Auth::user()->hasPrimaryRole('Vendor'))
@@ -50,6 +56,9 @@
                         <x-nav-link :href="route('vendor.orders.index')" :active="request()->routeIs('vendor.orders.*')">
                             {{ __('Orders') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('vendor.earnings.index')" :active="request()->routeIs('vendor.earnings.*')">
+                            {{ __('Earnings') }}
+                        </x-nav-link>
                     @endif
 
                     @if (Auth::user()->hasPrimaryRole('Rider'))
@@ -58,6 +67,9 @@
                         </x-nav-link>
                         <x-nav-link :href="route('rider.deliveries.index')" :active="request()->routeIs('rider.deliveries.*')">
                             {{ __('Deliveries') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('rider.earnings.index')" :active="request()->routeIs('rider.earnings.*')">
+                            {{ __('Earnings') }}
                         </x-nav-link>
                     @endif
 
@@ -76,6 +88,12 @@
                         </x-nav-link>
                         <x-nav-link :href="route('customer.orders.index')" :active="request()->routeIs('customer.orders.*')">
                             {{ __('Orders') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('customer.wallet.index')" :active="request()->routeIs('customer.wallet.*')">
+                            {{ __('Wallet') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('customer.refunds.index')" :active="request()->routeIs('customer.refunds.*')">
+                            {{ __('Refunds') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -156,6 +174,12 @@
                 <x-responsive-nav-link :href="route('admin.deliveries.index')" :active="request()->routeIs('admin.deliveries.*')">
                     {{ __('Deliveries') }}
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.finance.index')" :active="request()->routeIs('admin.finance.*')">
+                    {{ __('Finance') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.refunds.index')" :active="request()->routeIs('admin.refunds.*')">
+                    {{ __('Refunds') }}
+                </x-responsive-nav-link>
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Vendor'))
@@ -168,6 +192,9 @@
                 <x-responsive-nav-link :href="route('vendor.orders.index')" :active="request()->routeIs('vendor.orders.*')">
                     {{ __('Orders') }}
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('vendor.earnings.index')" :active="request()->routeIs('vendor.earnings.*')">
+                    {{ __('Earnings') }}
+                </x-responsive-nav-link>
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Rider'))
@@ -176,6 +203,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('rider.deliveries.index')" :active="request()->routeIs('rider.deliveries.*')">
                     {{ __('Deliveries') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('rider.earnings.index')" :active="request()->routeIs('rider.earnings.*')">
+                    {{ __('Earnings') }}
                 </x-responsive-nav-link>
             @endif
 
@@ -194,6 +224,12 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('customer.orders.index')" :active="request()->routeIs('customer.orders.*')">
                     {{ __('Orders') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.wallet.index')" :active="request()->routeIs('customer.wallet.*')">
+                    {{ __('Wallet') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.refunds.index')" :active="request()->routeIs('customer.refunds.*')">
+                    {{ __('Refunds') }}
                 </x-responsive-nav-link>
             @endif
         </div>

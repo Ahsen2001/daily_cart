@@ -24,11 +24,13 @@ class Customer extends Model
         'district',
         'postal_code',
         'status',
+        'wallet_balance',
     ];
 
     protected function casts(): array
     {
         return [
+            'wallet_balance' => 'decimal:2',
             'deleted_at' => 'datetime',
         ];
     }

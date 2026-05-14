@@ -15,8 +15,11 @@ class Refund extends Model
         'order_id',
         'payment_id',
         'amount',
+        'refund_method',
         'reason',
+        'admin_note',
         'status',
+        'requested_at',
         'processed_at',
     ];
 
@@ -24,6 +27,7 @@ class Refund extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'requested_at' => 'datetime',
             'processed_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
