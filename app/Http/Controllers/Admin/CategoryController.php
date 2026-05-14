@@ -34,7 +34,7 @@ class CategoryController extends Controller
     public function store(CategoryRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['slug'] = $data['slug'] ?: Str::slug($data['name']);
+        $data['slug'] = $this->uniqueSlug(($data['slug'] ?? null) ?: $data['name']);
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('categories', 'public');
@@ -53,7 +53,7 @@ class CategoryController extends Controller
     public function update(CategoryRequest $request, Category $category): RedirectResponse
     {
         $data = $request->validated();
-        $data['slug'] = $data['slug'] ?: Str::slug($data['name']);
+        $data['slug'] = $this->uniqueSlug(($data['slug'] ?? null) ?: $data['name'], $category->id);
 
         if ($request->hasFile('image')) {
             if ($category->image) {
@@ -74,5 +74,22 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect()->route('admin.categories.index')->with('status', 'Category deactivated.');
+    }
+
+    private function uniqueSlug(string $slug, ?int $ignoreCategoryId = null): string
+    {
+        $base = Str::slug($slug);
+        $candidate = $base;
+        $counter = 2;
+
+        while (
+            Category::where('slug', $candidate)
+                ->when($ignoreCategoryId, fn ($query) => $query->whereKeyNot($ignoreCategoryId))
+                ->exists()
+        ) {
+            $candidate = $base.'-'.$counter++;
+        }
+
+        return $candidate;
     }
 }

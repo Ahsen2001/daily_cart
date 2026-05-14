@@ -26,11 +26,20 @@
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
                             {{ __('Admin') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
+                            {{ __('Products') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">
+                            {{ __('Categories') }}
+                        </x-nav-link>
                     @endif
 
                     @if (Auth::user()->hasPrimaryRole('Vendor'))
                         <x-nav-link :href="route('vendor.dashboard')" :active="request()->routeIs('vendor.*')">
                             {{ __('Vendor') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('vendor.products.index')" :active="request()->routeIs('vendor.products.*')">
+                            {{ __('My Products') }}
                         </x-nav-link>
                     @endif
 
@@ -43,6 +52,9 @@
                     @if (Auth::user()->hasPrimaryRole('Customer'))
                         <x-nav-link :href="route('customer.dashboard')" :active="request()->routeIs('customer.*')">
                             {{ __('Shopping') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('customer.products.index')" :active="request()->routeIs('customer.products.*')">
+                            {{ __('Products') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -111,11 +123,20 @@
                 <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
                     {{ __('Admin') }}
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
+                    {{ __('Products') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">
+                    {{ __('Categories') }}
+                </x-responsive-nav-link>
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Vendor'))
                 <x-responsive-nav-link :href="route('vendor.dashboard')" :active="request()->routeIs('vendor.*')">
                     {{ __('Vendor') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('vendor.products.index')" :active="request()->routeIs('vendor.products.*')">
+                    {{ __('My Products') }}
                 </x-responsive-nav-link>
             @endif
 
@@ -128,6 +149,9 @@
             @if (Auth::user()->hasPrimaryRole('Customer'))
                 <x-responsive-nav-link :href="route('customer.dashboard')" :active="request()->routeIs('customer.*')">
                     {{ __('Shopping') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.products.index')" :active="request()->routeIs('customer.products.*')">
+                    {{ __('Products') }}
                 </x-responsive-nav-link>
             @endif
         </div>

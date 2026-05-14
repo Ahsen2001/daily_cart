@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\RiderApprovalController;
 use App\Http\Controllers\Admin\VendorApprovalController;
+use App\Http\Controllers\Customer\ProductBrowseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Vendor\ProductController;
@@ -73,6 +74,8 @@ Route::middleware(['auth', 'verified', 'role:Rider'])->prefix('rider')->name('ri
 
 Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'customer'])->name('dashboard');
+    Route::get('/products', [ProductBrowseController::class, 'index'])->name('products.index');
+    Route::get('/products/{product}', [ProductBrowseController::class, 'show'])->name('products.show');
 });
 
 require __DIR__.'/auth.php';

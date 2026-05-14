@@ -59,6 +59,7 @@ class ProductController extends Controller
             $data['vendor_id'] = $vendor->id;
             $data['created_by'] = $request->user()->id;
             $data['status'] = $data['stock_quantity'] > 0 ? 'pending' : 'out_of_stock';
+            $data['slug'] = $this->uniqueSlug($data['slug'], $vendor->id);
 
             if ($request->hasFile('image')) {
                 $data['image'] = $request->file('image')->store('products', 'public');
@@ -101,6 +102,7 @@ class ProductController extends Controller
             $data = $this->productData($request->validated());
             $data['status'] = $data['stock_quantity'] > 0 ? 'pending' : 'out_of_stock';
             $data['is_featured'] = false;
+            $data['slug'] = $this->uniqueSlug($data['slug'], $product->vendor_id, $product->id);
 
             if ($request->hasFile('image')) {
                 if ($product->image) {
@@ -176,6 +178,24 @@ class ProductController extends Controller
             ['product_variant_id' => null],
             ['quantity' => $quantity, 'low_stock_threshold' => 5]
         );
+    }
+
+    private function uniqueSlug(string $slug, int $vendorId, ?int $ignoreProductId = null): string
+    {
+        $base = Str::slug($slug);
+        $candidate = $base;
+        $counter = 2;
+
+        while (
+            Product::where('vendor_id', $vendorId)
+                ->where('slug', $candidate)
+                ->when($ignoreProductId, fn ($query) => $query->whereKeyNot($ignoreProductId))
+                ->exists()
+        ) {
+            $candidate = $base.'-'.$counter++;
+        }
+
+        return $candidate;
     }
 
     private function storeImages(Product $product, Request $request): void

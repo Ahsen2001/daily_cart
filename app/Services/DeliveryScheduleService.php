@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 class DeliveryScheduleService
 {
     public const MINIMUM_LEAD_MINUTES = 30;
+    public const ERROR_MESSAGE = 'Delivery time must be at least 30 minutes after placing the order.';
 
     public function minimumDeliveryTime(?CarbonInterface $placedAt = null): CarbonInterface
     {

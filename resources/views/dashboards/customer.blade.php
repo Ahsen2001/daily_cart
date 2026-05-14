@@ -6,7 +6,7 @@
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="p-6 text-gray-900 bg-white shadow-sm sm:rounded-lg">
-                {{ __('Browse products, manage your cart, place orders, and track deliveries here.') }}
+                <a class="font-medium text-indigo-700 underline" href="{{ route('customer.products.index') }}">{{ __('Browse approved products') }}</a>
             </div>
         </div>
     </div>
