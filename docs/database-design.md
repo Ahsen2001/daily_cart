@@ -113,7 +113,7 @@ erDiagram
 
 ## LKR Currency Notes
 
-- Store all money values as `decimal(12, 2)`.
+- Store all money values as `decimal(10, 2)`.
 - Store `currency` as `LKR` only.
 - Do not use `float` or `double` for money columns.
 - Format display values through `App\Services\CurrencyService::formatLkr($amount)`.

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('order_id')->unique()->constrained()->cascadeOnDelete();
             $table->enum('payment_method', ['cash_on_delivery', 'card', 'bank_transfer', 'wallet']);
             $table->string('transaction_id')->nullable()->unique();
-            $table->decimal('amount', 12, 2);
+            $table->decimal('amount', 10, 2);
             $table->char('currency', 3)->default('LKR');
             $table->enum('status', ['pending', 'paid', 'failed', 'refunded', 'partially_refunded'])
                 ->default('pending')
@@ -69,7 +69,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('payment_id')->constrained()->cascadeOnDelete();
-            $table->decimal('amount', 12, 2);
+            $table->decimal('amount', 10, 2);
             $table->text('reason');
             $table->enum('status', ['requested', 'approved', 'rejected', 'processed', 'failed'])
                 ->default('requested')

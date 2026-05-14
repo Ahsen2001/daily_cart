@@ -49,7 +49,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->enum('type', ['credit', 'debit'])->index();
             $table->enum('source', ['refund', 'order_payment', 'admin_adjustment', 'loyalty_redeem']);
-            $table->decimal('amount', 12, 2);
+            $table->decimal('amount', 10, 2);
             $table->char('currency', 3)->default('LKR');
             $table->string('description')->nullable();
             $table->timestamps();
@@ -99,7 +99,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('vendor_id')->constrained()->cascadeOnDelete();
             $table->string('plan_name');
-            $table->decimal('price', 12, 2);
+            $table->decimal('price', 10, 2);
             $table->char('currency', 3)->default('LKR');
             $table->dateTime('starts_at');
             $table->dateTime('ends_at')->index();

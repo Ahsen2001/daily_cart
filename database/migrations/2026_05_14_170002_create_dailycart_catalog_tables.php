@@ -25,8 +25,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug');
             $table->text('description')->nullable();
-            $table->decimal('base_price', 12, 2);
-            $table->decimal('sale_price', 12, 2)->nullable();
+            $table->decimal('base_price', 10, 2);
+            $table->decimal('sale_price', 10, 2)->nullable();
             $table->string('unit')->default('item');
             $table->enum('status', ['draft', 'pending', 'active', 'inactive', 'rejected', 'out_of_stock'])
                 ->default('draft')
@@ -55,7 +55,7 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('sku')->nullable()->unique();
-            $table->decimal('price', 12, 2);
+            $table->decimal('price', 10, 2);
             $table->enum('status', ['active', 'inactive'])->default('active')->index();
             $table->timestamps();
         });

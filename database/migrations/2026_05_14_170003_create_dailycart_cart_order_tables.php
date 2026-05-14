@@ -13,9 +13,9 @@ return new class extends Migration
                 $table->id();
                 $table->string('code')->unique();
                 $table->enum('type', ['fixed', 'percentage']);
-                $table->decimal('value', 12, 2);
-                $table->decimal('minimum_order_amount', 12, 2)->default(0);
-                $table->decimal('max_discount_amount', 12, 2)->nullable();
+                $table->decimal('value', 10, 2);
+                $table->decimal('minimum_order_amount', 10, 2)->default(0);
+                $table->decimal('max_discount_amount', 10, 2)->nullable();
                 $table->unsignedInteger('usage_limit')->nullable();
                 $table->unsignedInteger('used_count')->default(0);
                 $table->timestamp('starts_at')->nullable();
@@ -43,7 +43,7 @@ return new class extends Migration
                 $table->foreignId('product_id')->constrained()->cascadeOnDelete();
                 $table->foreignId('product_variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
                 $table->unsignedInteger('quantity');
-                $table->decimal('unit_price', 12, 2);
+                $table->decimal('unit_price', 10, 2);
                 $table->timestamps();
 
                 $table->index(['cart_id', 'product_id']);
@@ -68,11 +68,11 @@ return new class extends Migration
                 $table->foreignId('customer_id')->constrained()->restrictOnDelete();
                 $table->foreignId('vendor_id')->constrained()->restrictOnDelete();
                 $table->foreignId('coupon_id')->nullable()->constrained()->nullOnDelete();
-                $table->decimal('subtotal', 12, 2);
-                $table->decimal('discount_amount', 12, 2)->default(0);
-                $table->decimal('delivery_fee', 12, 2)->default(0);
-                $table->decimal('tax_amount', 12, 2)->default(0);
-                $table->decimal('total_amount', 12, 2);
+                $table->decimal('subtotal', 10, 2);
+                $table->decimal('discount_amount', 10, 2)->default(0);
+                $table->decimal('delivery_fee', 10, 2)->default(0);
+                $table->decimal('tax_amount', 10, 2)->default(0);
+                $table->decimal('total_amount', 10, 2);
                 $table->char('currency', 3)->default('LKR');
                 $table->text('delivery_address');
                 $table->enum('order_status', [
@@ -115,8 +115,8 @@ return new class extends Migration
                 $table->foreignId('vendor_id')->constrained()->restrictOnDelete();
                 $table->string('product_name');
                 $table->unsignedInteger('quantity');
-                $table->decimal('unit_price', 12, 2);
-                $table->decimal('total_price', 12, 2);
+                $table->decimal('unit_price', 10, 2);
+                $table->decimal('total_price', 10, 2);
                 $table->timestamps();
 
                 $table->index(['order_id', 'product_id']);
