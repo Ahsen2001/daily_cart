@@ -32,6 +32,12 @@
                         <x-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">
                             {{ __('Categories') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
+                            {{ __('Orders') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('admin.deliveries.index')" :active="request()->routeIs('admin.deliveries.*')">
+                            {{ __('Deliveries') }}
+                        </x-nav-link>
                     @endif
 
                     @if (Auth::user()->hasPrimaryRole('Vendor'))
@@ -41,11 +47,17 @@
                         <x-nav-link :href="route('vendor.products.index')" :active="request()->routeIs('vendor.products.*')">
                             {{ __('My Products') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('vendor.orders.index')" :active="request()->routeIs('vendor.orders.*')">
+                            {{ __('Orders') }}
+                        </x-nav-link>
                     @endif
 
                     @if (Auth::user()->hasPrimaryRole('Rider'))
                         <x-nav-link :href="route('rider.dashboard')" :active="request()->routeIs('rider.*')">
                             {{ __('Rider') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('rider.deliveries.index')" :active="request()->routeIs('rider.deliveries.*')">
+                            {{ __('Deliveries') }}
                         </x-nav-link>
                     @endif
 
@@ -61,6 +73,9 @@
                         </x-nav-link>
                         <x-nav-link :href="route('customer.wishlist.index')" :active="request()->routeIs('customer.wishlist.*')">
                             {{ __('Wishlist') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('customer.orders.index')" :active="request()->routeIs('customer.orders.*')">
+                            {{ __('Orders') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -135,6 +150,12 @@
                 <x-responsive-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">
                     {{ __('Categories') }}
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
+                    {{ __('Orders') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.deliveries.index')" :active="request()->routeIs('admin.deliveries.*')">
+                    {{ __('Deliveries') }}
+                </x-responsive-nav-link>
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Vendor'))
@@ -144,11 +165,17 @@
                 <x-responsive-nav-link :href="route('vendor.products.index')" :active="request()->routeIs('vendor.products.*')">
                     {{ __('My Products') }}
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('vendor.orders.index')" :active="request()->routeIs('vendor.orders.*')">
+                    {{ __('Orders') }}
+                </x-responsive-nav-link>
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Rider'))
                 <x-responsive-nav-link :href="route('rider.dashboard')" :active="request()->routeIs('rider.*')">
                     {{ __('Rider') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('rider.deliveries.index')" :active="request()->routeIs('rider.deliveries.*')">
+                    {{ __('Deliveries') }}
                 </x-responsive-nav-link>
             @endif
 
@@ -164,6 +191,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('customer.wishlist.index')" :active="request()->routeIs('customer.wishlist.*')">
                     {{ __('Wishlist') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.orders.index')" :active="request()->routeIs('customer.orders.*')">
+                    {{ __('Orders') }}
                 </x-responsive-nav-link>
             @endif
         </div>

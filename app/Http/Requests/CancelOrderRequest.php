@@ -8,7 +8,12 @@ class CancelOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('cancel', $this->route('order')) ?? false;
+        $user = $this->user();
+        $order = $this->route('order');
+
+        return $user?->can('cancel', $order)
+            || $user?->can('manage', $order)
+            || $user?->isAdminUser();
     }
 
     public function rules(): array
