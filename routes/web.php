@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminFinanceController;
+use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminProductController;
+use App\Http\Controllers\Admin\AdminReviewController;
+use App\Http\Controllers\Admin\AdminSupportTicketController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DeliveryController;
 use App\Http\Controllers\Admin\RefundController as AdminRefundController;
@@ -14,18 +17,23 @@ use App\Http\Controllers\Customer\CustomerOrderController;
 use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\ProductBrowseController;
 use App\Http\Controllers\Customer\RefundController;
+use App\Http\Controllers\Customer\ReviewController;
 use App\Http\Controllers\Customer\WalletController;
 use App\Http\Controllers\Customer\WishlistController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Rider\RiderDeliveryController;
 use App\Http\Controllers\Rider\RiderEarningController;
+use App\Http\Controllers\SupportTicketController;
+use App\Http\Controllers\SupportTicketReplyController;
 use App\Http\Controllers\Vendor\ProductController;
 use App\Http\Controllers\Vendor\ProductImageController;
 use App\Http\Controllers\Vendor\ProductVariantController;
 use App\Http\Controllers\Vendor\VendorEarningController;
 use App\Http\Controllers\Vendor\VendorOrderController;
 use App\Http\Controllers\Vendor\VendorRefundController;
+use App\Http\Controllers\Vendor\VendorReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -40,6 +48,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::patch('/notifications/{notification}/unread', [NotificationController::class, 'markUnread'])->name('notifications.unread');
+
+    Route::get('/support-tickets', [SupportTicketController::class, 'index'])->name('support.tickets.index');
+    Route::get('/support-tickets/create', [SupportTicketController::class, 'create'])->name('support.tickets.create');
+    Route::post('/support-tickets', [SupportTicketController::class, 'store'])->name('support.tickets.store');
+    Route::get('/support-tickets/{ticket}', [SupportTicketController::class, 'show'])->name('support.tickets.show');
+    Route::post('/support-tickets/{ticket}/replies', [SupportTicketReplyController::class, 'store'])->name('support.tickets.replies.store');
 });
 
 Route::middleware(['auth', 'verified', 'role:Super Admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
@@ -78,6 +96,18 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::get('/refunds', [AdminRefundController::class, 'index'])->name('refunds.index');
     Route::patch('/refunds/{refund}/approve', [AdminRefundController::class, 'approve'])->name('refunds.approve');
     Route::patch('/refunds/{refund}/reject', [AdminRefundController::class, 'reject'])->name('refunds.reject');
+
+    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{notification}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
+
+    Route::get('/support-tickets', [AdminSupportTicketController::class, 'index'])->name('support-tickets.index');
+    Route::get('/support-tickets/{ticket}', [AdminSupportTicketController::class, 'show'])->name('support-tickets.show');
+    Route::patch('/support-tickets/{ticket}', [AdminSupportTicketController::class, 'update'])->name('support-tickets.update');
+    Route::post('/support-tickets/{ticket}/replies', [SupportTicketReplyController::class, 'store'])->name('support-tickets.replies.store');
+
+    Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+    Route::patch('/reviews/{review}/hide', [AdminReviewController::class, 'hide'])->name('reviews.hide');
+    Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
 Route::middleware(['auth', 'verified', 'role:Vendor'])->prefix('vendor')->name('vendor.')->group(function () {
@@ -100,6 +130,7 @@ Route::middleware(['auth', 'verified', 'role:Vendor'])->prefix('vendor')->name('
 
         Route::get('/earnings', [VendorEarningController::class, 'index'])->name('earnings.index');
         Route::get('/refunds', [VendorRefundController::class, 'index'])->name('refunds.index');
+        Route::get('/reviews', [VendorReviewController::class, 'index'])->name('reviews.index');
     });
 });
 
@@ -158,6 +189,9 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
     Route::get('/refunds', [RefundController::class, 'index'])->name('refunds.index');
     Route::get('/orders/{order}/refunds/create', [RefundController::class, 'create'])->name('refunds.create');
     Route::post('/orders/{order}/refunds', [RefundController::class, 'store'])->name('refunds.store');
+
+    Route::get('/orders/{order}/products/{product}/reviews/create', [ReviewController::class, 'create'])->name('reviews.create');
+    Route::post('/orders/{order}/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 });
 
 require __DIR__.'/auth.php';

@@ -15,6 +15,12 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
+                        {{ __('Notifications') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('support.tickets.index')" :active="request()->routeIs('support.tickets.*')">
+                        {{ __('Support') }}
+                    </x-nav-link>
 
                     @if (Auth::user()->hasPrimaryRole('Super Admin'))
                         <x-nav-link :href="route('super-admin.dashboard')" :active="request()->routeIs('super-admin.*')">
@@ -44,6 +50,12 @@
                         <x-nav-link :href="route('admin.refunds.index')" :active="request()->routeIs('admin.refunds.*')">
                             {{ __('Refunds') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('admin.support-tickets.index')" :active="request()->routeIs('admin.support-tickets.*')">
+                            {{ __('Tickets') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('admin.reviews.index')" :active="request()->routeIs('admin.reviews.*')">
+                            {{ __('Reviews') }}
+                        </x-nav-link>
                     @endif
 
                     @if (Auth::user()->hasPrimaryRole('Vendor'))
@@ -58,6 +70,9 @@
                         </x-nav-link>
                         <x-nav-link :href="route('vendor.earnings.index')" :active="request()->routeIs('vendor.earnings.*')">
                             {{ __('Earnings') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('vendor.reviews.index')" :active="request()->routeIs('vendor.reviews.*')">
+                            {{ __('Reviews') }}
                         </x-nav-link>
                     @endif
 
@@ -151,6 +166,12 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
+                {{ __('Notifications') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('support.tickets.index')" :active="request()->routeIs('support.tickets.*')">
+                {{ __('Support') }}
+            </x-responsive-nav-link>
 
             @if (Auth::user()->hasPrimaryRole('Super Admin'))
                 <x-responsive-nav-link :href="route('super-admin.dashboard')" :active="request()->routeIs('super-admin.*')">
@@ -180,6 +201,12 @@
                 <x-responsive-nav-link :href="route('admin.refunds.index')" :active="request()->routeIs('admin.refunds.*')">
                     {{ __('Refunds') }}
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.support-tickets.index')" :active="request()->routeIs('admin.support-tickets.*')">
+                    {{ __('Tickets') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.reviews.index')" :active="request()->routeIs('admin.reviews.*')">
+                    {{ __('Reviews') }}
+                </x-responsive-nav-link>
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Vendor'))
@@ -194,6 +221,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('vendor.earnings.index')" :active="request()->routeIs('vendor.earnings.*')">
                     {{ __('Earnings') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('vendor.reviews.index')" :active="request()->routeIs('vendor.reviews.*')">
+                    {{ __('Reviews') }}
                 </x-responsive-nav-link>
             @endif
 

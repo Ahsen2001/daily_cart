@@ -22,6 +22,7 @@ class OrderService
         private readonly CartService $cartService,
         private readonly CouponService $couponService,
         private readonly PaymentService $paymentService,
+        private readonly NotificationService $notificationService,
     ) {}
 
     /**
@@ -83,6 +84,8 @@ class OrderService
                 }
 
                 $this->paymentService->createPlaceholder($order, $data['payment_method']);
+                $this->notificationService->send($order->customer->user, 'Order placed', 'Order '.$order->order_number.' has been placed.', 'order_placed');
+                $this->notificationService->send($order->vendor->user, 'New order received', 'New order '.$order->order_number.' is waiting for action.', 'new_order');
                 $order->delivery()->create([
                     'pickup_address' => $order->vendor->address,
                     'delivery_address' => $order->delivery_address,
@@ -156,6 +159,8 @@ class OrderService
         if ($product->stock_quantity <= 0) {
             $product->update(['status' => 'out_of_stock']);
         }
+
+        $this->notificationService->lowStockAlert($product->refresh());
     }
 
     private function orderNumber(): string

@@ -18,6 +18,7 @@ class Review extends Model
         'order_id',
         'rating',
         'comment',
+        'image',
         'status',
     ];
 

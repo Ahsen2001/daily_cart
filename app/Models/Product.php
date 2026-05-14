@@ -117,4 +117,14 @@ class Product extends Model
     {
         return $query->approved()->whereHas('category', fn ($category) => $category->where('status', 'active'));
     }
+
+    public function averageRating(): float
+    {
+        return round((float) $this->reviews()->where('status', 'visible')->avg('rating'), 1);
+    }
+
+    public function reviewCount(): int
+    {
+        return $this->reviews()->where('status', 'visible')->count();
+    }
 }

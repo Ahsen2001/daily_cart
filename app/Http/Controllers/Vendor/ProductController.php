@@ -7,6 +7,7 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -130,7 +131,7 @@ class ProductController extends Controller
         return redirect()->route('vendor.products.index')->with('status', 'Product deleted.');
     }
 
-    public function updateStock(Request $request, Product $product): RedirectResponse
+    public function updateStock(Request $request, Product $product, NotificationService $notifications): RedirectResponse
     {
         $this->authorize('update', $product);
 
@@ -144,6 +145,7 @@ class ProductController extends Controller
         ]);
 
         $this->syncInventory($product, (int) $validated['stock_quantity']);
+        $notifications->lowStockAlert($product->refresh());
 
         return back()->with('status', 'Stock updated.');
     }

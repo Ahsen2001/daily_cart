@@ -45,6 +45,9 @@
                                     <div>
                                         <div class="font-medium text-gray-900">{{ $item->product_name }}</div>
                                         <div class="text-gray-500">{{ __('Quantity') }}: {{ $item->quantity }}</div>
+                                        @if ($item->product && $order->order_status === 'delivered' && ! \App\Models\Review::where('customer_id', Auth::user()->customer?->id)->where('order_id', $order->id)->where('product_id', $item->product_id)->exists())
+                                            <a href="{{ route('customer.reviews.create', [$order, $item->product]) }}" class="mt-1 inline-block text-xs font-medium text-indigo-700 underline">{{ __('Write review') }}</a>
+                                        @endif
                                     </div>
                                     <div class="font-medium">{{ \App\Services\CurrencyService::formatLkr($item->total_price) }}</div>
                                 </div>

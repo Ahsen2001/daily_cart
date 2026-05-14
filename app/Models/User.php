@@ -106,6 +106,11 @@ class User extends Authenticatable
         return $this->hasMany(SupportTicket::class);
     }
 
+    public function supportTicketReplies(): HasMany
+    {
+        return $this->hasMany(SupportTicketReply::class);
+    }
+
     public function walletTransactions(): HasMany
     {
         return $this->hasMany(WalletTransaction::class);
