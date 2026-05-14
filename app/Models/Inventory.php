@@ -11,6 +11,7 @@ class Inventory extends Model
     use HasFactory;
 
     protected $table = 'inventory';
+
     protected $guarded = [];
 
     public function product(): BelongsTo
