@@ -28,7 +28,7 @@ return new class extends Migration
             $table->foreignId('rider_id')->nullable()->constrained()->nullOnDelete();
             $table->text('pickup_address');
             $table->text('delivery_address');
-            $table->timestamp('scheduled_at')->index();
+            $table->dateTime('scheduled_at')->index();
             $table->timestamp('picked_up_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
             $table->enum('status', [
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->foreignId('rider_id')->constrained()->cascadeOnDelete();
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);
-            $table->timestamp('recorded_at')->index();
+            $table->dateTime('recorded_at')->index();
 
             $table->index(['rider_id', 'recorded_at']);
         });
@@ -61,7 +61,7 @@ return new class extends Migration
             $table->string('proof_image')->nullable();
             $table->string('customer_signature')->nullable();
             $table->text('note')->nullable();
-            $table->timestamp('submitted_at');
+            $table->dateTime('submitted_at');
             $table->timestamps();
         });
 

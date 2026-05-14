@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('coupons', function (Blueprint $table) {
+        if (! Schema::hasTable('coupons')) {
+            Schema::create('coupons', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique();
             $table->enum('type', ['fixed', 'percentage']);
@@ -23,16 +24,20 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['starts_at', 'expires_at']);
-        });
+            });
+        }
 
-        Schema::create('carts', function (Blueprint $table) {
+        if (! Schema::hasTable('carts')) {
+            Schema::create('carts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['active', 'converted', 'abandoned'])->default('active')->index();
             $table->timestamps();
-        });
+            });
+        }
 
-        Schema::create('cart_items', function (Blueprint $table) {
+        if (! Schema::hasTable('cart_items')) {
+            Schema::create('cart_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cart_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
@@ -42,18 +47,22 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['cart_id', 'product_id']);
-        });
+            });
+        }
 
-        Schema::create('wishlists', function (Blueprint $table) {
+        if (! Schema::hasTable('wishlists')) {
+            Schema::create('wishlists', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
 
             $table->unique(['customer_id', 'product_id']);
-        });
+            });
+        }
 
-        Schema::create('orders', function (Blueprint $table) {
+        if (! Schema::hasTable('orders')) {
+            Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number')->unique();
             $table->foreignId('customer_id')->constrained()->restrictOnDelete();
@@ -87,16 +96,18 @@ return new class extends Migration
                 'refunded',
                 'partially_refunded',
             ])->default('pending')->index();
-            $table->timestamp('placed_at');
-            $table->timestamp('scheduled_delivery_at')->index();
+            $table->dateTime('placed_at');
+            $table->dateTime('scheduled_delivery_at')->index();
             $table->timestamps();
 
             $table->index(['customer_id', 'order_status']);
             $table->index(['vendor_id', 'order_status']);
             $table->index('placed_at');
-        });
+            });
+        }
 
-        Schema::create('order_items', function (Blueprint $table) {
+        if (! Schema::hasTable('order_items')) {
+            Schema::create('order_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->restrictOnDelete();
@@ -110,7 +121,8 @@ return new class extends Migration
 
             $table->index(['order_id', 'product_id']);
             $table->index('vendor_id');
-        });
+            });
+        }
     }
 
     public function down(): void

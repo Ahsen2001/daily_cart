@@ -76,8 +76,8 @@ return new class extends Migration
             $table->string('image_path');
             $table->string('target_url')->nullable();
             $table->enum('placement', ['home_banner', 'category_banner', 'sidebar', 'product_page'])->index();
-            $table->timestamp('starts_at')->index();
-            $table->timestamp('ends_at')->index();
+            $table->dateTime('starts_at')->index();
+            $table->dateTime('ends_at')->index();
             $table->enum('status', ['pending', 'active', 'paused', 'expired', 'rejected'])->default('pending')->index();
             $table->timestamps();
         });
@@ -101,8 +101,8 @@ return new class extends Migration
             $table->string('plan_name');
             $table->decimal('price', 12, 2);
             $table->char('currency', 3)->default('LKR');
-            $table->timestamp('starts_at');
-            $table->timestamp('ends_at')->index();
+            $table->dateTime('starts_at');
+            $table->dateTime('ends_at')->index();
             $table->enum('status', ['active', 'expired', 'cancelled', 'pending'])->default('pending')->index();
             $table->timestamps();
 
