@@ -7,12 +7,29 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'order_number',
+        'customer_id',
+        'vendor_id',
+        'coupon_id',
+        'subtotal',
+        'discount_amount',
+        'delivery_fee',
+        'tax_amount',
+        'total_amount',
+        'currency',
+        'delivery_address',
+        'order_status',
+        'payment_status',
+        'placed_at',
+        'scheduled_delivery_at',
+    ];
 
     protected function casts(): array
     {
@@ -24,6 +41,7 @@ class Order extends Model
             'total_amount' => 'decimal:2',
             'placed_at' => 'datetime',
             'scheduled_delivery_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 
@@ -47,6 +65,11 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function orderItems(): HasMany
+    {
+        return $this->items();
+    }
+
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
@@ -60,5 +83,10 @@ class Order extends Model
     public function refunds(): HasMany
     {
         return $this->hasMany(Refund::class);
+    }
+
+    public function refund(): HasOne
+    {
+        return $this->hasOne(Refund::class);
     }
 }

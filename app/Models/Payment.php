@@ -5,18 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'order_id',
+        'payment_method',
+        'transaction_id',
+        'amount',
+        'currency',
+        'status',
+        'paid_at',
+    ];
 
     protected function casts(): array
     {
         return [
             'amount' => 'decimal:2',
             'paid_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 

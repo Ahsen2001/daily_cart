@@ -6,12 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Delivery extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'order_id',
+        'rider_id',
+        'pickup_address',
+        'delivery_address',
+        'scheduled_at',
+        'picked_up_at',
+        'delivered_at',
+        'status',
+    ];
 
     protected function casts(): array
     {
@@ -19,6 +29,7 @@ class Delivery extends Model
             'scheduled_at' => 'datetime',
             'picked_up_at' => 'datetime',
             'delivered_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 
@@ -35,5 +46,10 @@ class Delivery extends Model
     public function proofs(): HasMany
     {
         return $this->hasMany(DeliveryProof::class);
+    }
+
+    public function deliveryProofs(): HasMany
+    {
+        return $this->proofs();
     }
 }

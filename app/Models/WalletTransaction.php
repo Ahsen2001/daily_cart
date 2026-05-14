@@ -10,7 +10,14 @@ class WalletTransaction extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'type',
+        'source',
+        'amount',
+        'currency',
+        'description',
+    ];
 
     protected function casts(): array
     {

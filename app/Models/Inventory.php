@@ -12,7 +12,20 @@ class Inventory extends Model
 
     protected $table = 'inventory';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'product_id',
+        'product_variant_id',
+        'quantity',
+        'low_stock_threshold',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+            'low_stock_threshold' => 'integer',
+        ];
+    }
 
     public function product(): BelongsTo
     {

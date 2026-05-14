@@ -2,19 +2,19 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
     public function run(): void
     {
         collect([
-            'Customer',
-            'Vendor',
-            'Delivery Rider',
-            'Admin',
             'Super Admin',
+            'Admin',
+            'Vendor',
+            'Rider',
+            'Customer',
         ])->each(fn (string $role) => Role::findOrCreate($role, 'web'));
     }
 }

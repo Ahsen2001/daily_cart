@@ -10,12 +10,19 @@ class LoyaltyPoint extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'customer_id',
+        'order_id',
+        'points',
+        'type',
+        'expires_at',
+    ];
 
     protected function casts(): array
     {
         return [
             'expires_at' => 'datetime',
+            'points' => 'integer',
         ];
     }
 

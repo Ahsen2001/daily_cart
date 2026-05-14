@@ -12,7 +12,12 @@ class RiderLocation extends Model
 
     public $timestamps = false;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'rider_id',
+        'latitude',
+        'longitude',
+        'recorded_at',
+    ];
 
     protected function casts(): array
     {

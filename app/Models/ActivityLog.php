@@ -10,7 +10,14 @@ class ActivityLog extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'action',
+        'module',
+        'description',
+        'ip_address',
+        'user_agent',
+    ];
 
     public function user(): BelongsTo
     {

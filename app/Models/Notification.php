@@ -10,7 +10,13 @@ class Notification extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'title',
+        'message',
+        'type',
+        'read_at',
+    ];
 
     protected function casts(): array
     {

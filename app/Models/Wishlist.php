@@ -10,7 +10,10 @@ class Wishlist extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'customer_id',
+        'product_id',
+    ];
 
     public function customer(): BelongsTo
     {

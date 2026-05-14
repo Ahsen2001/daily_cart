@@ -8,6 +8,8 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\RiderRegistrationController;
+use App\Http\Controllers\Auth\VendorRegistrationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +18,18 @@ Route::middleware('guest')->group(function () {
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store']);
+
+    Route::get('vendor/register', [VendorRegistrationController::class, 'create'])
+        ->name('vendor.register');
+
+    Route::post('vendor/register', [VendorRegistrationController::class, 'store'])
+        ->name('vendor.register.store');
+
+    Route::get('rider/register', [RiderRegistrationController::class, 'create'])
+        ->name('rider.register');
+
+    Route::post('rider/register', [RiderRegistrationController::class, 'store'])
+        ->name('rider.register.store');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

@@ -50,6 +50,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (in_array(Auth::user()?->status, ['inactive', 'suspended'], true)) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'This account is not active.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

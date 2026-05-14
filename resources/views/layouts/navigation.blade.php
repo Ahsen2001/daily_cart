@@ -15,6 +15,36 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @if (Auth::user()->hasPrimaryRole('Super Admin'))
+                        <x-nav-link :href="route('super-admin.dashboard')" :active="request()->routeIs('super-admin.*')">
+                            {{ __('System') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if (Auth::user()->hasPrimaryRole('Admin', 'Super Admin'))
+                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
+                            {{ __('Admin') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if (Auth::user()->hasPrimaryRole('Vendor'))
+                        <x-nav-link :href="route('vendor.dashboard')" :active="request()->routeIs('vendor.*')">
+                            {{ __('Vendor') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if (Auth::user()->hasPrimaryRole('Rider'))
+                        <x-nav-link :href="route('rider.dashboard')" :active="request()->routeIs('rider.*')">
+                            {{ __('Rider') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if (Auth::user()->hasPrimaryRole('Customer'))
+                        <x-nav-link :href="route('customer.dashboard')" :active="request()->routeIs('customer.*')">
+                            {{ __('Shopping') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -70,6 +100,36 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if (Auth::user()->hasPrimaryRole('Super Admin'))
+                <x-responsive-nav-link :href="route('super-admin.dashboard')" :active="request()->routeIs('super-admin.*')">
+                    {{ __('System') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if (Auth::user()->hasPrimaryRole('Admin', 'Super Admin'))
+                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
+                    {{ __('Admin') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if (Auth::user()->hasPrimaryRole('Vendor'))
+                <x-responsive-nav-link :href="route('vendor.dashboard')" :active="request()->routeIs('vendor.*')">
+                    {{ __('Vendor') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if (Auth::user()->hasPrimaryRole('Rider'))
+                <x-responsive-nav-link :href="route('rider.dashboard')" :active="request()->routeIs('rider.*')">
+                    {{ __('Rider') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if (Auth::user()->hasPrimaryRole('Customer'))
+                <x-responsive-nav-link :href="route('customer.dashboard')" :active="request()->routeIs('customer.*')">
+                    {{ __('Shopping') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

@@ -10,7 +10,16 @@ class OrderItem extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'order_id',
+        'product_id',
+        'product_variant_id',
+        'vendor_id',
+        'product_name',
+        'quantity',
+        'unit_price',
+        'total_price',
+    ];
 
     protected function casts(): array
     {
