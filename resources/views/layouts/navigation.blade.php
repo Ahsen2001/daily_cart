@@ -56,6 +56,12 @@
                         <x-nav-link :href="route('customer.products.index')" :active="request()->routeIs('customer.products.*')">
                             {{ __('Products') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('customer.cart.index')" :active="request()->routeIs('customer.cart.*')">
+                            {{ __('Cart') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('customer.wishlist.index')" :active="request()->routeIs('customer.wishlist.*')">
+                            {{ __('Wishlist') }}
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -152,6 +158,12 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('customer.products.index')" :active="request()->routeIs('customer.products.*')">
                     {{ __('Products') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.cart.index')" :active="request()->routeIs('customer.cart.*')">
+                    {{ __('Cart') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.wishlist.index')" :active="request()->routeIs('customer.wishlist.*')">
+                    {{ __('Wishlist') }}
                 </x-responsive-nav-link>
             @endif
         </div>

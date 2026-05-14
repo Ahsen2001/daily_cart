@@ -4,7 +4,10 @@ use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\RiderApprovalController;
 use App\Http\Controllers\Admin\VendorApprovalController;
+use App\Http\Controllers\Customer\CartController;
+use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Customer\ProductBrowseController;
+use App\Http\Controllers\Customer\WishlistController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Vendor\ProductController;
@@ -76,6 +79,22 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
     Route::get('/dashboard', [DashboardController::class, 'customer'])->name('dashboard');
     Route::get('/products', [ProductBrowseController::class, 'index'])->name('products.index');
     Route::get('/products/{product}', [ProductBrowseController::class, 'show'])->name('products.show');
+
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/{product}', [CartController::class, 'store'])->name('cart.store');
+    Route::patch('/cart/items/{item}', [CartController::class, 'update'])->name('cart.items.update');
+    Route::delete('/cart/items/{item}', [CartController::class, 'destroy'])->name('cart.items.destroy');
+    Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/{product}', [WishlistController::class, 'store'])->name('wishlist.store');
+    Route::delete('/wishlist/{wishlist}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
+    Route::post('/wishlist/{wishlist}/move-to-cart', [WishlistController::class, 'moveToCart'])->name('wishlist.move-to-cart');
+
+    Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+    Route::post('/checkout/coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.coupon');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
 });
 
 require __DIR__.'/auth.php';

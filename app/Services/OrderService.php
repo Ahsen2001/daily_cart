@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Cart;
 use App\Models\CartItem;
-use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
@@ -16,6 +15,7 @@ use Illuminate\Validation\ValidationException;
 class OrderService
 {
     public const DELIVERY_CHARGE = 350.00;
+
     public const SERVICE_CHARGE_RATE = 0.02;
 
     public function __construct(
@@ -39,10 +39,11 @@ class OrderService
 
         return DB::transaction(function () use ($cart, $customer, $data) {
             $orders = [];
+            $couponApplied = false;
 
             foreach ($cart->items->groupBy(fn (CartItem $item) => $item->product->vendor_id) as $vendorId => $items) {
                 $subtotal = $items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity);
-                $coupon = $this->couponService->findValid($data['coupon_code'] ?? null, $subtotal, (int) $vendorId);
+                $coupon = $couponApplied ? null : $this->couponService->findValid($data['coupon_code'] ?? null, $subtotal, (int) $vendorId);
                 $discount = $this->couponService->discount($coupon, $subtotal);
                 $deliveryFee = self::DELIVERY_CHARGE;
                 $serviceCharge = round($subtotal * self::SERVICE_CHARGE_RATE, 2);
@@ -82,7 +83,15 @@ class OrderService
                 }
 
                 $this->paymentService->createPlaceholder($order, $data['payment_method']);
+                $order->delivery()->create([
+                    'pickup_address' => $order->vendor->address,
+                    'delivery_address' => $order->delivery_address,
+                    'scheduled_at' => $order->scheduled_delivery_at,
+                    'status' => 'pending',
+                ]);
+
                 $this->couponService->markUsed($coupon);
+                $couponApplied = $coupon !== null || $couponApplied;
 
                 $orders[] = $order;
             }

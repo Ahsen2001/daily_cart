@@ -44,6 +44,41 @@
                             </div>
                         </div>
                     @endif
+
+                    @if (session('status'))
+                        <div class="mt-6 text-sm font-medium text-green-700">{{ session('status') }}</div>
+                    @endif
+
+                    <form method="POST" action="{{ route('customer.cart.store', $product) }}" class="mt-6 space-y-4">
+                        @csrf
+
+                        @if ($product->variants->isNotEmpty())
+                            <div>
+                                <x-input-label for="product_variant_id" :value="__('Variant')" />
+                                <select id="product_variant_id" name="product_variant_id" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="">{{ __('Default') }}</option>
+                                    @foreach ($product->variants as $variant)
+                                        <option value="{{ $variant->id }}">{{ $variant->name }} · {{ \App\Services\CurrencyService::formatLkr($variant->price) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+
+                        <div>
+                            <x-input-label for="quantity" :value="__('Quantity')" />
+                            <x-text-input id="quantity" name="quantity" type="number" min="1" max="{{ $product->stock_quantity }}" value="1" class="block w-32 mt-1" />
+                            <x-input-error :messages="$errors->get('quantity')" class="mt-2" />
+                        </div>
+
+                        <div class="flex gap-3">
+                            <x-primary-button>{{ __('Add to Cart') }}</x-primary-button>
+                        </div>
+                    </form>
+
+                    <form method="POST" action="{{ route('customer.wishlist.store', $product) }}" class="mt-3">
+                        @csrf
+                        <x-secondary-button>{{ __('Add to Wishlist') }}</x-secondary-button>
+                    </form>
                 </div>
             </div>
         </div>
