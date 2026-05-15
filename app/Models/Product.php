@@ -36,6 +36,7 @@ class Product extends Model
         'unit',
         'status',
         'is_featured',
+        'is_subscription_eligible',
     ];
 
     protected function casts(): array
@@ -48,6 +49,7 @@ class Product extends Model
             'stock_quantity' => 'integer',
             'expiry_date' => 'date',
             'is_featured' => 'boolean',
+            'is_subscription_eligible' => 'boolean',
             'deleted_at' => 'datetime',
         ];
     }

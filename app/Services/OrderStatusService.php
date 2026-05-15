@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Notification as DailyCartNotification;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 use App\Notifications\OrderCancelledNotification;
 use App\Notifications\OrderConfirmedNotification;
@@ -32,6 +33,10 @@ class OrderStatusService
         $this->ensureStatus($order, 'pending', 'Vendor can confirm only pending orders.');
 
         return DB::transaction(function () use ($order) {
+            if ($order->subscription_id) {
+                $this->reduceSubscriptionOrderStock($order);
+            }
+
             $order->update(['order_status' => 'confirmed']);
             $this->notify($order->customer->user, new OrderConfirmedNotification($order));
 
@@ -104,6 +109,28 @@ class OrderStatusService
     {
         if ($order->order_status !== $expected) {
             throw ValidationException::withMessages(['order_status' => $message]);
+        }
+    }
+
+    private function reduceSubscriptionOrderStock(Order $order): void
+    {
+        $order->loadMissing('items.product.category');
+
+        foreach ($order->items as $item) {
+            $product = Product::whereKey($item->product_id)->lockForUpdate()->firstOrFail();
+
+            if ($product->status !== 'approved' || $product->stock_quantity < $item->quantity) {
+                throw ValidationException::withMessages([
+                    'stock' => 'A subscription product does not have enough stock to confirm this order.',
+                ]);
+            }
+
+            $product->decrement('stock_quantity', $item->quantity);
+            $product->inventory()->whereNull('product_variant_id')->decrement('quantity', $item->quantity);
+
+            if ($product->fresh()->stock_quantity <= 0) {
+                $product->update(['status' => 'out_of_stock']);
+            }
         }
     }
 }

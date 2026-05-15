@@ -18,6 +18,7 @@ class Order extends Model
         'customer_id',
         'vendor_id',
         'coupon_id',
+        'subscription_id',
         'subtotal',
         'discount_amount',
         'loyalty_points_redeemed',
@@ -65,6 +66,11 @@ class Order extends Model
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    public function subscription(): BelongsTo
+    {
+        return $this->belongsTo(Subscription::class);
     }
 
     public function items(): HasMany

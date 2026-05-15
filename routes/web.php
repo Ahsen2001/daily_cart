@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminPromotionController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminReviewController;
+use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Admin\AdminSupportTicketController;
 use App\Http\Controllers\Admin\AdvertisementController as AdminAdvertisementController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -29,6 +30,8 @@ use App\Http\Controllers\Customer\ProductBrowseController;
 use App\Http\Controllers\Customer\PromotionController;
 use App\Http\Controllers\Customer\RefundController;
 use App\Http\Controllers\Customer\ReviewController;
+use App\Http\Controllers\Customer\ScheduledOrderController;
+use App\Http\Controllers\Customer\SubscriptionController;
 use App\Http\Controllers\Customer\WalletController;
 use App\Http\Controllers\Customer\WishlistController;
 use App\Http\Controllers\DashboardController;
@@ -51,6 +54,7 @@ use App\Http\Controllers\Vendor\VendorPromotionController;
 use App\Http\Controllers\Vendor\VendorRefundController;
 use App\Http\Controllers\Vendor\VendorReportController;
 use App\Http\Controllers\Vendor\VendorReviewController;
+use App\Http\Controllers\Vendor\VendorSubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -139,6 +143,13 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::resource('advertisements', AdminAdvertisementController::class)->except(['show', 'destroy']);
     Route::get('/loyalty-settings', [AdminLoyaltySettingController::class, 'edit'])->name('loyalty-settings.edit');
     Route::patch('/loyalty-settings', [AdminLoyaltySettingController::class, 'update'])->name('loyalty-settings.update');
+
+    Route::get('/subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::patch('/subscriptions/{subscription}/pause', [AdminSubscriptionController::class, 'pause'])->name('subscriptions.pause');
+    Route::patch('/subscriptions/{subscription}/cancel', [AdminSubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+    Route::get('/subscription-products', [AdminSubscriptionController::class, 'eligibleProducts'])->name('subscriptions.products');
+    Route::patch('/subscription-products/{product}', [AdminSubscriptionController::class, 'updateEligibility'])->name('subscriptions.products.update');
+    Route::get('/scheduled-orders', [ScheduledOrderController::class, 'admin'])->name('scheduled-orders.index');
 });
 
 Route::middleware(['auth', 'verified', 'role:Vendor'])->prefix('vendor')->name('vendor.')->group(function () {
@@ -147,6 +158,8 @@ Route::middleware(['auth', 'verified', 'role:Vendor'])->prefix('vendor')->name('
     Route::middleware('vendor.approved')->group(function () {
         Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
         Route::get('/reports', [VendorReportController::class, 'index'])->name('reports.index');
+        Route::get('/subscriptions', [VendorSubscriptionController::class, 'index'])->name('subscriptions.index');
+        Route::get('/scheduled-orders', [VendorSubscriptionController::class, 'scheduledOrders'])->name('scheduled-orders.index');
         Route::resource('products', ProductController::class);
         Route::patch('/products/{product}/stock', [ProductController::class, 'updateStock'])->name('products.stock');
         Route::delete('/products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->name('products.images.destroy');
@@ -233,6 +246,13 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
     Route::get('/promotions', [PromotionController::class, 'index'])->name('promotions.index');
     Route::get('/advertisements', [AdvertisementController::class, 'index'])->name('advertisements.index');
     Route::get('/loyalty', [LoyaltyPointController::class, 'index'])->name('loyalty.index');
+    Route::get('/subscriptions/upcoming', [SubscriptionController::class, 'upcoming'])->name('subscriptions.upcoming');
+    Route::resource('subscriptions', SubscriptionController::class)->except(['destroy']);
+    Route::patch('/subscriptions/{subscription}/pause', [SubscriptionController::class, 'pause'])->name('subscriptions.pause');
+    Route::patch('/subscriptions/{subscription}/resume', [SubscriptionController::class, 'resume'])->name('subscriptions.resume');
+    Route::patch('/subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+    Route::get('/scheduled-orders', [ScheduledOrderController::class, 'index'])->name('scheduled-orders.index');
+    Route::patch('/scheduled-orders/{order}/cancel', [ScheduledOrderController::class, 'cancel'])->name('scheduled-orders.cancel');
 });
 
 require __DIR__.'/auth.php';
