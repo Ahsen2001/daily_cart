@@ -1,12 +1,15 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAnalyticsController;
 use App\Http\Controllers\Admin\AdminCouponController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminFinanceController;
 use App\Http\Controllers\Admin\AdminLoyaltySettingController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminPromotionController;
+use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminReviewController;
 use App\Http\Controllers\Admin\AdminSupportTicketController;
 use App\Http\Controllers\Admin\AdvertisementController as AdminAdvertisementController;
@@ -31,18 +34,22 @@ use App\Http\Controllers\Customer\WishlistController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Rider\RiderDashboardController;
 use App\Http\Controllers\Rider\RiderDeliveryController;
 use App\Http\Controllers\Rider\RiderEarningController;
+use App\Http\Controllers\Rider\RiderReportController;
 use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\SupportTicketReplyController;
 use App\Http\Controllers\Vendor\ProductController;
 use App\Http\Controllers\Vendor\ProductImageController;
 use App\Http\Controllers\Vendor\ProductVariantController;
 use App\Http\Controllers\Vendor\VendorCouponController;
+use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorEarningController;
 use App\Http\Controllers\Vendor\VendorOrderController;
 use App\Http\Controllers\Vendor\VendorPromotionController;
 use App\Http\Controllers\Vendor\VendorRefundController;
+use App\Http\Controllers\Vendor\VendorReportController;
 use App\Http\Controllers\Vendor\VendorReviewController;
 use Illuminate\Support\Facades\Route;
 
@@ -71,11 +78,19 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'role:Super Admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'superAdmin'])->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 });
 
 Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/analytics', [AdminAnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/reports/sales', [AdminReportController::class, 'sales'])->name('reports.sales');
+    Route::get('/reports/products', [AdminReportController::class, 'products'])->name('reports.products');
+    Route::get('/reports/vendors', [AdminReportController::class, 'vendors'])->name('reports.vendors');
+    Route::get('/reports/customers', [AdminReportController::class, 'customers'])->name('reports.customers');
+    Route::get('/reports/riders', [AdminReportController::class, 'riders'])->name('reports.riders');
+    Route::get('/reports/finance', [AdminReportController::class, 'finance'])->name('reports.finance');
+    Route::get('/reports/support', [AdminReportController::class, 'support'])->name('reports.support');
 
     Route::get('/vendors', [VendorApprovalController::class, 'index'])->name('vendors.index');
     Route::patch('/vendors/{vendor}/approve', [VendorApprovalController::class, 'approve'])->name('vendors.approve');
@@ -130,7 +145,8 @@ Route::middleware(['auth', 'verified', 'role:Vendor'])->prefix('vendor')->name('
     Route::get('/pending', [DashboardController::class, 'vendorPending'])->name('pending');
 
     Route::middleware('vendor.approved')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'vendor'])->name('dashboard');
+        Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/reports', [VendorReportController::class, 'index'])->name('reports.index');
         Route::resource('products', ProductController::class);
         Route::patch('/products/{product}/stock', [ProductController::class, 'updateStock'])->name('products.stock');
         Route::delete('/products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->name('products.images.destroy');
@@ -156,7 +172,8 @@ Route::middleware(['auth', 'verified', 'role:Rider'])->prefix('rider')->name('ri
     Route::get('/pending', [DashboardController::class, 'riderPending'])->name('pending');
 
     Route::middleware('rider.approved')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'rider'])->name('dashboard');
+        Route::get('/dashboard', [RiderDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/reports', [RiderReportController::class, 'index'])->name('reports.index');
         Route::get('/deliveries', [RiderDeliveryController::class, 'index'])->name('deliveries.index');
         Route::get('/deliveries/earnings', [RiderDeliveryController::class, 'earnings'])->name('deliveries.earnings');
         Route::get('/deliveries/{delivery}', [RiderDeliveryController::class, 'show'])->name('deliveries.show');

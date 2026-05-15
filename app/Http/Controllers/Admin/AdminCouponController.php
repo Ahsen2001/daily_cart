@@ -20,7 +20,10 @@ class AdminCouponController extends Controller
 
     public function create(): View
     {
-        return view('admin.coupons.create', ['coupon' => new Coupon, 'vendors' => Vendor::orderBy('store_name')->get()]);
+        return view('admin.coupons.create', [
+            'coupon' => new Coupon(),
+            'vendors' => Vendor::orderBy('store_name', 'asc')->get(),
+        ]);
     }
 
     public function store(StoreCouponRequest $request): RedirectResponse
@@ -32,7 +35,7 @@ class AdminCouponController extends Controller
 
     public function edit(Coupon $coupon): View
     {
-        return view('admin.coupons.edit', ['coupon' => $coupon, 'vendors' => Vendor::orderBy('store_name')->get()]);
+        return view('admin.coupons.edit', ['coupon' => $coupon, 'vendors' => Vendor::orderBy('store_name', 'asc')->get()]);
     }
 
     public function update(StoreCouponRequest $request, Coupon $coupon): RedirectResponse
