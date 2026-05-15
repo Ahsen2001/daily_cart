@@ -20,6 +20,8 @@ class Order extends Model
         'coupon_id',
         'subtotal',
         'discount_amount',
+        'loyalty_points_redeemed',
+        'loyalty_discount_amount',
         'delivery_fee',
         'service_charge',
         'tax_amount',
@@ -38,6 +40,8 @@ class Order extends Model
         return [
             'subtotal' => 'decimal:2',
             'discount_amount' => 'decimal:2',
+            'loyalty_discount_amount' => 'decimal:2',
+            'loyalty_points_redeemed' => 'integer',
             'delivery_fee' => 'decimal:2',
             'service_charge' => 'decimal:2',
             'tax_amount' => 'decimal:2',

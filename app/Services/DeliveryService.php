@@ -14,7 +14,10 @@ use Illuminate\Validation\ValidationException;
 
 class DeliveryService
 {
-    public function __construct(private readonly OrderStatusService $orderStatusService) {}
+    public function __construct(
+        private readonly OrderStatusService $orderStatusService,
+        private readonly LoyaltyPointService $loyaltyPointService,
+    ) {}
 
     public function assignRider(Order $order, Rider $rider): Delivery
     {
@@ -113,6 +116,7 @@ class DeliveryService
             }
 
             $delivery->rider?->update(['availability_status' => 'available']);
+            $this->loyaltyPointService->earnForOrder($order->refresh());
             $this->orderStatusService->notify($order->customer->user, new OrderDeliveredNotification($order));
 
             return $delivery->refresh();

@@ -7,19 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Advertisement extends Model
+class Promotion extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'vendor_id',
         'title',
-        'image_path',
-        'link_type',
-        'link_id',
-        'position',
-        'target_url',
-        'placement',
+        'description',
+        'promotion_type',
+        'target_type',
+        'target_id',
+        'discount_type',
+        'discount_value',
+        'banner_image',
         'starts_at',
         'ends_at',
         'status',
@@ -31,6 +32,7 @@ class Advertisement extends Model
     protected function casts(): array
     {
         return [
+            'discount_value' => 'decimal:2',
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'deleted_at' => 'datetime',

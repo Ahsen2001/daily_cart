@@ -70,6 +70,11 @@ class Customer extends Model
         return $this->hasMany(LoyaltyPoint::class);
     }
 
+    public function loyaltyBalance(): int
+    {
+        return (int) ($this->loyaltyPoints()->latest('id')->value('balance_after') ?? 0);
+    }
+
     public function walletTransactions(): HasMany
     {
         return $this->hasMany(WalletTransaction::class, 'user_id', 'user_id');

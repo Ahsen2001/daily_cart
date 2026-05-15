@@ -25,6 +25,8 @@ class OrderStatusService
         'refunded',
     ];
 
+    public function __construct(private readonly LoyaltyPointService $loyaltyPoints) {}
+
     public function confirm(Order $order): Order
     {
         $this->ensureStatus($order, 'pending', 'Vendor can confirm only pending orders.');
@@ -60,6 +62,8 @@ class OrderStatusService
                 'order_status' => 'cancelled',
                 'cancellation_reason' => $reason,
             ]);
+
+            $this->loyaltyPoints->reverseForOrder($order, 'Reversed because order was cancelled.');
 
             $this->notify($order->customer->user, new OrderCancelledNotification($order));
 

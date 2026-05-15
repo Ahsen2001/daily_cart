@@ -17,6 +17,7 @@ class RefundService
         private readonly WalletService $wallets,
         private readonly PaymentService $payments,
         private readonly OrderStatusService $notifications,
+        private readonly LoyaltyPointService $loyaltyPoints,
     ) {}
 
     public function request(Order $order, float $amount, string $reason): Refund
@@ -77,6 +78,7 @@ class RefundService
 
             $this->payments->markRefunded($payment);
             $order->update(['order_status' => 'refunded']);
+            $this->loyaltyPoints->reverseForOrder($order, 'Reversed because order was refunded.');
             $this->notifications->notify($order->customer->user, new RefundApprovedNotification($refund));
 
             return $refund->refresh();

@@ -1,21 +1,29 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminCouponController;
 use App\Http\Controllers\Admin\AdminFinanceController;
+use App\Http\Controllers\Admin\AdminLoyaltySettingController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminProductController;
+use App\Http\Controllers\Admin\AdminPromotionController;
 use App\Http\Controllers\Admin\AdminReviewController;
 use App\Http\Controllers\Admin\AdminSupportTicketController;
+use App\Http\Controllers\Admin\AdvertisementController as AdminAdvertisementController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DeliveryController;
 use App\Http\Controllers\Admin\RefundController as AdminRefundController;
 use App\Http\Controllers\Admin\RiderApprovalController;
 use App\Http\Controllers\Admin\VendorApprovalController;
+use App\Http\Controllers\Customer\AdvertisementController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CheckoutController;
+use App\Http\Controllers\Customer\CouponController;
 use App\Http\Controllers\Customer\CustomerOrderController;
+use App\Http\Controllers\Customer\LoyaltyPointController;
 use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\ProductBrowseController;
+use App\Http\Controllers\Customer\PromotionController;
 use App\Http\Controllers\Customer\RefundController;
 use App\Http\Controllers\Customer\ReviewController;
 use App\Http\Controllers\Customer\WalletController;
@@ -30,8 +38,10 @@ use App\Http\Controllers\SupportTicketReplyController;
 use App\Http\Controllers\Vendor\ProductController;
 use App\Http\Controllers\Vendor\ProductImageController;
 use App\Http\Controllers\Vendor\ProductVariantController;
+use App\Http\Controllers\Vendor\VendorCouponController;
 use App\Http\Controllers\Vendor\VendorEarningController;
 use App\Http\Controllers\Vendor\VendorOrderController;
+use App\Http\Controllers\Vendor\VendorPromotionController;
 use App\Http\Controllers\Vendor\VendorRefundController;
 use App\Http\Controllers\Vendor\VendorReviewController;
 use Illuminate\Support\Facades\Route;
@@ -108,6 +118,12 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
     Route::patch('/reviews/{review}/hide', [AdminReviewController::class, 'hide'])->name('reviews.hide');
     Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    Route::resource('coupons', AdminCouponController::class)->except(['show', 'destroy']);
+    Route::resource('promotions', AdminPromotionController::class)->except(['show', 'destroy']);
+    Route::resource('advertisements', AdminAdvertisementController::class)->except(['show', 'destroy']);
+    Route::get('/loyalty-settings', [AdminLoyaltySettingController::class, 'edit'])->name('loyalty-settings.edit');
+    Route::patch('/loyalty-settings', [AdminLoyaltySettingController::class, 'update'])->name('loyalty-settings.update');
 });
 
 Route::middleware(['auth', 'verified', 'role:Vendor'])->prefix('vendor')->name('vendor.')->group(function () {
@@ -131,6 +147,8 @@ Route::middleware(['auth', 'verified', 'role:Vendor'])->prefix('vendor')->name('
         Route::get('/earnings', [VendorEarningController::class, 'index'])->name('earnings.index');
         Route::get('/refunds', [VendorRefundController::class, 'index'])->name('refunds.index');
         Route::get('/reviews', [VendorReviewController::class, 'index'])->name('reviews.index');
+        Route::resource('coupons', VendorCouponController::class)->except(['show', 'destroy']);
+        Route::resource('promotions', VendorPromotionController::class)->except(['show', 'destroy']);
     });
 });
 
@@ -170,6 +188,7 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
 
     Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
     Route::post('/checkout/coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.coupon');
+    Route::post('/checkout/loyalty', [CheckoutController::class, 'applyLoyalty'])->name('checkout.loyalty');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
 
@@ -192,6 +211,11 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
 
     Route::get('/orders/{order}/products/{product}/reviews/create', [ReviewController::class, 'create'])->name('reviews.create');
     Route::post('/orders/{order}/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+
+    Route::get('/coupons', [CouponController::class, 'index'])->name('coupons.index');
+    Route::get('/promotions', [PromotionController::class, 'index'])->name('promotions.index');
+    Route::get('/advertisements', [AdvertisementController::class, 'index'])->name('advertisements.index');
+    Route::get('/loyalty', [LoyaltyPointController::class, 'index'])->name('loyalty.index');
 });
 
 require __DIR__.'/auth.php';

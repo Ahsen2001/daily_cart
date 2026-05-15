@@ -19,6 +19,7 @@
                         @csrf
 
                         <input type="hidden" name="coupon_code" value="{{ $couponCode }}">
+                        <input type="hidden" name="loyalty_points" value="{{ $loyaltyPoints }}">
 
                         <div>
                             <x-input-label for="delivery_address" :value="__('Delivery Address')" />
@@ -56,9 +57,16 @@
                         <x-secondary-button>{{ __('Apply') }}</x-secondary-button>
                     </form>
 
+                    <form method="POST" action="{{ route('customer.checkout.loyalty') }}" class="flex gap-2 mt-4">
+                        @csrf
+                        <x-text-input name="loyalty_points" type="number" min="0" placeholder="Loyalty points" :value="$loyaltyPoints" />
+                        <x-secondary-button>{{ __('Redeem') }}</x-secondary-button>
+                    </form>
+
                     <dl class="mt-6 space-y-3 text-sm">
                         <div class="flex justify-between"><dt>{{ __('Subtotal') }}</dt><dd>{{ \App\Services\CurrencyService::formatLkr($quote['subtotal']) }}</dd></div>
                         <div class="flex justify-between"><dt>{{ __('Discount') }}</dt><dd>{{ \App\Services\CurrencyService::formatLkr($quote['discount']) }}</dd></div>
+                        <div class="flex justify-between"><dt>{{ __('Loyalty Discount') }}</dt><dd>{{ \App\Services\CurrencyService::formatLkr($quote['loyalty_discount']) }}</dd></div>
                         <div class="flex justify-between"><dt>{{ __('Delivery Charge') }}</dt><dd>{{ \App\Services\CurrencyService::formatLkr($quote['delivery_fee']) }}</dd></div>
                         <div class="flex justify-between"><dt>{{ __('Service Charge') }}</dt><dd>{{ \App\Services\CurrencyService::formatLkr($quote['service_charge']) }}</dd></div>
                         <div class="flex justify-between border-t border-gray-100 pt-3 text-base font-semibold"><dt>{{ __('Grand Total') }}</dt><dd>{{ \App\Services\CurrencyService::formatLkr($quote['grand_total']) }}</dd></div>

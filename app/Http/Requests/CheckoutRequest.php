@@ -21,6 +21,7 @@ class CheckoutRequest extends FormRequest
             'scheduled_delivery_at' => ['required', 'date'],
             'payment_method' => ['required', Rule::in(['cash_on_delivery', 'card', 'bank_transfer', 'wallet'])],
             'coupon_code' => ['nullable', 'string', 'max:255'],
+            'loyalty_points' => ['nullable', 'integer', 'min:0'],
         ];
     }
 

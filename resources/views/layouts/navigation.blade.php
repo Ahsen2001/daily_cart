@@ -56,6 +56,15 @@
                         <x-nav-link :href="route('admin.reviews.index')" :active="request()->routeIs('admin.reviews.*')">
                             {{ __('Reviews') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('admin.coupons.index')" :active="request()->routeIs('admin.coupons.*')">
+                            {{ __('Coupons') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('admin.promotions.index')" :active="request()->routeIs('admin.promotions.*')">
+                            {{ __('Promotions') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('admin.advertisements.index')" :active="request()->routeIs('admin.advertisements.*')">
+                            {{ __('Ads') }}
+                        </x-nav-link>
                     @endif
 
                     @if (Auth::user()->hasPrimaryRole('Vendor'))
@@ -73,6 +82,12 @@
                         </x-nav-link>
                         <x-nav-link :href="route('vendor.reviews.index')" :active="request()->routeIs('vendor.reviews.*')">
                             {{ __('Reviews') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('vendor.coupons.index')" :active="request()->routeIs('vendor.coupons.*')">
+                            {{ __('Coupons') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('vendor.promotions.index')" :active="request()->routeIs('vendor.promotions.*')">
+                            {{ __('Promotions') }}
                         </x-nav-link>
                     @endif
 
@@ -109,6 +124,12 @@
                         </x-nav-link>
                         <x-nav-link :href="route('customer.refunds.index')" :active="request()->routeIs('customer.refunds.*')">
                             {{ __('Refunds') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('customer.coupons.index')" :active="request()->routeIs('customer.coupons.*')">
+                            {{ __('Coupons') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('customer.loyalty.index')" :active="request()->routeIs('customer.loyalty.*')">
+                            {{ __('Loyalty') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -207,6 +228,15 @@
                 <x-responsive-nav-link :href="route('admin.reviews.index')" :active="request()->routeIs('admin.reviews.*')">
                     {{ __('Reviews') }}
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.coupons.index')" :active="request()->routeIs('admin.coupons.*')">
+                    {{ __('Coupons') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.promotions.index')" :active="request()->routeIs('admin.promotions.*')">
+                    {{ __('Promotions') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.advertisements.index')" :active="request()->routeIs('admin.advertisements.*')">
+                    {{ __('Ads') }}
+                </x-responsive-nav-link>
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Vendor'))
@@ -224,6 +254,12 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('vendor.reviews.index')" :active="request()->routeIs('vendor.reviews.*')">
                     {{ __('Reviews') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('vendor.coupons.index')" :active="request()->routeIs('vendor.coupons.*')">
+                    {{ __('Coupons') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('vendor.promotions.index')" :active="request()->routeIs('vendor.promotions.*')">
+                    {{ __('Promotions') }}
                 </x-responsive-nav-link>
             @endif
 
@@ -260,6 +296,12 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('customer.refunds.index')" :active="request()->routeIs('customer.refunds.*')">
                     {{ __('Refunds') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.coupons.index')" :active="request()->routeIs('customer.coupons.*')">
+                    {{ __('Coupons') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('customer.loyalty.index')" :active="request()->routeIs('customer.loyalty.*')">
+                    {{ __('Loyalty') }}
                 </x-responsive-nav-link>
             @endif
         </div>

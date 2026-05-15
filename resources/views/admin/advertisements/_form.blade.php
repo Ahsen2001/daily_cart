@@ -1,0 +1,15 @@
+@csrf
+@isset($method) @method($method) @endisset
+<div class="grid gap-4 md:grid-cols-2">
+    <div><x-input-label for="title" :value="__('Title')" /><x-text-input id="title" name="title" class="mt-1 w-full" :value="old('title', $advertisement->title)" required /></div>
+    <div><x-input-label for="vendor_id" :value="__('Vendor')" /><select id="vendor_id" name="vendor_id" class="mt-1 w-full rounded-md border-gray-300 shadow-sm"><option value="">{{ __('No vendor') }}</option>@foreach($vendors as $vendor)<option value="{{ $vendor->id }}" @selected(old('vendor_id', $advertisement->vendor_id) == $vendor->id)>{{ $vendor->store_name }}</option>@endforeach</select></div>
+    <div><x-input-label for="image" :value="__('Image')" /><input id="image" type="file" name="image" class="mt-1 text-sm" accept="image/*"></div>
+    <div><x-input-label for="position" :value="__('Position')" /><select id="position" name="position" class="mt-1 w-full rounded-md border-gray-300 shadow-sm">@foreach(['homepage_slider','homepage_banner','category_banner','sidebar','product_page'] as $position)<option value="{{ $position }}" @selected(old('position', $advertisement->position) === $position)>{{ str_replace('_',' ',ucfirst($position)) }}</option>@endforeach</select></div>
+    <div><x-input-label for="link_type" :value="__('Link Type')" /><select id="link_type" name="link_type" class="mt-1 w-full rounded-md border-gray-300 shadow-sm">@foreach(['product','category','vendor','url'] as $type)<option value="{{ $type }}" @selected(old('link_type', $advertisement->link_type ?? 'url') === $type)>{{ ucfirst($type) }}</option>@endforeach</select></div>
+    <div><x-input-label for="link_id" :value="__('Link ID')" /><x-text-input id="link_id" name="link_id" type="number" class="mt-1 w-full" :value="old('link_id', $advertisement->link_id)" /></div>
+    <div class="md:col-span-2"><x-input-label for="target_url" :value="__('Target URL')" /><x-text-input id="target_url" name="target_url" class="mt-1 w-full" :value="old('target_url', $advertisement->target_url)" /></div>
+    <div><x-input-label for="starts_at" :value="__('Starts At')" /><x-text-input id="starts_at" name="starts_at" type="datetime-local" class="mt-1 w-full" :value="old('starts_at', optional($advertisement->starts_at)->format('Y-m-d\TH:i'))" required /></div>
+    <div><x-input-label for="ends_at" :value="__('Ends At')" /><x-text-input id="ends_at" name="ends_at" type="datetime-local" class="mt-1 w-full" :value="old('ends_at', optional($advertisement->ends_at)->format('Y-m-d\TH:i'))" required /></div>
+    <div><x-input-label for="status" :value="__('Status')" /><select id="status" name="status" class="mt-1 w-full rounded-md border-gray-300 shadow-sm">@foreach(['active','inactive','expired'] as $status)<option value="{{ $status }}" @selected(old('status', $advertisement->status ?? 'active') === $status)>{{ ucfirst($status) }}</option>@endforeach</select></div>
+</div>
+<div class="mt-6"><x-primary-button>{{ __('Save Advertisement') }}</x-primary-button></div>
