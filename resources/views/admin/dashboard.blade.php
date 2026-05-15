@@ -4,6 +4,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ __('Admin Dashboard') }}</h2>
+            <x-application-logo :show-text="false" />
             <div class="flex flex-wrap gap-2 text-sm">
                 <a class="rounded bg-indigo-600 px-3 py-2 text-white" href="{{ route('admin.analytics.index') }}">{{ __('Analytics') }}</a>
                 <a class="rounded bg-gray-800 px-3 py-2 text-white" href="{{ route('admin.reports.sales') }}">{{ __('Reports') }}</a>

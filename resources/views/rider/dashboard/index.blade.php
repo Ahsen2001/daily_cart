@@ -4,6 +4,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-xl font-semibold text-gray-800">{{ __('Rider Dashboard') }}</h2>
+            <x-application-logo :show-text="false" />
             <a class="rounded bg-indigo-600 px-3 py-2 text-sm text-white" href="{{ route('rider.reports.index') }}">{{ __('View reports') }}</a>
         </div>
     </x-slot>
