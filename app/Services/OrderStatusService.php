@@ -39,6 +39,7 @@ class OrderStatusService
 
             $order->update(['order_status' => 'confirmed']);
             $this->notify($order->customer->user, new OrderConfirmedNotification($order));
+            app(ExternalEmailService::class)->orderStatus($order->loadMissing('customer.user'), 'Your order '.$order->order_number.' has been confirmed.');
 
             return $order->refresh();
         });
@@ -51,6 +52,7 @@ class OrderStatusService
         return DB::transaction(function () use ($order) {
             $order->update(['order_status' => 'packed']);
             $this->notify($order->customer->user, new OrderPackedNotification($order));
+            app(ExternalEmailService::class)->orderStatus($order->loadMissing('customer.user'), 'Your order '.$order->order_number.' has been packed.');
 
             return $order->refresh();
         });
@@ -71,6 +73,7 @@ class OrderStatusService
             $this->loyaltyPoints->reverseForOrder($order, 'Reversed because order was cancelled.');
 
             $this->notify($order->customer->user, new OrderCancelledNotification($order));
+            app(ExternalEmailService::class)->orderStatus($order->loadMissing('customer.user'), 'Your order '.$order->order_number.' has been cancelled.');
 
             return $order->refresh();
         });

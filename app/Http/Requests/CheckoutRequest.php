@@ -18,6 +18,9 @@ class CheckoutRequest extends FormRequest
     {
         return [
             'delivery_address' => ['required', 'string', 'max:1000'],
+            'delivery_latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'delivery_longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'delivery_distance_meters' => ['nullable', 'integer', 'min:0'],
             'scheduled_delivery_at' => ['required', 'date'],
             'payment_method' => ['required', Rule::in(['cash_on_delivery', 'card', 'bank_transfer', 'wallet'])],
             'coupon_code' => ['nullable', 'string', 'max:255'],

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Rider;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\ExternalEmailService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class RiderRegistrationController extends Controller
         return view('auth.register-rider');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ExternalEmailService $emails): RedirectResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -57,6 +58,7 @@ class RiderRegistrationController extends Controller
         $user->assignRole($role->name);
 
         event(new Registered($user));
+        $emails->welcome($user);
 
         Auth::login($user);
 

@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    'google_maps' => [
+        'browser_key' => env('GOOGLE_MAPS_BROWSER_KEY', env('GOOGLE_MAPS_API_KEY')),
+        'server_key' => env('GOOGLE_MAPS_SERVER_KEY', env('GOOGLE_MAPS_API_KEY')),
+    ],
+
+    'payhere' => [
+        'merchant_id' => env('PAYHERE_MERCHANT_ID'),
+        'merchant_secret' => env('PAYHERE_MERCHANT_SECRET'),
+        'sandbox' => env('PAYHERE_SANDBOX', true),
+    ],
+
+    'otp' => [
+        'login_enabled' => env('OTP_LOGIN_ENABLED', false),
+        'expires_minutes' => env('OTP_EXPIRES_MINUTES', 10),
+    ],
+
 ];

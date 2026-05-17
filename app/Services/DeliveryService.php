@@ -118,6 +118,7 @@ class DeliveryService
             $delivery->rider?->update(['availability_status' => 'available']);
             $this->loyaltyPointService->earnForOrder($order->refresh());
             $this->orderStatusService->notify($order->customer->user, new OrderDeliveredNotification($order));
+            app(ExternalEmailService::class)->orderStatus($order->loadMissing('customer.user'), 'Your order '.$order->order_number.' has been delivered. Your printable receipt is now available.');
 
             return $delivery->refresh();
         });

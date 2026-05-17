@@ -20,6 +20,9 @@ class Vendor extends Model
         'address',
         'city',
         'district',
+        'latitude',
+        'longitude',
+        'formatted_address',
         'commission_rate',
         'status',
         'approved_at',
@@ -30,6 +33,8 @@ class Vendor extends Model
         return [
             'approved_at' => 'datetime',
             'commission_rate' => 'decimal:2',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
             'deleted_at' => 'datetime',
         ];
     }

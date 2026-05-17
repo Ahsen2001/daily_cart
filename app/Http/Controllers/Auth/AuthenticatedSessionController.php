@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\RoleRedirector;
+use App\Services\OtpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,9 +24,21 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request, RoleRedirector $redirector): RedirectResponse
+    public function store(LoginRequest $request, RoleRedirector $redirector, OtpService $otps): RedirectResponse
     {
         $request->authenticate();
+
+        if (config('services.otp.login_enabled')) {
+            $user = $request->user();
+            $remember = $request->boolean('remember');
+
+            Auth::guard('web')->logout();
+            $request->session()->put('otp_login_user_id', $user->id);
+            $request->session()->put('otp_login_remember', $remember);
+            $otps->send($user, 'login');
+
+            return redirect()->route('login.otp')->with('status', 'A login OTP has been sent to your email.');
+        }
 
         $request->session()->regenerate();
 

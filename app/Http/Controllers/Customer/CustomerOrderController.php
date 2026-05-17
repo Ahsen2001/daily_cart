@@ -27,7 +27,8 @@ class CustomerOrderController extends Controller
         $this->authorize('view', $order);
 
         return view('customer.orders.show', [
-            'order' => $order->load(['items.product', 'vendor', 'payment', 'delivery.rider.user', 'delivery.proofs']),
+            'order' => $order->load(['items.product', 'vendor', 'payment', 'delivery.rider.user', 'delivery.rider.locations', 'delivery.proofs']),
+            'googleMapsBrowserKey' => config('services.google_maps.browser_key'),
         ]);
     }
 

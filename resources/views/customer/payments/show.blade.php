@@ -18,6 +18,12 @@
                 </div>
 
                 @if ($order->payment && in_array($order->payment->payment_method, ['card', 'bank_transfer'], true) && $order->payment->status === 'pending')
+                    @if ($order->payment->payment_method === 'card')
+                        <div class="mt-6">
+                            <a href="{{ route('customer.payments.payhere', $order->payment) }}" class="inline-flex rounded bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700">{{ __('Pay with PayHere') }}</a>
+                        </div>
+                    @endif
+
                     <form method="POST" action="{{ route('customer.payments.process', $order->payment) }}" class="mt-6 flex gap-3">
                         @csrf
                         @method('PATCH')

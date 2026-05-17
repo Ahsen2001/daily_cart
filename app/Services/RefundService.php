@@ -18,6 +18,7 @@ class RefundService
         private readonly PaymentService $payments,
         private readonly OrderStatusService $notifications,
         private readonly LoyaltyPointService $loyaltyPoints,
+        private readonly ExternalEmailService $emails,
     ) {}
 
     public function request(Order $order, float $amount, string $reason): Refund
@@ -46,6 +47,7 @@ class RefundService
             ]);
 
             $this->notifications->notify($order->customer->user, new RefundRequestedNotification($refund));
+            $this->emails->refundStatus($refund->load('order.customer.user'), 'Your refund request has been received.');
 
             return $refund->refresh();
         });
@@ -80,6 +82,7 @@ class RefundService
             $order->update(['order_status' => 'refunded']);
             $this->loyaltyPoints->reverseForOrder($order, 'Reversed because order was refunded.');
             $this->notifications->notify($order->customer->user, new RefundApprovedNotification($refund));
+            $this->emails->refundStatus($refund->load('order.customer.user'), 'Your refund request has been approved.');
 
             return $refund->refresh();
         });
@@ -99,6 +102,7 @@ class RefundService
             ]);
 
             $this->notifications->notify($refund->order->customer->user, new RefundRejectedNotification($refund));
+            $this->emails->refundStatus($refund->load('order.customer.user'), 'Your refund request has been rejected.');
 
             return $refund->refresh();
         });

@@ -24,6 +24,7 @@ class OrderService
         private readonly PaymentService $paymentService,
         private readonly NotificationService $notificationService,
         private readonly LoyaltyPointService $loyaltyPointService,
+        private readonly ExternalEmailService $emails,
     ) {}
 
     /**
@@ -72,6 +73,9 @@ class OrderService
                     'total_amount' => $total,
                     'currency' => CurrencyService::CURRENCY,
                     'delivery_address' => $data['delivery_address'],
+                    'delivery_latitude' => $data['delivery_latitude'] ?? null,
+                    'delivery_longitude' => $data['delivery_longitude'] ?? null,
+                    'delivery_distance_meters' => $data['delivery_distance_meters'] ?? null,
                     'order_status' => 'pending',
                     'payment_status' => 'pending',
                     'placed_at' => Carbon::now(),
@@ -95,6 +99,7 @@ class OrderService
                 $this->paymentService->createPlaceholder($order, $data['payment_method']);
                 $this->notificationService->send($order->customer->user, 'Order placed', 'Order '.$order->order_number.' has been placed.', 'order_placed');
                 $this->notificationService->send($order->vendor->user, 'New order received', 'New order '.$order->order_number.' is waiting for action.', 'new_order');
+                $this->emails->orderPlaced($order->loadMissing('customer.user'));
                 $order->delivery()->create([
                     'pickup_address' => $order->vendor->address,
                     'delivery_address' => $order->delivery_address,

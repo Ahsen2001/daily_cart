@@ -67,6 +67,9 @@
                     @if ($order->delivery?->rider)
                         <p class="mt-3 text-sm text-gray-700">{{ __('Rider') }}: {{ $order->delivery->rider->user?->name }}</p>
                     @endif
+                    @if ($googleMapsBrowserKey && $order->delivery_latitude && $order->delivery_longitude)
+                        <div id="order-tracking-map" class="mt-4 h-72 rounded-2xl border border-green-100 bg-green-50"></div>
+                    @endif
                 </div>
             </div>
 
@@ -114,4 +117,26 @@
             </div>
         </div>
     </div>
+
+    @if ($googleMapsBrowserKey && $order->delivery_latitude && $order->delivery_longitude)
+        @php $latestLocation = $order->delivery?->rider?->locations?->sortByDesc('recorded_at')->first(); @endphp
+        <script>
+            window.initDailyCartTrackingMap = function () {
+                const delivery = { lat: {{ (float) $order->delivery_latitude }}, lng: {{ (float) $order->delivery_longitude }} };
+                const rider = @json($latestLocation ? ['lat' => (float) $latestLocation->latitude, 'lng' => (float) $latestLocation->longitude] : null);
+                const map = new google.maps.Map(document.getElementById('order-tracking-map'), {
+                    center: rider || delivery,
+                    zoom: 14,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                });
+
+                new google.maps.Marker({ position: delivery, map, label: 'D', title: 'Delivery address' });
+                if (rider) {
+                    new google.maps.Marker({ position: rider, map, label: 'R', title: 'Rider location' });
+                }
+            };
+        </script>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ $googleMapsBrowserKey }}&callback=initDailyCartTrackingMap"></script>
+    @endif
 </x-app-layout>

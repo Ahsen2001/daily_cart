@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Services\ExternalEmailService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class VendorRegistrationController extends Controller
         return view('auth.register-vendor');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ExternalEmailService $emails): RedirectResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -60,6 +61,7 @@ class VendorRegistrationController extends Controller
         $user->assignRole($role->name);
 
         event(new Registered($user));
+        $emails->welcome($user);
 
         Auth::login($user);
 

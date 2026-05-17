@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\RoleRedirector;
+use App\Services\ExternalEmailService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request, RoleRedirector $redirector): RedirectResponse
+    public function store(Request $request, RoleRedirector $redirector, ExternalEmailService $emails): RedirectResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -73,6 +74,7 @@ class RegisteredUserController extends Controller
         $user->assignRole($role->name);
 
         event(new Registered($user));
+        $emails->welcome($user);
 
         Auth::login($user);
 

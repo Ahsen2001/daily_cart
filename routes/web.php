@@ -35,6 +35,8 @@ use App\Http\Controllers\Customer\SubscriptionController;
 use App\Http\Controllers\Customer\WalletController;
 use App\Http\Controllers\Customer\WishlistController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Integrations\GoogleMapsController;
+use App\Http\Controllers\Integrations\PayHereController;
 use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -63,6 +65,7 @@ Route::get('/', function () {
 });
 
 Route::post('/newsletter', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
+Route::post('/payments/payhere/notify', [PayHereController::class, 'notify'])->name('payhere.notify');
 
 Route::get('/dashboard', [DashboardController::class, 'redirect'])
     ->middleware(['auth', 'verified'])
@@ -232,6 +235,9 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
 
     Route::get('/orders/{order}/payment', [PaymentController::class, 'show'])->name('payments.show');
     Route::patch('/payments/{payment}/process', [PaymentController::class, 'process'])->name('payments.process');
+    Route::get('/payments/{payment}/payhere', [PayHereController::class, 'checkout'])->name('payments.payhere');
+    Route::get('/payments/{payment}/payhere/return', [PayHereController::class, 'return'])->name('payments.payhere.return');
+    Route::get('/payments/{payment}/payhere/cancel', [PayHereController::class, 'cancel'])->name('payments.payhere.cancel');
     Route::get('/payments/{payment}/success', [PaymentController::class, 'success'])->name('payments.success');
     Route::get('/payments/{payment}/failed', [PaymentController::class, 'failed'])->name('payments.failed');
 
@@ -257,6 +263,12 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
     Route::patch('/subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
     Route::get('/scheduled-orders', [ScheduledOrderController::class, 'index'])->name('scheduled-orders.index');
     Route::patch('/scheduled-orders/{order}/cancel', [ScheduledOrderController::class, 'cancel'])->name('scheduled-orders.cancel');
+});
+
+Route::middleware(['auth', 'verified'])->prefix('integrations/maps')->name('maps.')->group(function () {
+    Route::post('/geocode', [GoogleMapsController::class, 'geocode'])->name('geocode');
+    Route::post('/reverse-geocode', [GoogleMapsController::class, 'reverseGeocode'])->name('reverse-geocode');
+    Route::post('/distance', [GoogleMapsController::class, 'distance'])->name('distance');
 });
 
 require __DIR__.'/auth.php';

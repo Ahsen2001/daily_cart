@@ -9,13 +9,29 @@
         </div>
     @endif
 
+    @if (session('status') == 'verification-otp-sent')
+        <div class="mb-4 font-medium text-sm text-green-600">
+            {{ __('A new OTP has been sent to your email address.') }}
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('verification.otp.verify') }}" class="mb-4 space-y-3">
+        @csrf
+        <div>
+            <x-input-label for="code" :value="__('Email OTP Code')" />
+            <x-text-input id="code" class="mt-1 block w-full" type="text" name="code" maxlength="6" inputmode="numeric" required />
+            <x-input-error :messages="$errors->get('code')" class="mt-2" />
+        </div>
+        <x-primary-button>{{ __('Verify OTP') }}</x-primary-button>
+    </form>
+
     <div class="mt-4 flex items-center justify-between">
-        <form method="POST" action="{{ route('verification.send') }}">
+        <form method="POST" action="{{ route('verification.otp.send') }}">
             @csrf
 
             <div>
                 <x-primary-button>
-                    {{ __('Resend Verification Email') }}
+                    {{ __('Send Verification OTP') }}
                 </x-primary-button>
             </div>
         </form>

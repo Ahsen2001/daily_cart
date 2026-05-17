@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Rider;
+use App\Services\ExternalEmailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,7 +18,7 @@ class RiderApprovalController extends Controller
         ]);
     }
 
-    public function approve(Rider $rider): RedirectResponse
+    public function approve(Rider $rider, ExternalEmailService $emails): RedirectResponse
     {
         $rider->update([
             'verification_status' => 'verified',
@@ -25,11 +26,12 @@ class RiderApprovalController extends Controller
         ]);
 
         $rider->user()->update(['status' => 'active']);
+        $emails->approval($rider->user, 'Rider approved', 'Your DailyCart rider account has been approved.');
 
         return back()->with('status', 'Rider approved successfully.');
     }
 
-    public function reject(Request $request, Rider $rider): RedirectResponse
+    public function reject(Request $request, Rider $rider, ExternalEmailService $emails): RedirectResponse
     {
         $rider->update([
             'verification_status' => 'rejected',
@@ -37,6 +39,7 @@ class RiderApprovalController extends Controller
         ]);
 
         $rider->user()->update(['status' => 'suspended']);
+        $emails->approval($rider->user, 'Rider rejected', 'Your DailyCart rider registration was rejected.');
 
         return back()->with('status', 'Rider rejected.');
     }

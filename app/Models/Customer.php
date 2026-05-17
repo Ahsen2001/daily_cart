@@ -23,6 +23,9 @@ class Customer extends Model
         'city',
         'district',
         'postal_code',
+        'latitude',
+        'longitude',
+        'formatted_address',
         'status',
         'wallet_balance',
     ];
@@ -31,6 +34,8 @@ class Customer extends Model
     {
         return [
             'wallet_balance' => 'decimal:2',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
             'deleted_at' => 'datetime',
         ];
     }

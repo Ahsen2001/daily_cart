@@ -24,7 +24,14 @@
                         <div>
                             <x-input-label for="delivery_address" :value="__('Delivery Address')" />
                             <textarea id="delivery_address" name="delivery_address" rows="4" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>{{ old('delivery_address', Auth::user()->customer?->address_line_1.', '.Auth::user()->customer?->city.', '.Auth::user()->customer?->district) }}</textarea>
+                            <input type="hidden" id="delivery_latitude" name="delivery_latitude" value="{{ old('delivery_latitude', Auth::user()->customer?->latitude) }}">
+                            <input type="hidden" id="delivery_longitude" name="delivery_longitude" value="{{ old('delivery_longitude', Auth::user()->customer?->longitude) }}">
+                            <input type="hidden" id="delivery_distance_meters" name="delivery_distance_meters" value="{{ old('delivery_distance_meters') }}">
                             <x-input-error :messages="$errors->get('delivery_address')" class="mt-2" />
+                            @if ($googleMapsBrowserKey)
+                                <div id="delivery-map" class="mt-3 h-64 rounded-2xl border border-green-100 bg-green-50"></div>
+                                <p class="mt-2 text-xs text-gray-500">{{ __('Search or pin your address on the map for accurate delivery distance.') }}</p>
+                            @endif
                         </div>
 
                         <div>
@@ -75,4 +82,64 @@
             </div>
         </div>
     </div>
+
+    @if ($googleMapsBrowserKey)
+        <script>
+            window.initDailyCartMap = function () {
+                const addressInput = document.getElementById('delivery_address');
+                const latInput = document.getElementById('delivery_latitude');
+                const lngInput = document.getElementById('delivery_longitude');
+                const mapElement = document.getElementById('delivery-map');
+                const start = {
+                    lat: parseFloat(latInput.value) || 7.8731,
+                    lng: parseFloat(lngInput.value) || 80.7718,
+                };
+                const map = new google.maps.Map(mapElement, {
+                    center: start,
+                    zoom: latInput.value && lngInput.value ? 15 : 8,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                });
+                const marker = new google.maps.Marker({
+                    position: start,
+                    map,
+                    draggable: true,
+                });
+                const geocoder = new google.maps.Geocoder();
+                const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                    componentRestrictions: { country: 'lk' },
+                    fields: ['formatted_address', 'geometry'],
+                });
+
+                const setPosition = (location, formattedAddress = null) => {
+                    latInput.value = location.lat();
+                    lngInput.value = location.lng();
+                    marker.setPosition(location);
+                    map.setCenter(location);
+                    map.setZoom(16);
+                    if (formattedAddress) {
+                        addressInput.value = formattedAddress;
+                    }
+                };
+
+                autocomplete.addListener('place_changed', () => {
+                    const place = autocomplete.getPlace();
+                    if (place.geometry?.location) {
+                        setPosition(place.geometry.location, place.formatted_address);
+                    }
+                });
+
+                marker.addListener('dragend', () => {
+                    const position = marker.getPosition();
+                    setPosition(position);
+                    geocoder.geocode({ location: position }, (results, status) => {
+                        if (status === 'OK' && results[0]) {
+                            addressInput.value = results[0].formatted_address;
+                        }
+                    });
+                });
+            };
+        </script>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ $googleMapsBrowserKey }}&libraries=places&callback=initDailyCartMap"></script>
+    @endif
 </x-app-layout>

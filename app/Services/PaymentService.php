@@ -77,6 +77,13 @@ class PaymentService
             'payment_status' => $successful ? 'paid' : 'failed',
         ]);
 
+        app(ExternalEmailService::class)->paymentStatus(
+            $payment->loadMissing('order.customer.user'),
+            $successful
+                ? 'Your DailyCart payment was successful.'
+                : 'Your DailyCart payment failed. Please try again.'
+        );
+
         return $payment->refresh();
     }
 
@@ -89,6 +96,7 @@ class PaymentService
         ]);
 
         $payment->order()->update(['payment_status' => 'paid']);
+        app(ExternalEmailService::class)->paymentStatus($payment->loadMissing('order.customer.user'), 'Your DailyCart payment has been marked as paid.');
 
         return $payment->refresh();
     }
@@ -97,6 +105,7 @@ class PaymentService
     {
         $payment->update(['status' => 'refunded']);
         $payment->order()->update(['payment_status' => 'refunded']);
+        app(ExternalEmailService::class)->paymentStatus($payment->loadMissing('order.customer.user'), 'Your DailyCart payment has been refunded.');
 
         return $payment->refresh();
     }
