@@ -19,7 +19,14 @@ class ProductVariantController extends Controller
             'status' => 'active',
         ]);
 
-        return back()->with('status', 'Variant added.');
+        if ($product->status === 'approved') {
+            $product->update([
+                'status' => 'pending',
+                'is_featured' => false,
+            ]);
+        }
+
+        return back()->with('status', 'Variant added and product sent for admin approval.');
     }
 
     public function destroy(Product $product, ProductVariant $variant): RedirectResponse

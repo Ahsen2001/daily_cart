@@ -12,7 +12,7 @@ class RiderDashboardController extends Controller
     public function index(Request $request, DashboardService $dashboardService): View
     {
         $rider = $request->user()->rider;
-        abort_unless($rider?->verification_status === 'approved', 403);
+        abort_unless(in_array($rider?->verification_status, ['verified', 'approved'], true), 403);
 
         return view('rider.dashboard.index', [
             'summary' => $dashboardService->riderOverview($rider),

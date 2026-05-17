@@ -25,6 +25,45 @@
                     </div>
                 </div>
 
+                @if ($product->variants->isNotEmpty())
+                    <div class="mt-6 overflow-hidden rounded-2xl border border-green-100">
+                        <div class="bg-brand-light px-4 py-3">
+                            <h4 class="font-semibold text-brand-text">
+                                {{ $product->status === 'pending' ? __('Product Variants for Approval') : __('Product Variants') }}
+                            </h4>
+                            <p class="text-sm text-brand-text/70">
+                                {{ $product->status === 'pending' ? __('Review these vendor-submitted variant options before approving the product.') : __('These variants are already part of the current product record.') }}
+                            </p>
+                        </div>
+                        <table class="min-w-full divide-y divide-green-100 text-sm">
+                            <thead class="bg-white text-left text-xs uppercase text-brand-text/60">
+                                <tr>
+                                    <th class="px-4 py-3">{{ __('Variant') }}</th>
+                                    <th class="px-4 py-3">{{ __('SKU') }}</th>
+                                    <th class="px-4 py-3">{{ __('Price') }}</th>
+                                    <th class="px-4 py-3">{{ __('Inventory') }}</th>
+                                    <th class="px-4 py-3">{{ __('Status') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-green-50 bg-white">
+                                @foreach ($product->variants as $variant)
+                                    <tr>
+                                        <td class="px-4 py-3 font-medium text-brand-text">{{ $variant->name }}</td>
+                                        <td class="px-4 py-3">{{ $variant->sku ?? '-' }}</td>
+                                        <td class="px-4 py-3">{{ \App\Services\CurrencyService::formatLkr($variant->price) }}</td>
+                                        <td class="px-4 py-3">{{ $variant->inventory?->quantity ?? '-' }}</td>
+                                        <td class="px-4 py-3">{{ ucfirst($variant->status) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="mt-6 rounded-2xl border border-dashed border-green-200 bg-brand-light p-4 text-sm text-brand-text/70">
+                        {{ __('No product variants were submitted for this product.') }}
+                    </div>
+                @endif
+
                 <div class="flex flex-wrap gap-3 mt-6">
                     <form method="POST" action="{{ route('admin.products.approve', $product) }}">
                         @csrf

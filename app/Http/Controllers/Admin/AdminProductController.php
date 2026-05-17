@@ -15,6 +15,7 @@ class AdminProductController extends Controller
     {
         $products = Product::query()
             ->with(['vendor.user', 'category'])
+            ->withCount('variants')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where(function ($inner) use ($request) {
                     $inner->where('name', 'like', '%'.$request->search.'%')
@@ -37,7 +38,7 @@ class AdminProductController extends Controller
     public function show(Product $product): View
     {
         return view('admin.products.show', [
-            'product' => $product->load(['vendor.user', 'category', 'images', 'variants', 'inventory']),
+            'product' => $product->load(['vendor.user', 'category', 'images', 'variants.inventory', 'inventory']),
         ]);
     }
 

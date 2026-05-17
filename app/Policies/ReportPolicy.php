@@ -18,6 +18,6 @@ class ReportPolicy
 
     public function viewRider(User $user): bool
     {
-        return $user->hasPrimaryRole('Rider') && $user->rider?->verification_status === 'approved';
+        return $user->hasPrimaryRole('Rider') && in_array($user->rider?->verification_status, ['verified', 'approved'], true);
     }
 }
