@@ -7,7 +7,7 @@
             @if (session('status')) <div class="rounded bg-green-50 p-4 text-sm text-green-700">{{ session('status') }}</div> @endif
             <section class="rounded-lg bg-white p-6 shadow-sm">
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div><p class="text-xs uppercase text-gray-500">{{ __('Product') }}</p><p class="font-semibold">{{ $subscription->product?->name }}</p></div>
+                    <div><p class="text-xs uppercase text-gray-500">{{ __('Product') }}</p><p class="font-semibold">{{ $subscription->product?->name }}@if($subscription->variant) - {{ $subscription->variant->name }}@endif</p></div>
                     <div><p class="text-xs uppercase text-gray-500">{{ __('Amount') }}</p><p class="font-semibold">{{ CurrencyService::formatLkr($subscription->total_amount) }}</p></div>
                     <div><p class="text-xs uppercase text-gray-500">{{ __('Next Delivery') }}</p><p class="font-semibold">{{ $subscription->next_delivery_date?->format('Y-m-d') }} {{ $subscription->preferred_delivery_time }}</p></div>
                     <div><p class="text-xs uppercase text-gray-500">{{ __('Status') }}</p><p class="font-semibold">{{ $subscription->status }}</p></div>

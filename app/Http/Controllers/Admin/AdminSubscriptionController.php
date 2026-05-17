@@ -20,7 +20,7 @@ class AdminSubscriptionController extends Controller
         $filters = $request->validated();
 
         return view('admin.subscriptions.index', [
-            'subscriptions' => Subscription::with(['customer.user', 'vendor', 'product', 'generatedOrders'])
+            'subscriptions' => Subscription::with(['customer.user', 'vendor', 'product', 'variant', 'generatedOrders'])
                 ->when($filters['customer_id'] ?? null, fn ($query, $id) => $query->where('customer_id', $id))
                 ->when($filters['vendor_id'] ?? null, fn ($query, $id) => $query->where('vendor_id', $id))
                 ->when($filters['product_id'] ?? null, fn ($query, $id) => $query->where('product_id', $id))

@@ -126,7 +126,25 @@ class OrderStatusService
             }
 
             $product->decrement('stock_quantity', $item->quantity);
-            $product->inventory()->whereNull('product_variant_id')->decrement('quantity', $item->quantity);
+
+            $inventory = $product->inventory()
+                ->when(
+                    $item->product_variant_id,
+                    fn ($query) => $query->where('product_variant_id', $item->product_variant_id),
+                    fn ($query) => $query->whereNull('product_variant_id')
+                )
+                ->lockForUpdate()
+                ->first();
+
+            if ($inventory) {
+                if ($inventory->quantity < $item->quantity) {
+                    throw ValidationException::withMessages([
+                        'stock' => 'A subscription product variant does not have enough stock to confirm this order.',
+                    ]);
+                }
+
+                $inventory->decrement('quantity', $item->quantity);
+            }
 
             if ($product->fresh()->stock_quantity <= 0) {
                 $product->update(['status' => 'out_of_stock']);

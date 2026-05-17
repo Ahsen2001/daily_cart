@@ -23,7 +23,7 @@ class RecurringOrderService
     {
         $count = 0;
 
-        Subscription::with(['customer.user', 'vendor.user', 'product'])
+        Subscription::with(['customer.user', 'vendor.user', 'product', 'variant'])
             ->where('status', 'active')
             ->whereDate('next_delivery_date', '<=', now()->toDateString())
             ->chunkById(100, function ($subscriptions) use (&$count) {
@@ -43,11 +43,12 @@ class RecurringOrderService
         }
 
         return DB::transaction(function () use ($subscription) {
-            $subscription = Subscription::whereKey($subscription->id)->lockForUpdate()->with(['customer.user', 'vendor.user', 'product'])->firstOrFail();
+            $subscription = Subscription::whereKey($subscription->id)->lockForUpdate()->with(['customer.user', 'vendor.user', 'product', 'variant'])->firstOrFail();
             $product = Product::whereKey($subscription->product_id)->lockForUpdate()->first();
+            $variant = $subscription->variant;
 
             try {
-                $this->subscriptions->ensureProductEligible($product, $subscription->quantity);
+                $this->subscriptions->ensureProductEligible($product, $subscription->quantity, $variant);
             } catch (ValidationException $exception) {
                 $this->markFailed($subscription, $exception->getMessage());
                 throw $exception;
@@ -82,8 +83,9 @@ class RecurringOrderService
 
             $order->items()->create([
                 'product_id' => $product->id,
+                'product_variant_id' => $variant?->id,
                 'vendor_id' => $product->vendor_id,
-                'product_name' => $product->name,
+                'product_name' => $product->name.($variant ? ' - '.$variant->name : ''),
                 'quantity' => $subscription->quantity,
                 'unit_price' => $subscription->unit_price,
                 'total_price' => $subtotal,

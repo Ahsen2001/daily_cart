@@ -16,16 +16,16 @@ class VendorSubscriptionController extends Controller
         abort_unless($vendor?->status === 'approved', 403);
 
         return view('vendor.subscriptions.index', [
-            'subscriptions' => Subscription::with(['customer.user', 'product', 'generatedOrders'])
+            'subscriptions' => Subscription::with(['customer.user', 'product', 'variant', 'generatedOrders'])
                 ->where('vendor_id', $vendor->id)
                 ->latest()
                 ->paginate(15),
             'stockRequirements' => Subscription::query()
-                ->selectRaw('product_id, SUM(quantity) as required_quantity')
-                ->with('product')
+                ->selectRaw('product_id, product_variant_id, SUM(quantity) as required_quantity')
+                ->with(['product', 'variant'])
                 ->where('vendor_id', $vendor->id)
                 ->where('status', 'active')
-                ->groupBy('product_id')
+                ->groupBy('product_id', 'product_variant_id')
                 ->get(),
         ]);
     }

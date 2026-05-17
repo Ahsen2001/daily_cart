@@ -16,7 +16,7 @@ class SubscriptionOrderJob implements ShouldQueue
 
     public function handle(RecurringOrderService $recurringOrders): void
     {
-        $subscription = Subscription::with(['customer.user', 'vendor.user', 'product'])->find($this->subscriptionId);
+        $subscription = Subscription::with(['customer.user', 'vendor.user', 'product', 'variant'])->find($this->subscriptionId);
 
         if (! $subscription || $subscription->status !== 'active') {
             return;

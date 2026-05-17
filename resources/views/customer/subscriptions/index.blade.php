@@ -16,7 +16,7 @@
                     <tbody class="divide-y divide-gray-100">
                         @foreach ($subscriptions as $subscription)
                             <tr>
-                                <td class="px-4 py-3">{{ $subscription->product?->name }}</td>
+                                <td class="px-4 py-3">{{ $subscription->product?->name }}@if($subscription->variant) - {{ $subscription->variant->name }}@endif</td>
                                 <td>{{ $subscription->frequency }}</td>
                                 <td>{{ $subscription->quantity }}</td>
                                 <td>{{ CurrencyService::formatLkr($subscription->total_amount) }}</td>

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Subscription;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -16,17 +17,26 @@ class SubscriptionService
     public function create(Customer $customer, array $data): Subscription
     {
         $product = Product::with(['vendor', 'category'])->findOrFail($data['product_id']);
-        $this->ensureProductEligible($product, (int) $data['quantity']);
+        $variant = isset($data['product_variant_id'])
+            ? ProductVariant::with('inventory')
+                ->where('product_id', $product->id)
+                ->where('status', 'active')
+                ->findOrFail($data['product_variant_id'])
+            : null;
 
-        return DB::transaction(function () use ($customer, $data, $product) {
-            $unitPrice = (float) ($product->discount_price ?: $product->price);
+        $this->ensureProductEligible($product, (int) $data['quantity'], $variant);
+
+        return DB::transaction(function () use ($customer, $data, $product, $variant) {
+            $unitPrice = (float) ($variant?->price ?? ($product->discount_price ?: $product->price));
             $total = round($unitPrice * (int) $data['quantity'], 2);
             $startDate = Carbon::parse($data['start_date']);
             $endDate = isset($data['end_date']) ? Carbon::parse($data['end_date']) : null;
+            $itemName = $product->name.($variant ? ' - '.$variant->name : '');
 
             $subscription = Subscription::create([
                 'customer_id' => $customer->id,
                 'product_id' => $product->id,
+                'product_variant_id' => $variant?->id,
                 'vendor_id' => $product->vendor_id,
                 'frequency' => $data['frequency'],
                 'quantity' => (int) $data['quantity'],
@@ -39,7 +49,7 @@ class SubscriptionService
                 'next_delivery_date' => $startDate,
                 'payment_method' => $data['payment_method'],
                 'notes' => $data['notes'] ?? null,
-                'plan_name' => $product->name.' '.$data['frequency'].' subscription',
+                'plan_name' => $itemName.' '.$data['frequency'].' subscription',
                 'price' => $total,
                 'currency' => CurrencyService::CURRENCY,
                 'starts_at' => $startDate,
@@ -47,8 +57,8 @@ class SubscriptionService
                 'status' => 'active',
             ]);
 
-            $this->notifications->send($customer->user, 'Subscription created', 'Your '.$product->name.' subscription is active.', 'subscription_created');
-            $this->notifications->send($product->vendor->user, 'New subscription', $customer->user->name.' subscribed to '.$product->name.'.', 'new_subscription');
+            $this->notifications->send($customer->user, 'Subscription created', 'Your '.$itemName.' subscription is active.', 'subscription_created');
+            $this->notifications->send($product->vendor->user, 'New subscription', $customer->user->name.' subscribed to '.$itemName.'.', 'new_subscription');
 
             return $subscription->refresh();
         });
@@ -56,10 +66,10 @@ class SubscriptionService
 
     public function update(Subscription $subscription, array $data): Subscription
     {
-        $this->ensureProductEligible($subscription->product, (int) $data['quantity']);
+        $this->ensureProductEligible($subscription->product, (int) $data['quantity'], $subscription->variant);
 
         return DB::transaction(function () use ($subscription, $data) {
-            $unitPrice = (float) ($subscription->product->discount_price ?: $subscription->product->price);
+            $unitPrice = (float) ($subscription->variant?->price ?? ($subscription->product->discount_price ?: $subscription->product->price));
             $total = round($unitPrice * (int) $data['quantity'], 2);
 
             $subscription->update([
@@ -86,7 +96,7 @@ class SubscriptionService
 
     public function resume(Subscription $subscription): Subscription
     {
-        $this->ensureProductEligible($subscription->product, $subscription->quantity);
+        $this->ensureProductEligible($subscription->product, $subscription->quantity, $subscription->variant);
 
         return $this->changeStatus($subscription, 'active', 'Subscription resumed', 'Your subscription has been resumed.', 'subscription_resumed');
     }
@@ -107,7 +117,7 @@ class SubscriptionService
         return null;
     }
 
-    public function ensureProductEligible(?Product $product, int $quantity): void
+    public function ensureProductEligible(?Product $product, int $quantity, ?ProductVariant $variant = null): void
     {
         if (! $product || $product->status !== 'approved' || ! $product->is_subscription_eligible) {
             throw ValidationException::withMessages([
@@ -118,6 +128,18 @@ class SubscriptionService
         if ($product->stock_quantity < $quantity) {
             throw ValidationException::withMessages([
                 'quantity' => 'This product does not have enough stock for the subscription quantity.',
+            ]);
+        }
+
+        if ($variant && ($variant->product_id !== $product->id || $variant->status !== 'active')) {
+            throw ValidationException::withMessages([
+                'product_variant_id' => 'This product variant is not available for subscriptions.',
+            ]);
+        }
+
+        if ($variant?->inventory && $variant->inventory->quantity < $quantity) {
+            throw ValidationException::withMessages([
+                'quantity' => 'This product variant does not have enough stock for the subscription quantity.',
             ]);
         }
     }

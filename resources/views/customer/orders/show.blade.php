@@ -2,7 +2,12 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ __('Order Tracking') }}</h2>
-            <a href="{{ route('customer.orders.index') }}" class="text-sm font-medium text-indigo-700 underline">{{ __('Back to orders') }}</a>
+            <div class="flex items-center gap-3">
+                @if ($order->order_status === 'delivered')
+                    <a href="{{ route('customer.orders.receipt', $order) }}" class="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700">{{ __('Print Receipt') }}</a>
+                @endif
+                <a href="{{ route('customer.orders.index') }}" class="text-sm font-medium text-indigo-700 underline">{{ __('Back to orders') }}</a>
+            </div>
         </div>
     </x-slot>
 
@@ -96,6 +101,14 @@
                     <div class="bg-white p-6 shadow-sm sm:rounded-lg">
                         <h3 class="mb-3 font-semibold text-gray-900">{{ __('Refund') }}</h3>
                         <a href="{{ route('customer.refunds.create', $order) }}" class="text-sm font-medium text-indigo-700 underline">{{ __('Request refund') }}</a>
+                    </div>
+                @endif
+
+                @if ($order->order_status === 'delivered')
+                    <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                        <h3 class="mb-3 font-semibold text-gray-900">{{ __('Delivery Receipt') }}</h3>
+                        <p class="mb-4 text-sm text-gray-600">{{ __('Your delivery is completed. You can print or save the receipt for this order.') }}</p>
+                        <a href="{{ route('customer.orders.receipt', $order) }}" class="inline-flex rounded bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700">{{ __('Open Printable Receipt') }}</a>
                     </div>
                 @endif
             </div>

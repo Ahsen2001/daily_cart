@@ -13,7 +13,7 @@
                 <h3 class="font-semibold">{{ __('Stock Requirements') }}</h3>
                 <div class="mt-4 space-y-2 text-sm">
                     @foreach ($stockRequirements as $row)
-                        <div class="flex justify-between border-b py-2"><span>{{ $row->product?->name }}</span><span>{{ number_format($row->required_quantity) }} {{ __('items per cycle') }}</span></div>
+                        <div class="flex justify-between border-b py-2"><span>{{ $row->product?->name }}@if($row->variant) - {{ $row->variant->name }}@endif</span><span>{{ number_format($row->required_quantity) }} {{ __('items per cycle') }}</span></div>
                     @endforeach
                 </div>
             </section>
@@ -22,7 +22,7 @@
                     <thead class="bg-gray-50 text-left text-xs uppercase text-gray-500"><tr><th class="px-4 py-3">{{ __('Customer') }}</th><th>{{ __('Product') }}</th><th>{{ __('Frequency') }}</th><th>{{ __('Amount') }}</th><th>{{ __('Next Delivery') }}</th><th>{{ __('Status') }}</th><th>{{ __('Generated Orders') }}</th></tr></thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach ($subscriptions as $subscription)
-                            <tr><td class="px-4 py-3">{{ $subscription->customer?->user?->name }}</td><td>{{ $subscription->product?->name }}</td><td>{{ $subscription->frequency }}</td><td>{{ CurrencyService::formatLkr($subscription->total_amount) }}</td><td>{{ $subscription->next_delivery_date?->format('Y-m-d') }}</td><td>{{ $subscription->status }}</td><td>{{ $subscription->generatedOrders->count() }}</td></tr>
+                            <tr><td class="px-4 py-3">{{ $subscription->customer?->user?->name }}</td><td>{{ $subscription->product?->name }}@if($subscription->variant) - {{ $subscription->variant->name }}@endif</td><td>{{ $subscription->frequency }}</td><td>{{ CurrencyService::formatLkr($subscription->total_amount) }}</td><td>{{ $subscription->next_delivery_date?->format('Y-m-d') }}</td><td>{{ $subscription->status }}</td><td>{{ $subscription->generatedOrders->count() }}</td></tr>
                         @endforeach
                     </tbody>
                 </table>

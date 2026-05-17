@@ -8,12 +8,21 @@
                 @csrf
                 <div>
                     <label class="text-sm font-medium">{{ __('Product') }}</label>
-                    <select class="mt-1 w-full rounded border-gray-300" name="product_id" required>
-                        @foreach ($products as $product)
-                            <option value="{{ $product->id }}" @selected(old('product_id') == $product->id)>{{ $product->name }} - {{ CurrencyService::formatLkr($product->discount_price ?: $product->price) }}</option>
-                        @endforeach
-                    </select>
+                    @if ($subscriptionOptions->isNotEmpty())
+                        <select class="mt-1 w-full rounded border-gray-300" name="subscription_item" required>
+                            <option value="">{{ __('Select a subscription product') }}</option>
+                            @foreach ($subscriptionOptions as $option)
+                                <option value="{{ $option['value'] }}" @selected(old('subscription_item') === $option['value'])>{{ $option['label'] }} - {{ CurrencyService::formatLkr($option['price']) }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <div class="mt-1 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-sm text-orange-700">
+                            {{ __('No subscription products are available yet. Please check again after admin enables subscription eligibility for approved products.') }}
+                        </div>
+                    @endif
+                    @error('subscription_item') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     @error('product_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    @error('product_variant_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div><label class="text-sm font-medium">{{ __('Frequency') }}</label><select class="mt-1 w-full rounded border-gray-300" name="frequency"><option value="daily">{{ __('Daily') }}</option><option value="weekly">{{ __('Weekly') }}</option><option value="monthly">{{ __('Monthly') }}</option></select></div>
@@ -25,7 +34,7 @@
                 </div>
                 <div><label class="text-sm font-medium">{{ __('Delivery Address') }}</label><textarea class="mt-1 w-full rounded border-gray-300" name="delivery_address" rows="3">{{ old('delivery_address') }}</textarea></div>
                 <div><label class="text-sm font-medium">{{ __('Notes') }}</label><textarea class="mt-1 w-full rounded border-gray-300" name="notes" rows="2">{{ old('notes') }}</textarea></div>
-                <button class="rounded bg-indigo-600 px-4 py-2 text-white">{{ __('Save Subscription') }}</button>
+                <button class="rounded bg-indigo-600 px-4 py-2 text-white" @disabled($subscriptionOptions->isEmpty())>{{ __('Save Subscription') }}</button>
             </form>
         </div>
     </div>

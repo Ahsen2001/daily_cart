@@ -46,6 +46,7 @@ class AdminProductController extends Controller
     {
         $product->update([
             'status' => $product->stock_quantity > 0 ? 'approved' : 'out_of_stock',
+            'is_subscription_eligible' => $product->stock_quantity > 0,
         ]);
 
         return back()->with('status', 'Product approved.');

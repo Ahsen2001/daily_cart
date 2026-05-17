@@ -33,7 +33,12 @@
                                     <td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($order->payment_status)) }}</td>
                                     <td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr($order->total_amount) }}</td>
                                     <td class="px-3 py-3 text-right">
-                                        <a class="text-indigo-700 underline" href="{{ route('customer.orders.show', $order) }}">{{ __('Track') }}</a>
+                                        <div class="flex justify-end gap-3">
+                                            <a class="text-indigo-700 underline" href="{{ route('customer.orders.show', $order) }}">{{ __('Track') }}</a>
+                                            @if ($order->order_status === 'delivered')
+                                                <a class="font-medium text-green-700 underline" href="{{ route('customer.orders.receipt', $order) }}">{{ __('Receipt') }}</a>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

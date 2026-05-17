@@ -15,6 +15,7 @@ class Subscription extends Model
     protected $fillable = [
         'customer_id',
         'product_id',
+        'product_variant_id',
         'vendor_id',
         'frequency',
         'quantity',
@@ -67,6 +68,11 @@ class Subscription extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
     public function generatedOrders(): HasMany

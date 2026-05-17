@@ -27,7 +27,7 @@
                     <tbody class="divide-y divide-gray-100">
                         @foreach ($subscriptions as $subscription)
                             <tr>
-                                <td class="px-4 py-3">{{ $subscription->customer?->user?->name }}</td><td>{{ $subscription->product?->name }}</td><td>{{ $subscription->vendor?->store_name }}</td><td>{{ $subscription->frequency }}</td><td>{{ CurrencyService::formatLkr($subscription->total_amount) }}</td><td>{{ $subscription->next_delivery_date?->format('Y-m-d') }}</td><td>{{ $subscription->status }}</td>
+                                <td class="px-4 py-3">{{ $subscription->customer?->user?->name }}</td><td>{{ $subscription->product?->name }}@if($subscription->variant) - {{ $subscription->variant->name }}@endif</td><td>{{ $subscription->vendor?->store_name }}</td><td>{{ $subscription->frequency }}</td><td>{{ CurrencyService::formatLkr($subscription->total_amount) }}</td><td>{{ $subscription->next_delivery_date?->format('Y-m-d') }}</td><td>{{ $subscription->status }}</td>
                                 <td class="space-x-2">
                                     <form class="inline" method="POST" action="{{ route('admin.subscriptions.pause', $subscription) }}">@csrf @method('PATCH')<button class="text-yellow-700 underline">{{ __('Pause') }}</button></form>
                                     <form class="inline" method="POST" action="{{ route('admin.subscriptions.cancel', $subscription) }}">@csrf @method('PATCH')<button class="text-red-700 underline">{{ __('Cancel') }}</button></form>
