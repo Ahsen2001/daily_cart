@@ -67,7 +67,7 @@ class CheckoutController extends Controller
     public function success(Request $request): View
     {
         $orders = Order::query()
-            ->whereIn('id', session('placed_order_ids', []))
+            ->whereIn('id', (array) session('placed_order_ids', []), 'and', false)
             ->where('customer_id', $request->user()->customer->id)
             ->with(['items', 'payment'])
             ->latest()
