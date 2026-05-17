@@ -38,12 +38,19 @@
                         <a class="rounded-2xl bg-brand-text px-4 py-3 text-sm font-semibold text-white" href="#">Google Play</a>
                     </div>
                 </div>
-                <form class="rounded-3xl bg-brand-light p-4">
+                <form class="rounded-3xl bg-brand-light p-4" method="POST" action="{{ route('newsletter.subscribe') }}">
+                    @csrf
                     <label class="text-sm font-semibold text-brand-text">{{ __('Newsletter') }}</label>
                     <div class="mt-3 flex gap-2">
-                        <input class="min-w-0 flex-1 rounded-full border-white bg-white text-sm" type="email" placeholder="Email address">
-                        <button class="rounded-full bg-brand-orange px-4 text-sm font-bold text-white" type="button">{{ __('Join') }}</button>
+                        <input class="min-w-0 flex-1 rounded-full border-white bg-white text-sm" type="email" name="email" value="{{ old('email') }}" placeholder="Email address" required>
+                        <button class="rounded-full bg-brand-orange px-4 text-sm font-bold text-white transition hover:bg-orange-600" type="submit">{{ __('Join') }}</button>
                     </div>
+                    @if (session('newsletter_status'))
+                        <p class="mt-3 text-sm font-medium text-brand-dark">{{ session('newsletter_status') }}</p>
+                    @endif
+                    @error('email')
+                        <p class="mt-3 text-sm font-medium text-red-600">{{ $message }}</p>
+                    @enderror
                 </form>
             </div>
         </div>

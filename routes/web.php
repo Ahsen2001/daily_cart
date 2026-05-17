@@ -35,6 +35,7 @@ use App\Http\Controllers\Customer\SubscriptionController;
 use App\Http\Controllers\Customer\WalletController;
 use App\Http\Controllers\Customer\WishlistController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Rider\RiderDashboardController;
@@ -60,6 +61,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::post('/newsletter', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
 
 Route::get('/dashboard', [DashboardController::class, 'redirect'])
     ->middleware(['auth', 'verified'])
