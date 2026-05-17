@@ -3,4 +3,15 @@
 Email: superadmin@dailycart.lk
 Password: Password@123
 
+*vendor*
+Email:afrijhaque@gmail.com
+Password: Password@123
 
+
+*Customer*
+Email:uahsens1@gmail.com
+Password: Password@123
+
+*Rider*
+Email:uahsens2001@gmail.com
+Password: Password@123
