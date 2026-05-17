@@ -27,6 +27,7 @@ class CheckoutController extends Controller
             'couponCode' => $couponCode,
             'loyaltyPoints' => $loyaltyPoints,
             'minimumDeliveryTime' => $schedule->minimumDeliveryTime(),
+            'currentDateTime' => now(),
             'googleMapsBrowserKey' => config('services.google_maps.browser_key'),
         ]);
     }

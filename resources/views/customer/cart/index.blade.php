@@ -16,20 +16,20 @@
 
                 <div class="space-y-4">
                     @forelse ($cart->items as $item)
-                        <div class="flex flex-col gap-4 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
+                        <div class="flex flex-col gap-4 border-b border-gray-100 pb-4 md:flex-row md:items-center md:justify-between">
+                            <div class="min-w-0">
                                 <div class="font-semibold text-gray-900">{{ $item->product->name }}</div>
                                 <div class="text-sm text-gray-600">
                                     {{ $item->variant?->name ?? __('Default') }} · {{ \App\Services\CurrencyService::formatLkr($item->unit_price) }}
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-3">
-                                <form method="POST" action="{{ route('customer.cart.items.update', $item) }}" class="flex items-center gap-2">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                <form method="POST" action="{{ route('customer.cart.items.update', $item) }}" class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex">
                                     @csrf
                                     @method('PATCH')
-                                    <x-text-input name="quantity" type="number" min="1" class="w-24" :value="$item->quantity" />
-                                    <x-secondary-button>{{ __('Update') }}</x-secondary-button>
+                                    <x-text-input name="quantity" type="number" min="1" class="w-full sm:w-24" :value="$item->quantity" />
+                                    <x-secondary-button type="submit" class="whitespace-nowrap">{{ __('Update') }}</x-secondary-button>
                                 </form>
 
                                 <form method="POST" action="{{ route('customer.cart.items.destroy', $item) }}">
@@ -49,15 +49,15 @@
                         {{ __('Total') }}: {{ \App\Services\CurrencyService::formatLkr($totals['subtotal']) }}
                     </div>
 
-                    <div class="flex gap-3">
+                    <div class="flex flex-col gap-3 sm:flex-row">
                         @if ($cart->items->isNotEmpty())
                             <form method="POST" action="{{ route('customer.cart.clear') }}">
                                 @csrf
                                 @method('DELETE')
-                                <x-secondary-button>{{ __('Clear Cart') }}</x-secondary-button>
+                                <x-secondary-button type="submit" class="w-full justify-center sm:w-auto">{{ __('Clear Cart') }}</x-secondary-button>
                             </form>
 
-                            <a href="{{ route('customer.checkout.show') }}" class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition bg-gray-800 border border-transparent rounded-md hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            <a href="{{ route('customer.checkout.show') }}" class="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition bg-gray-800 border border-transparent rounded-md hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                 {{ __('Checkout') }}
                             </a>
                         @endif

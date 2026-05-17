@@ -13,8 +13,8 @@
                 <div class="p-4 mb-6 text-sm font-medium text-red-700 bg-white shadow-sm sm:rounded-lg">{{ $errors->first() }}</div>
             @endif
 
-            <div class="grid gap-6 lg:grid-cols-3">
-                <div class="p-6 bg-white shadow-sm lg:col-span-2 sm:rounded-lg">
+            <div class="grid gap-6 xl:grid-cols-3">
+                <div class="p-4 bg-white shadow-sm sm:p-6 xl:col-span-2 sm:rounded-lg">
                     <form method="POST" action="{{ route('customer.checkout.store') }}" class="space-y-5">
                         @csrf
 
@@ -29,14 +29,25 @@
                             <input type="hidden" id="delivery_distance_meters" name="delivery_distance_meters" value="{{ old('delivery_distance_meters') }}">
                             <x-input-error :messages="$errors->get('delivery_address')" class="mt-2" />
                             @if ($googleMapsBrowserKey)
-                                <div id="delivery-map" class="mt-3 h-64 rounded-2xl border border-green-100 bg-green-50"></div>
-                                <p class="mt-2 text-xs text-gray-500">{{ __('Search or pin your address on the map for accurate delivery distance.') }}</p>
+                                <div class="mt-3 rounded-2xl border border-green-100 bg-green-50 p-3">
+                                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                        <p class="text-xs text-gray-600">{{ __('Google Maps is optional. Use it only when you want to pin the delivery location.') }}</p>
+                                        <button id="load-delivery-map" type="button" class="rounded-full bg-green-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-green-700">{{ __('Use Map') }}</button>
+                                    </div>
+                                    <div id="delivery-map-error" class="mt-3 hidden rounded-xl bg-orange-50 p-3 text-xs text-orange-700">{{ __('Google Maps could not load. Please check the API key, billing, enabled APIs, and HTTP referrer restrictions.') }}</div>
+                                    <div id="delivery-map" class="mt-3 hidden h-64 rounded-2xl border border-green-100 bg-white"></div>
+                                </div>
                             @endif
                         </div>
 
                         <div>
                             <x-input-label for="scheduled_delivery_at" :value="__('Scheduled Delivery Time')" />
+                            <div class="mt-1 rounded-2xl bg-green-50 p-3 text-sm text-gray-700">
+                                <div>{{ __('Current Date and Time') }}: <span class="font-semibold">{{ $currentDateTime->format('M d, Y h:i A') }}</span></div>
+                                <div>{{ __('Earliest Delivery Time') }}: <span class="font-semibold">{{ $minimumDeliveryTime->format('M d, Y h:i A') }}</span></div>
+                            </div>
                             <x-text-input id="scheduled_delivery_at" name="scheduled_delivery_at" type="datetime-local" class="block w-full mt-1" min="{{ $minimumDeliveryTime->format('Y-m-d\TH:i') }}" :value="old('scheduled_delivery_at', $minimumDeliveryTime->format('Y-m-d\TH:i'))" required />
+                            <p class="mt-2 text-xs text-gray-500">{{ __('Delivery time must be at least 30 minutes after placing the order.') }}</p>
                             <x-input-error :messages="$errors->get('scheduled_delivery_at')" class="mt-2" />
                         </div>
 
@@ -55,19 +66,19 @@
                     </form>
                 </div>
 
-                <div class="p-6 bg-white shadow-sm sm:rounded-lg">
+                <div class="p-4 bg-white shadow-sm sm:p-6 sm:rounded-lg">
                     <h3 class="font-semibold text-gray-900">{{ __('Order Summary') }}</h3>
 
-                    <form method="POST" action="{{ route('customer.checkout.coupon') }}" class="flex gap-2 mt-4">
+                    <form method="POST" action="{{ route('customer.checkout.coupon') }}" class="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                         @csrf
-                        <x-text-input name="coupon_code" placeholder="Coupon code" :value="$couponCode" />
-                        <x-secondary-button>{{ __('Apply') }}</x-secondary-button>
+                        <x-text-input class="w-full" name="coupon_code" placeholder="Coupon code" :value="$couponCode" />
+                        <x-secondary-button type="submit" class="w-full justify-center whitespace-nowrap sm:w-auto">{{ __('Apply') }}</x-secondary-button>
                     </form>
 
-                    <form method="POST" action="{{ route('customer.checkout.loyalty') }}" class="flex gap-2 mt-4">
+                    <form method="POST" action="{{ route('customer.checkout.loyalty') }}" class="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                         @csrf
-                        <x-text-input name="loyalty_points" type="number" min="0" placeholder="Loyalty points" :value="$loyaltyPoints" />
-                        <x-secondary-button>{{ __('Redeem') }}</x-secondary-button>
+                        <x-text-input class="w-full" name="loyalty_points" type="number" min="0" placeholder="Loyalty points" :value="$loyaltyPoints" />
+                        <x-secondary-button type="submit" class="w-full justify-center whitespace-nowrap sm:w-auto">{{ __('Redeem') }}</x-secondary-button>
                     </form>
 
                     <dl class="mt-6 space-y-3 text-sm">
@@ -85,11 +96,19 @@
 
     @if ($googleMapsBrowserKey)
         <script>
+            let dailyCartMapLoaded = false;
+
+            window.gm_authFailure = function () {
+                document.getElementById('delivery-map')?.classList.add('hidden');
+                document.getElementById('delivery-map-error')?.classList.remove('hidden');
+            };
+
             window.initDailyCartMap = function () {
                 const addressInput = document.getElementById('delivery_address');
                 const latInput = document.getElementById('delivery_latitude');
                 const lngInput = document.getElementById('delivery_longitude');
                 const mapElement = document.getElementById('delivery-map');
+                mapElement.classList.remove('hidden');
                 const start = {
                     lat: parseFloat(latInput.value) || 7.8731,
                     lng: parseFloat(lngInput.value) || 80.7718,
@@ -139,7 +158,23 @@
                     });
                 });
             };
+
+            document.getElementById('load-delivery-map')?.addEventListener('click', () => {
+                if (dailyCartMapLoaded) {
+                    document.getElementById('delivery-map')?.classList.remove('hidden');
+                    return;
+                }
+
+                dailyCartMapLoaded = true;
+                const script = document.createElement('script');
+                script.async = true;
+                script.defer = true;
+                script.onerror = () => {
+                    document.getElementById('delivery-map-error')?.classList.remove('hidden');
+                };
+                script.src = 'https://maps.googleapis.com/maps/api/js?key={{ $googleMapsBrowserKey }}&libraries=places&callback=initDailyCartMap';
+                document.head.appendChild(script);
+            });
         </script>
-        <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ $googleMapsBrowserKey }}&libraries=places&callback=initDailyCartMap"></script>
     @endif
 </x-app-layout>
