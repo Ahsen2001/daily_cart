@@ -28,7 +28,7 @@ class PayHereService
             'merchant_id' => config('payhere.merchant_id'),
             'return_url' => route('customer.payments.success', $payment),
             'cancel_url' => route('customer.payments.failed', $payment),
-            'notify_url' => route('payhere.notify'),
+            'notify_url' => config('payhere.notify_url') ?: route('payhere.notify'),
             'order_id' => $order->order_number,
             'items' => 'DailyCart order '.$order->order_number,
             'currency' => CurrencyService::CURRENCY,

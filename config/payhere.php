@@ -7,6 +7,7 @@ return [
     'app_id' => env('PAYHERE_APP_ID'),
     'app_secret' => env('PAYHERE_APP_SECRET'),
     'currency' => env('PAYHERE_CURRENCY', 'LKR'),
+    'notify_url' => env('PAYHERE_NOTIFY_URL'),
 
     'checkout_url' => env('PAYHERE_MODE') === 'live'
         ? 'https://www.payhere.lk/pay/checkout'
