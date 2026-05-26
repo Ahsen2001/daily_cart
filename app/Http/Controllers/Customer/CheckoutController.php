@@ -61,6 +61,14 @@ class CheckoutController extends Controller
         session()->forget(['checkout_coupon_code', 'checkout_loyalty_points']);
         session(['placed_order_ids' => collect($orders)->pluck('id')->all()]);
 
+        if (($data['payment_method'] ?? null) === 'card') {
+            $payment = collect($orders)->first()?->payment()->first();
+
+            if ($payment) {
+                return redirect()->route('customer.payments.payhere', $payment);
+            }
+        }
+
         return redirect()->route('customer.checkout.success');
     }
 

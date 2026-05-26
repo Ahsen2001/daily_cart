@@ -16,7 +16,7 @@
                 <div class="mt-4 space-y-2 text-sm text-brand-text/70">
                     <p>Email: uahsens1@gmail.com</p>
                     <p>Phone: +94 75 460 3008</p>
-                    <p>Address: Oddamavadi, Sri Lanka</p>
+                    <p>Address: Batticaloa, Sri Lanka</p>
                 </div>
             </div>
 
@@ -31,6 +31,14 @@
             </div>
 
             <div class="space-y-5">
+                <div>
+                    <h3 class="font-bold text-brand-text">{{ __('Policies') }}</h3>
+                    <div class="mt-4 grid gap-2 text-sm text-brand-text/70">
+                        <a class="hover:text-brand-dark" href="{{ route('pages.refund-policy') }}">{{ __('Refund Policy') }}</a>
+                        <a class="hover:text-brand-dark" href="{{ route('pages.privacy-policy') }}">{{ __('Privacy Policy') }}</a>
+                        <a class="hover:text-brand-dark" href="{{ route('pages.terms-and-conditions') }}">{{ __('Terms and Conditions') }}</a>
+                    </div>
+                </div>
                 <div>
                     <h3 class="font-bold text-brand-text">{{ __('Download App') }}</h3>
                     <div class="mt-4 flex flex-wrap gap-2">

@@ -31,7 +31,7 @@
                                 <th class="px-3 py-2">{{ __('Customer') }}</th>
                                 <th class="px-3 py-2">{{ __('Scheduled') }}</th>
                                 <th class="px-3 py-2">{{ __('Status') }}</th>
-                                <th class="px-3 py-2">{{ __('Total') }}</th>
+                                <th class="px-3 py-2">{{ __('Vendor Total') }}</th>
                                 <th class="px-3 py-2"></th>
                             </tr>
                         </thead>
@@ -42,7 +42,7 @@
                                     <td class="px-3 py-3">{{ $order->customer?->user?->name }}</td>
                                     <td class="px-3 py-3">{{ $order->scheduled_delivery_at?->format('M d, Y h:i A') }}</td>
                                     <td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($order->order_status)) }}</td>
-                                    <td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr($order->total_amount) }}</td>
+                                    <td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr(max((float) $order->subtotal - (float) $order->discount_amount - (float) $order->loyalty_discount_amount, 0)) }}</td>
                                     <td class="px-3 py-3 text-right">
                                         <a class="text-indigo-700 underline" href="{{ route('vendor.orders.show', $order) }}">{{ __('View') }}</a>
                                     </td>

@@ -18,13 +18,20 @@ use Illuminate\View\View;
 
 class PayHereController extends Controller
 {
-    public function checkout(Payment $payment, PayHereService $payHere): View
+    public function checkout(Payment $payment, PayHereService $payHere, PaymentService $payments): View
     {
-        $this->authorize('process', $payment);
+        $this->authorize('view', $payment);
         abort_unless($payment->payment_method === 'card', 403, 'PayHere checkout is available for card payments only.');
+        abort_if(in_array($payment->status, ['paid', 'refunded'], true), 403, 'This payment has already been completed.');
+
+        if ($payment->status !== 'pending') {
+            $payment = $payments->updateMethod($payment, 'card');
+        }
+
+        $payment = $payments->syncPendingOrderAmounts($payment);
 
         return view('customer.payments.payhere', [
-            'payment' => $payment->load('order'),
+            'payment' => $payment->load(['order.customer.user', 'order.vendor', 'order.items.product']),
             'checkoutUrl' => $payHere->checkoutUrl(),
             'payload' => $payHere->checkoutPayload($payment),
         ]);

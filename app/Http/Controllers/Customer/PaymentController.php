@@ -11,17 +11,45 @@ use App\Notifications\PaymentSuccessNotification;
 use App\Services\OrderStatusService;
 use App\Services\PaymentService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PaymentController extends Controller
 {
-    public function show(Order $order): View
+    public function show(Order $order, PaymentService $payments): View
     {
         $this->authorize('view', $order);
 
+        $order->load(['customer.user', 'vendor', 'items.product', 'payment', 'delivery']);
+
+        if ($order->payment) {
+            $payments->syncPendingOrderAmounts($order->payment);
+            $order->refresh()->load(['customer.user', 'vendor', 'items.product', 'payment', 'delivery']);
+        }
+
         return view('customer.payments.show', [
-            'order' => $order->load('payment'),
+            'order' => $order,
         ]);
+    }
+
+    public function updateMethod(Request $request, Payment $payment, PaymentService $payments): RedirectResponse
+    {
+        $this->authorize('view', $payment);
+
+        $validated = $request->validate([
+            'payment_method' => ['required', Rule::in(PaymentService::METHODS)],
+        ]);
+
+        $payment = $payments->updateMethod($payment, $validated['payment_method']);
+
+        if ($payment->payment_method === 'card') {
+            return redirect()->route('customer.payments.payhere', $payment);
+        }
+
+        return redirect()
+            ->route('customer.payments.show', $payment->order)
+            ->with('status', 'Payment method updated.');
     }
 
     public function process(SimulatePaymentRequest $request, Payment $payment, PaymentService $payments, OrderStatusService $notifications): RedirectResponse

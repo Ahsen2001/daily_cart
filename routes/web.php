@@ -39,6 +39,7 @@ use App\Http\Controllers\Integrations\GoogleMapsController;
 use App\Http\Controllers\Integrations\PayHereController;
 use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Rider\RiderDashboardController;
 use App\Http\Controllers\Rider\RiderDeliveryController;
@@ -64,8 +65,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/refund-policy', [PageController::class, 'refundPolicy'])->name('pages.refund-policy');
+Route::get('/privacy-policy', [PageController::class, 'privacyPolicy'])->name('pages.privacy-policy');
+Route::get('/terms-and-conditions', [PageController::class, 'termsAndConditions'])->name('pages.terms-and-conditions');
+
 Route::post('/newsletter', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
-Route::post('/payments/payhere/notify', [PayHereController::class, 'notify'])->name('payhere.notify');
+Route::post('/payment/payhere/notify', [PayHereController::class, 'notify'])->name('payhere.notify');
 
 Route::get('/dashboard', [DashboardController::class, 'redirect'])
     ->middleware(['auth', 'verified'])
@@ -234,6 +239,7 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
     Route::patch('/orders/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('orders.cancel');
 
     Route::get('/orders/{order}/payment', [PaymentController::class, 'show'])->name('payments.show');
+    Route::patch('/payments/{payment}/method', [PaymentController::class, 'updateMethod'])->name('payments.method');
     Route::patch('/payments/{payment}/process', [PaymentController::class, 'process'])->name('payments.process');
     Route::get('/payments/{payment}/payhere', [PayHereController::class, 'checkout'])->name('payments.payhere');
     Route::get('/payments/{payment}/payhere/return', [PayHereController::class, 'return'])->name('payments.payhere.return');

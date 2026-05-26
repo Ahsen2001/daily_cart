@@ -1,3 +1,10 @@
+@php
+    use App\Services\CurrencyService;
+
+    $vendorItemsTotal = (float) $order->items->sum('total_price');
+    $vendorNetTotal = max((float) $order->subtotal - (float) $order->discount_amount - (float) $order->loyalty_discount_amount, 0);
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
@@ -67,10 +74,29 @@
                 </div>
 
                 <div class="bg-white p-6 shadow-sm sm:rounded-lg">
-                    <h3 class="mb-3 font-semibold">{{ __('Totals') }}</h3>
-                    <div class="flex justify-between text-sm font-semibold">
-                        <span>{{ __('Total') }}</span>
-                        <span>{{ \App\Services\CurrencyService::formatLkr($order->total_amount) }}</span>
+                    <h3 class="mb-3 font-semibold">{{ __('Vendor Total') }}</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>{{ __('Items subtotal') }}</span>
+                            <span>{{ CurrencyService::formatLkr($vendorItemsTotal) }}</span>
+                        </div>
+                        @if ((float) $order->discount_amount > 0)
+                            <div class="flex justify-between text-green-700">
+                                <span>{{ __('Order discount') }}</span>
+                                <span>-{{ CurrencyService::formatLkr($order->discount_amount) }}</span>
+                            </div>
+                        @endif
+                        @if ((float) $order->loyalty_discount_amount > 0)
+                            <div class="flex justify-between text-green-700">
+                                <span>{{ __('Loyalty discount') }}</span>
+                                <span>-{{ CurrencyService::formatLkr($order->loyalty_discount_amount) }}</span>
+                            </div>
+                        @endif
+                        <div class="flex justify-between border-t border-gray-100 pt-3 font-semibold">
+                            <span>{{ __('Vendor payable total') }}</span>
+                            <span>{{ CurrencyService::formatLkr($vendorNetTotal) }}</span>
+                        </div>
+                        <p class="text-xs text-gray-500">{{ __('Delivery and service fees are excluded from the vendor total.') }}</p>
                     </div>
                 </div>
             </div>

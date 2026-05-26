@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Services\OrderStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class VendorOrderController extends Controller
@@ -64,7 +65,9 @@ class VendorOrderController extends Controller
     {
         $vendor = $request->user()->vendor;
         $completedOrders = $vendor->orders()->where('order_status', 'delivered')->latest()->paginate(15);
-        $total = (float) $vendor->orders()->where('order_status', 'delivered')->sum('total_amount');
+        $total = (float) $vendor->orders()
+            ->where('order_status', 'delivered')
+            ->sum(DB::raw('GREATEST(subtotal - discount_amount - loyalty_discount_amount, 0)'));
 
         return view('vendor.orders.earnings', compact('completedOrders', 'total'));
     }

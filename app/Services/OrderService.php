@@ -14,7 +14,9 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-    public const DELIVERY_CHARGE = 350.00;
+    public const SINGLE_ITEM_DELIVERY_CHARGE = 250.00;
+
+    public const BULK_DELIVERY_CHARGE = 200.00;
 
     public const SERVICE_CHARGE_RATE = 0.02;
 
@@ -48,7 +50,7 @@ class OrderService
 
             foreach ($cart->items->groupBy(fn (CartItem $item) => $item->product->vendor_id) as $vendorId => $items) {
                 $subtotal = $items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity);
-                $deliveryFee = self::DELIVERY_CHARGE;
+                $deliveryFee = $this->deliveryChargeForItems($items);
                 $coupon = $couponApplied ? null : $this->couponService->findValid($data['coupon_code'] ?? null, $subtotal, (int) $vendorId, $customer);
                 $discount = $this->couponService->discount($coupon, $subtotal, $deliveryFee);
                 $serviceCharge = round($subtotal * self::SERVICE_CHARGE_RATE, 2);
@@ -127,7 +129,7 @@ class OrderService
         $cart->loadMissing(['items.product.category', 'items.variant']);
 
         $subtotal = $cart->items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity);
-        $deliveryFee = $cart->items->isEmpty() ? 0 : self::DELIVERY_CHARGE;
+        $deliveryFee = $this->deliveryChargeForItems($cart->items);
         $coupon = null;
         $discount = 0.0;
 
@@ -155,6 +157,22 @@ class OrderService
             'service_charge' => $serviceCharge,
             'grand_total' => round($beforeLoyaltyTotal - $loyaltyDiscount, 2),
         ];
+    }
+
+    public static function deliveryChargeForQuantity(int $quantity): float
+    {
+        if ($quantity <= 0) {
+            return 0.0;
+        }
+
+        return $quantity === 1
+            ? self::SINGLE_ITEM_DELIVERY_CHARGE
+            : self::BULK_DELIVERY_CHARGE;
+    }
+
+    private function deliveryChargeForItems($items): float
+    {
+        return self::deliveryChargeForQuantity((int) $items->sum('quantity'));
     }
 
     private function reduceStock(int $productId, ?int $variantId, int $quantity): void

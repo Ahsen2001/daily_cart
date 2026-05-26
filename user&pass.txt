@@ -15,3 +15,9 @@ Password: Password@123
 *Rider*
 Email:uahsens2001@gmail.com
 Password: Password@123
+
+*Run*
+
+
+*ngrok*
+(https://joylessly-entity-onstage.ngrok-free.dev/)

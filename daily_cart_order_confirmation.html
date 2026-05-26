@@ -1,0 +1,334 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f3ef;
+  --white:#ffffff;
+  --ink:#1c1b18;
+  --ink2:#5a5751;
+  --ink3:#9c998f;
+  --fresh:#2e6b4f;
+  --fresh-lt:#e8f4ed;
+  --fresh-mid:#c3e0ce;
+  --amber:#b5621e;
+  --amber-lt:#fdf0e6;
+  --border:rgba(0,0,0,0.08);
+  --border2:rgba(0,0,0,0.05);
+  --r:12px;--r-sm:8px;--r-xs:5px;
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6;min-height:100vh}
+.page{max-width:700px;margin:0 auto;padding:28px 16px 60px}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
+.logo{font-family:'Fraunces',serif;font-size:24px;font-weight:300;letter-spacing:-0.02em;color:var(--ink);display:flex;align-items:center;gap:3px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--fresh);margin-bottom:2px}
+.steps{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3)}
+.step-done{display:flex;align-items:center;gap:4px}
+.step-done .dot{width:16px;height:16px;border-radius:50%;background:var(--fresh);display:flex;align-items:center;justify-content:center}
+.step-done .dot i{font-size:9px;color:#fff}
+.step-line{width:18px;height:1px;background:var(--fresh)}
+
+.hero{background:var(--white);border-radius:var(--r);border:0.5px solid var(--border);padding:32px 28px 28px;margin-bottom:16px;text-align:center;position:relative;overflow:hidden}
+.hero-ring{position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:var(--fresh-lt);opacity:0.6}
+.hero-ring2{position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;border-radius:50%;background:var(--amber-lt);opacity:0.7}
+.check-circle{width:64px;height:64px;border-radius:50%;background:var(--fresh-lt);border:2px solid var(--fresh-mid);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;z-index:1}
+.check-circle i{font-size:28px;color:var(--fresh)}
+.confirm-label{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fresh);margin-bottom:8px}
+.confirm-title{font-family:'Fraunces',serif;font-size:28px;font-weight:300;letter-spacing:-0.02em;color:var(--ink);margin-bottom:8px;line-height:1.2}
+.confirm-sub{font-size:14px;color:var(--ink2);max-width:360px;margin:0 auto 20px}
+.order-pill{display:inline-flex;align-items:center;gap:8px;background:var(--bg);border:0.5px solid var(--border);border-radius:40px;padding:8px 18px;font-size:13px;color:var(--ink2)}
+.order-pill strong{color:var(--ink);font-weight:600}
+.email-note{margin-top:12px;font-size:12px;color:var(--ink3);display:flex;align-items:center;justify-content:center;gap:5px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--r);padding:20px}
+.card-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.card-head i{font-size:17px;color:var(--fresh)}
+.card-head span{font-family:'Fraunces',serif;font-size:16px;font-weight:300;letter-spacing:-0.01em}
+.info-row{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;font-size:13px}
+.info-row:last-child{margin-bottom:0}
+.info-label{font-size:11px;color:var(--ink3);font-weight:500;letter-spacing:0.03em}
+.info-val{color:var(--ink);font-weight:500}
+.info-val.green{color:var(--fresh)}
+
+.track-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.track-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.track-head-left{display:flex;align-items:center;gap:8px}
+.track-head-left i{font-size:17px;color:var(--fresh)}
+.track-head-left span{font-family:'Fraunces',serif;font-size:16px;font-weight:300}
+.eta-badge{background:var(--amber-lt);color:var(--amber);font-size:11px;font-weight:600;padding:4px 10px;border-radius:40px;border:0.5px solid rgba(181,98,30,0.2)}
+.track-steps{display:flex;align-items:flex-start;gap:0;position:relative}
+.track-line{position:absolute;top:14px;left:14px;right:14px;height:2px;background:var(--border2);z-index:0}
+.track-fill{position:absolute;top:14px;left:14px;height:2px;background:var(--fresh);z-index:1;transition:width 0.6s ease;width:25%}
+.track-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:2}
+.t-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center}
+.t-dot.done{background:var(--fresh);border-color:var(--fresh)}
+.t-dot.done i{font-size:13px;color:#fff}
+.t-dot.active{background:var(--white);border-color:var(--fresh);box-shadow:0 0 0 4px var(--fresh-lt)}
+.t-dot.active i{font-size:13px;color:var(--fresh)}
+.t-dot.inactive i{font-size:13px;color:var(--ink3)}
+.t-label{font-size:11px;text-align:center;color:var(--ink3);line-height:1.3;max-width:70px}
+.t-label.done{color:var(--fresh);font-weight:500}
+.t-label.active{color:var(--ink);font-weight:600}
+
+.items-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.items-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.items-head-left{display:flex;align-items:center;gap:8px}
+.items-head-left i{font-size:17px;color:var(--fresh)}
+.items-head-left span{font-family:'Fraunces',serif;font-size:16px;font-weight:300}
+.items-count{font-size:11px;color:var(--ink3);background:var(--bg);padding:3px 9px;border-radius:40px;border:0.5px solid var(--border)}
+.item-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border2)}
+.item-row:last-child{border-bottom:none;padding-bottom:0}
+.item-thumb{width:48px;height:48px;border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.item-details{flex:1;min-width:0}
+.item-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-meta{font-size:11px;color:var(--ink3)}
+.item-qty{font-size:12px;color:var(--ink2);background:var(--bg);padding:2px 8px;border-radius:4px;border:0.5px solid var(--border);white-space:nowrap}
+.item-price{font-size:13px;font-weight:600;white-space:nowrap;text-align:right;min-width:60px}
+
+.totals-block{border-top:0.5px solid var(--border2);margin-top:12px;padding-top:12px}
+.t-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--ink2)}
+.t-row.grand{font-size:15px;font-weight:600;color:var(--ink);padding-top:10px;margin-top:6px;border-top:0.5px solid var(--border)}
+.t-row.saved{color:var(--fresh);font-size:12px}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.btn-primary{height:44px;border-radius:var(--r-sm);background:var(--ink);color:#fff;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background 0.15s}
+.btn-primary:hover{background:#333}
+.btn-outline{height:44px;border-radius:var(--r-sm);background:var(--white);color:var(--ink);border:0.5px solid var(--border);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.15s}
+.btn-outline:hover{border-color:var(--ink);background:var(--bg)}
+
+.refer-card{background:var(--fresh);border-radius:var(--r);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.refer-left{}
+.refer-tag{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fresh-mid);margin-bottom:4px}
+.refer-title{font-family:'Fraunces',serif;font-size:18px;font-weight:300;color:#fff;letter-spacing:-0.01em;margin-bottom:4px}
+.refer-sub{font-size:12px;color:var(--fresh-mid)}
+.refer-code{display:flex;align-items:center;gap:8px}
+.code-box{background:rgba(255,255,255,0.15);border:0.5px solid rgba(255,255,255,0.25);border-radius:var(--r-xs);padding:8px 14px;font-size:14px;font-weight:600;letter-spacing:0.08em;color:#fff;font-family:'Plus Jakarta Sans',monospace}
+.copy-btn{height:36px;padding:0 14px;border-radius:var(--r-xs);background:rgba(255,255,255,0.2);border:0.5px solid rgba(255,255,255,0.3);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background 0.15s}
+.copy-btn:hover{background:rgba(255,255,255,0.3)}
+
+.footer-note{text-align:center;font-size:12px;color:var(--ink3);display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+.footer-note a{color:var(--ink2);text-decoration:none}
+.footer-note a:hover{color:var(--fresh)}
+.dot-sep{width:3px;height:3px;border-radius:50%;background:var(--ink3)}
+</style>
+
+<h2 class="sr-only">Daily Cart order confirmation page for order DC-28451 showing tracking status, items ordered, and referral offer</h2>
+
+<div class="page">
+
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      Daily Cart
+    </div>
+    <div class="steps">
+      <div class="step-done"><div class="dot"><i class="ti ti-check" aria-hidden="true"></i></div> Cart</div>
+      <div class="step-line"></div>
+      <div class="step-done"><div class="dot"><i class="ti ti-check" aria-hidden="true"></i></div> Checkout</div>
+      <div class="step-line"></div>
+      <div class="step-done" style="color:var(--fresh);font-weight:600"><div class="dot"><i class="ti ti-check" aria-hidden="true"></i></div> Confirmed</div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-ring"></div>
+    <div class="hero-ring2"></div>
+    <div class="check-circle">
+      <i class="ti ti-circle-check" aria-hidden="true"></i>
+    </div>
+    <div class="confirm-label">Order confirmed</div>
+    <div class="confirm-title">Thank you, Alex!</div>
+    <div class="confirm-sub">Your order has been placed and is being prepared. We'll keep you updated every step of the way.</div>
+    <div class="order-pill">
+      <i class="ti ti-receipt" style="font-size:14px;color:var(--fresh)" aria-hidden="true"></i>
+      Order <strong>#DC-28451</strong>
+      <span style="color:var(--border);margin:0 2px">·</span>
+      <span>May 26, 2026</span>
+    </div>
+    <div class="email-note">
+      <i class="ti ti-mail" style="font-size:13px" aria-hidden="true"></i>
+      Confirmation sent to alex@email.com
+    </div>
+  </div>
+
+  <div class="track-card">
+    <div class="track-head">
+      <div class="track-head-left">
+        <i class="ti ti-map-2" aria-hidden="true"></i>
+        <span>Order tracking</span>
+      </div>
+      <div class="eta-badge">Est. Jun 2 – Jun 4</div>
+    </div>
+    <div class="track-steps" style="position:relative">
+      <div class="track-line"></div>
+      <div class="track-fill" id="track-fill"></div>
+      <div class="track-step">
+        <div class="t-dot done"><i class="ti ti-check" aria-hidden="true"></i></div>
+        <div class="t-label done">Order<br>placed</div>
+      </div>
+      <div class="track-step">
+        <div class="t-dot active"><i class="ti ti-package" aria-hidden="true"></i></div>
+        <div class="t-label active">Being<br>prepared</div>
+      </div>
+      <div class="track-step">
+        <div class="t-dot inactive"><i class="ti ti-truck" aria-hidden="true"></i></div>
+        <div class="t-label">Shipped</div>
+      </div>
+      <div class="track-step">
+        <div class="t-dot inactive"><i class="ti ti-home" aria-hidden="true"></i></div>
+        <div class="t-label">Delivered</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-head">
+        <i class="ti ti-map-pin" aria-hidden="true"></i>
+        <span>Delivering to</span>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Recipient</div>
+        <div class="info-val">Alex Morgan</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Address</div>
+        <div class="info-val" style="font-weight:400;color:var(--ink2);font-size:13px">123 Main Street, Apt 4B<br>New York, NY 10001<br>United States</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Method</div>
+        <div class="info-val green"><i class="ti ti-truck" style="font-size:13px;vertical-align:-1px;margin-right:3px" aria-hidden="true"></i>Standard · Free</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <i class="ti ti-credit-card" aria-hidden="true"></i>
+        <span>Payment</span>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Method</div>
+        <div class="info-val">Visa card</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Card</div>
+        <div class="info-val" style="font-family:monospace;letter-spacing:0.05em">•••• •••• •••• 3456</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Status</div>
+        <div class="info-val" style="display:flex;align-items:center;gap:5px">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--fresh);display:inline-block"></span>
+          Payment successful
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Promo applied</div>
+        <div class="info-val green">WELCOME15 · −$70.95</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="items-card">
+    <div class="items-head">
+      <div class="items-head-left">
+        <i class="ti ti-shopping-bag" aria-hidden="true"></i>
+        <span>Items ordered</span>
+      </div>
+      <div class="items-count">4 items</div>
+    </div>
+
+    <div class="item-row">
+      <div class="item-thumb" style="background:#f0ebe3">🧥</div>
+      <div class="item-details">
+        <div class="item-name">Merino wool overcoat</div>
+        <div class="item-meta">Camel / Size M</div>
+      </div>
+      <div class="item-qty">Qty 1</div>
+      <div class="item-price">$248.00</div>
+    </div>
+
+    <div class="item-row">
+      <div class="item-thumb" style="background:#e8f0ec">👟</div>
+      <div class="item-details">
+        <div class="item-name">Canvas low-top sneakers</div>
+        <div class="item-meta">White / EU 42</div>
+      </div>
+      <div class="item-qty">Qty 2</div>
+      <div class="item-price">$89.00</div>
+    </div>
+
+    <div class="item-row">
+      <div class="item-thumb" style="background:#eee8f0">👜</div>
+      <div class="item-details">
+        <div class="item-name">Leather tote bag</div>
+        <div class="item-meta">Black / One size</div>
+      </div>
+      <div class="item-qty">Qty 1</div>
+      <div class="item-price">$136.00</div>
+    </div>
+
+    <div class="totals-block">
+      <div class="t-row"><span>Subtotal</span><span>$473.00</span></div>
+      <div class="t-row saved"><span><i class="ti ti-tag" style="font-size:12px;vertical-align:-1px;margin-right:3px" aria-hidden="true"></i>Discount (WELCOME15 · 15%)</span><span>−$70.95</span></div>
+      <div class="t-row"><span>Shipping</span><span style="color:var(--fresh);font-weight:500">Free</span></div>
+      <div class="t-row"><span>Tax (8%)</span><span>$32.16</span></div>
+      <div class="t-row grand"><span>Total charged</span><span>$434.21</span></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" onclick="sendPrompt('Track my Daily Cart order DC-28451')">
+      <i class="ti ti-map-2" style="font-size:16px" aria-hidden="true"></i>
+      Track order
+    </button>
+    <button class="btn-outline" onclick="sendPrompt('Continue shopping on Daily Cart')">
+      <i class="ti ti-shopping-cart" style="font-size:16px" aria-hidden="true"></i>
+      Continue shopping
+    </button>
+  </div>
+
+  <div class="refer-card">
+    <div class="refer-left">
+      <div class="refer-tag">Refer a friend</div>
+      <div class="refer-title">Give $10, get $10</div>
+      <div class="refer-sub">Share your code and earn store credit when a friend places their first order.</div>
+    </div>
+    <div class="refer-code">
+      <div class="code-box" id="ref-code">ALEX-DC10</div>
+      <button class="copy-btn" onclick="copyCode(this)">
+        <i class="ti ti-copy" style="font-size:13px" aria-hidden="true"></i>
+        Copy
+      </button>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <a href="#">Need help?</a>
+    <div class="dot-sep"></div>
+    <a href="#">Return policy</a>
+    <div class="dot-sep"></div>
+    <a href="#">Contact support</a>
+    <div class="dot-sep"></div>
+    <span>© 2026 Daily Cart</span>
+  </div>
+
+</div>
+
+<script>
+function copyCode(btn) {
+  const code = document.getElementById('ref-code').textContent;
+  navigator.clipboard.writeText(code).catch(()=>{});
+  btn.innerHTML = '<i class="ti ti-check" style="font-size:13px" aria-hidden="true"></i> Copied!';
+  btn.style.background = 'rgba(255,255,255,0.35)';
+  setTimeout(() => {
+    btn.innerHTML = '<i class="ti ti-copy" style="font-size:13px" aria-hidden="true"></i> Copy';
+    btn.style.background = '';
+  }, 2000);
+}
+
+setTimeout(() => {
+  const fill = document.getElementById('track-fill');
+  if (fill) fill.style.width = 'calc(33% - 14px)';
+}, 300);
+</script>

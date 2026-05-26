@@ -20,12 +20,12 @@ class PayHereService
             throw ValidationException::withMessages(['currency' => 'PayHere payments must use LKR.']);
         }
 
-        if (blank(config('services.payhere.merchant_id')) || blank(config('services.payhere.merchant_secret'))) {
+        if (blank(config('payhere.merchant_id')) || blank(config('payhere.merchant_secret'))) {
             throw ValidationException::withMessages(['payhere' => 'PayHere merchant credentials are not configured.']);
         }
 
         $payload = [
-            'merchant_id' => config('services.payhere.merchant_id'),
+            'merchant_id' => config('payhere.merchant_id'),
             'return_url' => route('customer.payments.success', $payment),
             'cancel_url' => route('customer.payments.failed', $payment),
             'notify_url' => route('payhere.notify'),
@@ -59,9 +59,7 @@ class PayHereService
 
     public function checkoutUrl(): string
     {
-        return config('services.payhere.sandbox')
-            ? 'https://sandbox.payhere.lk/pay/checkout'
-            : 'https://www.payhere.lk/pay/checkout';
+        return config('payhere.checkout_url');
     }
 
     public function verifyNotification(array $payload): bool
@@ -72,7 +70,7 @@ class PayHereService
             ($payload['payhere_amount'] ?? '').
             ($payload['payhere_currency'] ?? '').
             ($payload['status_code'] ?? '').
-            strtoupper(md5((string) config('services.payhere.merchant_secret')))
+            strtoupper(md5((string) config('payhere.merchant_secret')))
         ));
 
         return hash_equals($localSignature, strtoupper((string) ($payload['md5sig'] ?? '')));
@@ -95,7 +93,7 @@ class PayHereService
 
     private function checkoutHash(string $merchantId, string $orderId, string $amount, string $currency): string
     {
-        return strtoupper(md5($merchantId.$orderId.$amount.$currency.strtoupper(md5((string) config('services.payhere.merchant_secret')))));
+        return strtoupper(md5($merchantId.$orderId.$amount.$currency.strtoupper(md5((string) config('payhere.merchant_secret')))));
     }
 
     private function formatAmount(float $amount): string

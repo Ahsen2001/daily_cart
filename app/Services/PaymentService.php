@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Payment;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -50,6 +51,88 @@ class PaymentService
         }
 
         return $payment->refresh();
+    }
+
+    public function updateMethod(Payment $payment, string $method): Payment
+    {
+        if (! in_array($method, self::METHODS, true)) {
+            throw ValidationException::withMessages(['payment_method' => 'Invalid payment method.']);
+        }
+
+        if (in_array($payment->status, ['paid', 'refunded'], true)) {
+            throw ValidationException::withMessages(['payment' => 'Completed payments cannot be changed.']);
+        }
+
+        return DB::transaction(function () use ($payment, $method) {
+            $payment = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+
+            $payment->update([
+                'payment_method' => $method,
+                'status' => 'pending',
+                'transaction_reference' => null,
+                'transaction_id' => null,
+                'paid_at' => null,
+            ]);
+
+            $payment->order()->update(['payment_status' => 'pending']);
+
+            if ($method === 'wallet') {
+                app(WalletService::class)->payForOrder($payment->order, $payment);
+            }
+
+            return $payment->refresh();
+        });
+    }
+
+    public function syncPendingOrderAmounts(Payment $payment): Payment
+    {
+        if (in_array($payment->status, ['paid', 'refunded'], true)) {
+            return $payment;
+        }
+
+        $payment->loadMissing('order.items');
+        $order = $payment->order;
+
+        if (! $order || in_array($order->payment_status, ['paid', 'refunded'], true)) {
+            return $payment;
+        }
+
+        $deliveryFee = OrderService::deliveryChargeForQuantity((int) $order->items->sum('quantity'));
+        $total = round(
+            (float) $order->subtotal
+            - (float) $order->discount_amount
+            - (float) $order->loyalty_discount_amount
+            + $deliveryFee
+            + (float) $order->service_charge
+            + (float) $order->tax_amount,
+            2
+        );
+
+        if ((float) $order->delivery_fee === $deliveryFee && (float) $order->total_amount === $total) {
+            return $payment;
+        }
+
+        return DB::transaction(function () use ($payment, $deliveryFee, $total) {
+            $payment = Payment::whereKey($payment->id)->lockForUpdate()->with('order')->firstOrFail();
+            $order = $payment->order()->lockForUpdate()->firstOrFail();
+
+            if (in_array($payment->status, ['paid', 'refunded'], true) || in_array($order->payment_status, ['paid', 'refunded'], true)) {
+                return $payment;
+            }
+
+            $order->update([
+                'delivery_fee' => $deliveryFee,
+                'total_amount' => $total,
+            ]);
+
+            $payment->update([
+                'delivery_fee' => $deliveryFee,
+                'grand_total' => $total,
+                'amount' => $total,
+            ]);
+
+            return $payment->refresh();
+        });
     }
 
     public function simulate(Payment $payment, bool $successful): Payment

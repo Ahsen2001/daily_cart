@@ -1,0 +1,327 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,300&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f3ef;--white:#fff;
+  --ink:#1c1b18;--ink2:#5a5751;--ink3:#9c998f;
+  --fresh:#2e6b4f;--fresh-lt:#e8f4ed;--fresh-mid:#c3e0ce;--fresh-dk:#1a4030;
+  --amber:#b5621e;--amber-lt:#fdf0e6;--amber-mid:#f0c090;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.05);
+  --r:12px;--r-sm:8px;--r-xs:5px;
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6}
+.page{max-width:700px;margin:0 auto;padding:24px 16px 56px}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.logo{font-family:'Fraunces',serif;font-size:22px;font-weight:300;letter-spacing:-0.02em;color:var(--ink);display:flex;align-items:center;gap:4px}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--fresh);margin-bottom:1px}
+.back-btn{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--ink2);background:var(--white);border:0.5px solid var(--border);border-radius:40px;padding:6px 12px;cursor:pointer;transition:all 0.15s}
+.back-btn:hover{border-color:var(--ink);color:var(--ink)}
+
+.status-hero{background:var(--fresh);border-radius:var(--r);padding:24px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.status-left{}
+.status-eyebrow{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fresh-mid);margin-bottom:6px}
+.status-title{font-family:'Fraunces',serif;font-size:22px;font-weight:300;color:#fff;letter-spacing:-0.01em;margin-bottom:4px}
+.status-sub{font-size:12px;color:var(--fresh-mid)}
+.status-right{text-align:right;flex-shrink:0}
+.order-num{font-size:11px;color:var(--fresh-mid);margin-bottom:4px;letter-spacing:0.03em}
+.eta-box{background:rgba(255,255,255,0.15);border:0.5px solid rgba(255,255,255,0.25);border-radius:var(--r-sm);padding:10px 14px;text-align:center}
+.eta-label{font-size:10px;color:var(--fresh-mid);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:2px}
+.eta-date{font-size:16px;font-weight:600;color:#fff}
+
+.progress-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--r);padding:22px;margin-bottom:16px}
+.prog-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.prog-title{font-family:'Fraunces',serif;font-size:16px;font-weight:300}
+.prog-pct{font-size:12px;color:var(--fresh);font-weight:600;background:var(--fresh-lt);padding:3px 9px;border-radius:40px;border:0.5px solid var(--fresh-mid)}
+.prog-bar-wrap{height:5px;background:var(--bg);border-radius:40px;margin-bottom:24px;overflow:hidden}
+.prog-bar{height:100%;background:var(--fresh);border-radius:40px;width:0;transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
+
+.timeline{}
+.tl-item{display:flex;gap:14px;padding-bottom:20px;position:relative}
+.tl-item:last-child{padding-bottom:0}
+.tl-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:32px}
+.tl-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1}
+.tl-icon.done{background:var(--fresh);border:2px solid var(--fresh)}
+.tl-icon.done i{font-size:14px;color:#fff}
+.tl-icon.active{background:var(--white);border:2px solid var(--fresh)}
+.tl-icon.active i{font-size:14px;color:var(--fresh)}
+.tl-icon.upcoming{background:var(--bg);border:1.5px solid var(--border);border-radius:50%}
+.tl-icon.upcoming i{font-size:14px;color:var(--ink3)}
+.tl-connector{flex:1;width:2px;background:var(--border2);margin:4px 0;min-height:16px}
+.tl-connector.done{background:var(--fresh-mid)}
+.tl-right{flex:1;padding-top:4px}
+.tl-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.tl-title.upcoming{color:var(--ink3);font-weight:400}
+.tl-time{font-size:11px;color:var(--ink3);margin-bottom:6px}
+.tl-detail{background:var(--bg);border-radius:var(--r-xs);padding:10px 12px;font-size:12px;color:var(--ink2);line-height:1.5;border-left:2px solid var(--fresh);border-top-left-radius:0;border-bottom-left-radius:0}
+.tl-detail.amber{border-left-color:var(--amber);background:var(--amber-lt)}
+.active-pulse{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--fresh);margin-top:6px}
+.pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--fresh);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.info-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--r);padding:18px}
+.ic-head{display:flex;align-items:center;gap:7px;margin-bottom:12px}
+.ic-head i{font-size:16px;color:var(--fresh)}
+.ic-head span{font-family:'Fraunces',serif;font-size:15px;font-weight:300}
+.ic-row{display:flex;flex-direction:column;gap:1px;margin-bottom:9px}
+.ic-row:last-child{margin-bottom:0}
+.ic-label{font-size:10px;color:var(--ink3);letter-spacing:0.04em;font-weight:500;text-transform:uppercase}
+.ic-val{font-size:13px;color:var(--ink);font-weight:400}
+.ic-val.green{color:var(--fresh);font-weight:500}
+.ic-val.mono{font-family:'Plus Jakarta Sans',monospace;letter-spacing:0.04em}
+
+.items-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:16px}
+.items-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.items-hd-l{display:flex;align-items:center;gap:7px}
+.items-hd-l i{font-size:16px;color:var(--fresh)}
+.items-hd-l span{font-family:'Fraunces',serif;font-size:15px;font-weight:300}
+.badge{font-size:11px;color:var(--ink2);background:var(--bg);padding:2px 8px;border-radius:40px;border:0.5px solid var(--border)}
+.item-row{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:0.5px solid var(--border2)}
+.item-row:last-child{border-bottom:none;padding-bottom:0}
+.thumb{width:44px;height:44px;border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-meta{font-size:11px;color:var(--ink3)}
+.item-qty-price{text-align:right;flex-shrink:0}
+.item-price{font-size:13px;font-weight:600;color:var(--ink)}
+.item-qty{font-size:11px;color:var(--ink3)}
+
+.support-card{background:var(--amber-lt);border:0.5px solid rgba(181,98,30,0.15);border-radius:var(--r);padding:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.supp-left{}
+.supp-title{font-size:14px;font-weight:500;color:var(--amber);margin-bottom:3px}
+.supp-sub{font-size:12px;color:var(--amber);opacity:0.75}
+.supp-actions{display:flex;gap:8px;flex-shrink:0}
+.supp-btn{height:34px;padding:0 14px;border-radius:var(--r-xs);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.15s;border:0.5px solid rgba(181,98,30,0.3);background:var(--white);color:var(--amber)}
+.supp-btn:hover{background:var(--amber-lt);border-color:var(--amber)}
+.supp-btn.primary{background:var(--amber);color:#fff;border-color:var(--amber)}
+.supp-btn.primary:hover{background:#9a5119}
+
+.footer-note{text-align:center;font-size:12px;color:var(--ink3);display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.footer-note a{color:var(--ink2);text-decoration:none}
+.footer-note a:hover{color:var(--fresh)}
+.dot-sep{width:3px;height:3px;border-radius:50%;background:var(--ink3)}
+</style>
+
+<h2 class="sr-only">Daily Cart order tracking page for order DC-28451 — currently being prepared at warehouse</h2>
+
+<div class="page">
+
+  <div class="topbar">
+    <div class="logo"><div class="logo-dot"></div>Daily Cart</div>
+    <button class="back-btn" onclick="sendPrompt('Show me my Daily Cart order confirmation for DC-28451')">
+      <i class="ti ti-arrow-left" style="font-size:14px" aria-hidden="true"></i>
+      Back to order
+    </button>
+  </div>
+
+  <div class="status-hero">
+    <div class="status-left">
+      <div class="status-eyebrow">Live tracking</div>
+      <div class="status-title">Being prepared</div>
+      <div class="status-sub">Your items are being packed at our New York warehouse</div>
+    </div>
+    <div class="status-right">
+      <div class="order-num">Order #DC-28451</div>
+      <div class="eta-box">
+        <div class="eta-label">Estimated delivery</div>
+        <div class="eta-date">Jun 2 – 4</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-card">
+    <div class="prog-header">
+      <div class="prog-title">Delivery progress</div>
+      <div class="prog-pct">25% complete</div>
+    </div>
+    <div class="prog-bar-wrap"><div class="prog-bar" id="prog-bar"></div></div>
+
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-left">
+          <div class="tl-icon done"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div class="tl-connector done"></div>
+        </div>
+        <div class="tl-right">
+          <div class="tl-title">Order placed</div>
+          <div class="tl-time">May 26, 2026 · 10:42 AM</div>
+          <div class="tl-detail">Payment of $434.21 confirmed. Promo code WELCOME15 applied successfully.</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-left">
+          <div class="tl-icon active"><i class="ti ti-package" aria-hidden="true"></i></div>
+          <div class="tl-connector"></div>
+        </div>
+        <div class="tl-right">
+          <div class="tl-title">Being prepared</div>
+          <div class="tl-time">May 26, 2026 · 11:15 AM</div>
+          <div class="tl-detail">Your 4 items are currently being picked and packed at our NY Fulfillment Center (NFC-03). Quality check in progress.</div>
+          <div class="active-pulse"><div class="pulse-dot"></div>In progress right now</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-left">
+          <div class="tl-icon upcoming"><i class="ti ti-building-warehouse" aria-hidden="true"></i></div>
+          <div class="tl-connector"></div>
+        </div>
+        <div class="tl-right">
+          <div class="tl-title upcoming">Dispatched from warehouse</div>
+          <div class="tl-time">Expected May 27, 2026</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-left">
+          <div class="tl-icon upcoming"><i class="ti ti-truck" aria-hidden="true"></i></div>
+          <div class="tl-connector"></div>
+        </div>
+        <div class="tl-right">
+          <div class="tl-title upcoming">Out for delivery</div>
+          <div class="tl-time">Expected Jun 2 – 4, 2026</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-left">
+          <div class="tl-icon upcoming"><i class="ti ti-home" aria-hidden="true"></i></div>
+        </div>
+        <div class="tl-right">
+          <div class="tl-title upcoming">Delivered</div>
+          <div class="tl-time">123 Main St, Apt 4B, New York</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="info-card">
+      <div class="ic-head"><i class="ti ti-truck" aria-hidden="true"></i><span>Shipment details</span></div>
+      <div class="ic-row">
+        <div class="ic-label">Carrier</div>
+        <div class="ic-val">FedEx Standard</div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-label">Tracking no.</div>
+        <div class="ic-val mono" id="tracking-num">7489 2031 8820</div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-label">Service</div>
+        <div class="ic-val green"><i class="ti ti-leaf" style="font-size:12px;vertical-align:-1px;margin-right:3px" aria-hidden="true"></i>Standard · Free</div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-label">Ship from</div>
+        <div class="ic-val">NY Fulfillment Center</div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="ic-head"><i class="ti ti-map-pin" aria-hidden="true"></i><span>Delivery address</span></div>
+      <div class="ic-row">
+        <div class="ic-label">Recipient</div>
+        <div class="ic-val">Alex Morgan</div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-label">Address</div>
+        <div class="ic-val" style="color:var(--ink2);font-size:13px;line-height:1.5">123 Main Street<br>Apt 4B, New York<br>NY 10001, US</div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-label">Contact</div>
+        <div class="ic-val">+1 (555) 000-0000</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="items-card">
+    <div class="items-hd">
+      <div class="items-hd-l"><i class="ti ti-shopping-bag" aria-hidden="true"></i><span>Items in this shipment</span></div>
+      <div class="badge">4 items · 1 package</div>
+    </div>
+
+    <div class="item-row">
+      <div class="thumb" style="background:#f0ebe3">🧥</div>
+      <div class="item-info">
+        <div class="item-name">Merino wool overcoat</div>
+        <div class="item-meta">Camel / Size M</div>
+      </div>
+      <div class="item-qty-price">
+        <div class="item-price">$248.00</div>
+        <div class="item-qty">Qty 1</div>
+      </div>
+    </div>
+
+    <div class="item-row">
+      <div class="thumb" style="background:#e8f0ec">👟</div>
+      <div class="item-info">
+        <div class="item-name">Canvas low-top sneakers</div>
+        <div class="item-meta">White / EU 42</div>
+      </div>
+      <div class="item-qty-price">
+        <div class="item-price">$89.00</div>
+        <div class="item-qty">Qty 2</div>
+      </div>
+    </div>
+
+    <div class="item-row">
+      <div class="thumb" style="background:#eee8f0">👜</div>
+      <div class="item-info">
+        <div class="item-name">Leather tote bag</div>
+        <div class="item-meta">Black / One size</div>
+      </div>
+      <div class="item-qty-price">
+        <div class="item-price">$136.00</div>
+        <div class="item-qty">Qty 1</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="support-card">
+    <div class="supp-left">
+      <div class="supp-title"><i class="ti ti-help-circle" style="font-size:14px;vertical-align:-1px;margin-right:4px" aria-hidden="true"></i>Need help with your order?</div>
+      <div class="supp-sub">Change address, request delay, or report an issue</div>
+    </div>
+    <div class="supp-actions">
+      <button class="supp-btn" onclick="copyTracking()">
+        <i class="ti ti-copy" style="font-size:13px" aria-hidden="true"></i>
+        Copy tracking
+      </button>
+      <button class="supp-btn primary" onclick="sendPrompt('I need help with my Daily Cart order DC-28451')">
+        <i class="ti ti-headset" style="font-size:13px" aria-hidden="true"></i>
+        Contact support
+      </button>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <a href="#">Return policy</a>
+    <div class="dot-sep"></div>
+    <a href="#">Help centre</a>
+    <div class="dot-sep"></div>
+    <a href="#">Account</a>
+    <div class="dot-sep"></div>
+    <span>© 2026 Daily Cart</span>
+  </div>
+
+</div>
+
+<script>
+setTimeout(() => {
+  const bar = document.getElementById('prog-bar');
+  if (bar) bar.style.width = '25%';
+}, 300);
+
+function copyTracking() {
+  const num = document.getElementById('tracking-num').textContent;
+  navigator.clipboard.writeText(num.replace(/\s/g,'')).catch(()=>{});
+  const btns = document.querySelectorAll('.supp-btn');
+  const copyBtn = btns[0];
+  const orig = copyBtn.innerHTML;
+  copyBtn.innerHTML = '<i class="ti ti-check" style="font-size:13px" aria-hidden="true"></i> Copied!';
+  setTimeout(() => { copyBtn.innerHTML = orig; }, 2000);
+}
+</script>
