@@ -1,0 +1,44 @@
+name: dailycart_mobile
+description: DailyCart grocery delivery mobile app for Android and iOS.
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cached_network_image: any
+  connectivity_plus: any
+  dio: ^5.9.1
+  firebase_core: ^4.9.0
+  firebase_messaging: ^16.3.0
+  flutter_dotenv: any
+  flutter_local_notifications: any
+  flutter_riverpod: ^3.3.1
+  flutter_secure_storage: ^10.3.1
+  geocoding: any
+  geolocator: any
+  go_router: ^17.3.0
+  google_fonts: any
+  google_maps_flutter: ^2.17.1
+  image_picker: any
+  intl: any
+  shared_preferences: ^2.5.5
+  webview_flutter: ^4.13.1
+
+dev_dependencies:
+  flutter_lints: any
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - .env

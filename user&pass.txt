@@ -17,7 +17,8 @@ Email:uahsens2001@gmail.com
 Password: Password@123
 
 *Run*
-
+php artisan serve
+ngrok http 8000
 
 *ngrok*
 (https://joylessly-entity-onstage.ngrok-free.dev/)
