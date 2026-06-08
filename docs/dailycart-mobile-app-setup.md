@@ -17,7 +17,9 @@ Flutter is not currently available on this machine's PATH. Install Flutter lates
 
 ```bash
 cd dailycart_mobile
+flutter create --project-name dailycart_mobile --org com.dailycart --platforms=android,ios .
 flutter pub get
+dart run flutter_launcher_icons
 flutter run
 ```
 
@@ -53,3 +55,16 @@ API_BASE_URL=http://127.0.0.1:8000/api
 ## Next backend step
 
 The Laravel app currently has web routes, but no dedicated mobile API routes or token auth. Add Laravel Sanctum or another bearer-token API auth layer before connecting real login, cart, checkout, and notifications.
+
+## UI foundation
+
+The app entrypoint now uses:
+
+- `lib/main.dart`
+- `lib/app.dart`
+- `lib/routes/app_router.dart`
+- `lib/theme/light_theme.dart`
+- `lib/theme/app_colors.dart`
+- `lib/theme/app_text_styles.dart`
+
+Reusable UI is in `lib/widgets`, including buttons, text fields, loading, empty, error, app bar, app drawer, cards, and logo widgets.

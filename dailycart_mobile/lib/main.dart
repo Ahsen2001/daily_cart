@@ -3,13 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'app/app.dart';
-import 'features/notifications/data/notification_service.dart';
+import 'app.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await dotenv.load(fileName: '.env', isOptional: true);
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (_) {
+    // Local env is optional while the project is being bootstrapped.
+  }
 
   try {
     await Firebase.initializeApp();
