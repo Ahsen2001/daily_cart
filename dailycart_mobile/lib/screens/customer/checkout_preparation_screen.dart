@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../providers/cart_provider.dart';
 import '../../providers/coupon_provider.dart';
+import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/cart_item_card.dart';
 import '../../widgets/cart_summary_card.dart';
@@ -98,15 +100,7 @@ class _CheckoutPreparationScreenState
                     label: 'Continue to Checkout',
                     icon: Icons.shopping_bag_rounded,
                     onPressed: _addressConfirmed
-                        ? () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Checkout prepared. Payment comes in Step 6.',
-                                ),
-                              ),
-                            );
-                          }
+                        ? () => context.push(AppRoutes.checkout)
                         : null,
                   ),
                 ),

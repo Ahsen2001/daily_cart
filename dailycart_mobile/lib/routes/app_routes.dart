@@ -16,4 +16,13 @@ class AppRoutes {
   static const wishlist = '/wishlist';
   static const cart = '/cart';
   static const checkoutPreparation = '/checkout-preparation';
+  static const checkout = '/checkout';
+  static const addresses = '/addresses';
+  static const addressForm = '/address-form';
+  static const deliverySchedule = '/delivery-schedule';
+  static const paymentMethod = '/payment-method';
+  static const payHereWebView = '/payhere-webview';
+  static const paymentSuccess = '/payment-success';
+  static const paymentFailed = '/payment-failed';
+  static const orderSuccess = '/order-success';
 }

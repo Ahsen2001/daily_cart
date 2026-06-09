@@ -49,6 +49,15 @@ class ApiListParser {
       if (data['product'] is Map<String, dynamic>) {
         return data['product'] as Map<String, dynamic>;
       }
+      if (data['address'] is Map<String, dynamic>) {
+        return data['address'] as Map<String, dynamic>;
+      }
+      if (data['order'] is Map<String, dynamic>) {
+        return data['order'] as Map<String, dynamic>;
+      }
+      if (data['payment'] is Map<String, dynamic>) {
+        return data['payment'] as Map<String, dynamic>;
+      }
       return data;
     }
     return const {};

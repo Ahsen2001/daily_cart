@@ -127,3 +127,23 @@ Reusable UI is in `lib/widgets`, including buttons, text fields, loading, empty,
 12. Remove an applied coupon and confirm discount resets.
 13. Open `/checkout-preparation`, review cart items, confirm delivery address, and confirm totals.
 14. Confirm no payment flow starts from checkout preparation; payment belongs to Step 6.
+
+## Checkout, delivery, and PayHere testing checklist
+
+1. Open `/checkout` with a non-empty cart and confirm cart items and LKR totals display.
+2. Open `/addresses`, add a new address, then confirm it appears in the address list.
+3. Edit an address and confirm the updated fields save.
+4. Delete an address and confirm it disappears.
+5. Set a default address and confirm the default badge appears.
+6. Select an address and confirm checkout shows the selected address.
+7. Open `/delivery-schedule` and select a delivery time at least 30 minutes from now.
+8. Try selecting a delivery time before 30 minutes and confirm the error: `Delivery time must be at least 30 minutes after placing the order.`
+9. Open `/payment-method` and select Cash on Delivery.
+10. Place a Cash on Delivery order and confirm `/order-success` appears.
+11. Select PayHere Card Payment and place the order.
+12. Confirm `/payhere-webview` opens the Laravel PayHere payment URL.
+13. Return from a URL containing `/payment/success` and confirm the app checks payment status.
+14. Confirm paid orders show `/payment-success`.
+15. Confirm cancel or failed URLs show `/payment-failed`.
+16. Select Bank Transfer or Wallet and confirm placeholder messages appear.
+17. Confirm all payment/order amounts are displayed in LKR only.

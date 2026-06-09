@@ -5,10 +5,21 @@ import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/otp_verification_screen.dart';
 import '../screens/auth/pending_approval_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../models/address_model.dart';
+import '../models/checkout_response_model.dart';
+import '../screens/customer/add_edit_address_screen.dart';
+import '../screens/customer/address_list_screen.dart';
 import '../screens/customer/category_screen.dart';
 import '../screens/customer/cart_screen.dart';
 import '../screens/customer/checkout_preparation_screen.dart';
+import '../screens/customer/checkout_screen.dart';
 import '../screens/customer/customer_home_screen.dart';
+import '../screens/customer/delivery_schedule_screen.dart';
+import '../screens/customer/order_success_screen.dart';
+import '../screens/customer/payhere_webview_screen.dart';
+import '../screens/customer/payment_failed_screen.dart';
+import '../screens/customer/payment_method_screen.dart';
+import '../screens/customer/payment_success_screen.dart';
 import '../screens/customer/product_details_screen.dart';
 import '../screens/customer/product_list_screen.dart';
 import '../screens/customer/search_screen.dart';
@@ -125,6 +136,88 @@ final appRouter = GoRouter(
       path: AppRoutes.checkoutPreparation,
       name: 'checkout-preparation',
       builder: (context, state) => const CheckoutPreparationScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.checkout,
+      name: 'checkout',
+      builder: (context, state) => const CheckoutScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.addresses,
+      name: 'addresses',
+      builder: (context, state) => const AddressListScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.addressForm,
+      name: 'address-form',
+      builder: (context, state) {
+        final extra = state.extra;
+        return AddEditAddressScreen(
+          address: extra is AddressModel ? extra : null,
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.deliverySchedule,
+      name: 'delivery-schedule',
+      builder: (context, state) => const DeliveryScheduleScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.paymentMethod,
+      name: 'payment-method',
+      builder: (context, state) => const PaymentMethodScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.payHereWebView,
+      name: 'payhere-webview',
+      builder: (context, state) {
+        final extra = state.extra;
+        if (extra is Map) {
+          return PayHereWebViewScreen(
+            orderId: extra['orderId'] as int,
+            paymentUrl: extra['paymentUrl'] as String,
+          );
+        }
+        return const PaymentFailedScreen();
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.paymentSuccess,
+      name: 'payment-success',
+      builder: (context, state) {
+        final extra = state.extra;
+        return PaymentSuccessScreen(
+          order: extra is OrderModel ? extra : null,
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.paymentFailed,
+      name: 'payment-failed',
+      builder: (context, state) {
+        final extra = state.extra;
+        return PaymentFailedScreen(
+          order: extra is OrderModel ? extra : null,
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.orderSuccess,
+      name: 'order-success',
+      builder: (context, state) {
+        final extra = state.extra;
+        return OrderSuccessScreen(
+          order: extra is OrderModel
+              ? extra
+              : const OrderModel(
+                  id: 0,
+                  orderNumber: '',
+                  status: 'pending',
+                  paymentStatus: 'pending',
+                  grandTotal: 0,
+                ),
+        );
+      },
     ),
   ],
 );
