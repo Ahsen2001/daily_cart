@@ -95,3 +95,18 @@ Reusable UI is in `lib/widgets`, including buttons, text fields, loading, empty,
 7. Test registration for customer, vendor, and rider.
 8. Test forgot password with a valid email and an invalid email.
 9. Test OTP verification with an invalid code and a valid 6-digit code.
+
+## Customer shopping testing checklist
+
+1. Open `/customer-home` and confirm categories, featured products, best sellers, new arrivals, flash deals, recommended products, recently viewed products, and advertisement banners render.
+2. Pull to refresh on customer home and confirm categories/products reload.
+3. Open `/categories` and confirm all category cards show image placeholders, names, and product counts.
+4. Tap a category and confirm `/products` opens with that category filter.
+5. Toggle grid/list view on `/products`.
+6. Test sorting: latest, price low to high, price high to low, highest rated, and most sold.
+7. Test filters: category, price range, rating, availability, and brand.
+8. Open a product details page and confirm image slider, price, discount price, rating, description, stock, vendor, variants, quantity selector, similar products, and reviews.
+9. Test Add to Cart, Buy Now, Add to Wishlist, and Share placeholder actions.
+10. Open `/search`, search by product name, brand, category, SKU, and barcode terms.
+11. Confirm recent searches and popular searches display.
+12. Confirm inactive, pending, and rejected products are not shown in customer product lists.

@@ -105,8 +105,8 @@ class AuthApiService {
         '/otp/verify',
         data: {
           'otp': otp,
-          if (email != null) 'email': email,
-          if (phone != null) 'phone': phone,
+          'email': ?email,
+          'phone': ?phone,
           'purpose': purpose,
         },
       );

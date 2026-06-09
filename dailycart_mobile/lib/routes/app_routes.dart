@@ -9,4 +9,8 @@ class AppRoutes {
   static const customerHome = '/customer-home';
   static const vendorDashboard = '/vendor-dashboard';
   static const riderDashboard = '/rider-dashboard';
+  static const categories = '/categories';
+  static const products = '/products';
+  static const productDetails = '/product-details';
+  static const search = '/search';
 }
