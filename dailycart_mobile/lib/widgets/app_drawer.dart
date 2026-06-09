@@ -60,12 +60,18 @@ class AppDrawer extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.receipt_long_outlined),
               title: const Text('Orders'),
-              onTap: () => Navigator.of(context).pop(),
+              onTap: () {
+                Navigator.of(context).pop();
+                context.push(AppRoutes.myOrders);
+              },
             ),
             ListTile(
               leading: const Icon(Icons.person_outline_rounded),
               title: const Text('Profile'),
-              onTap: () => Navigator.of(context).pop(),
+              onTap: () {
+                Navigator.of(context).pop();
+                context.push(AppRoutes.profile);
+              },
             ),
             const Spacer(),
             ListTile(

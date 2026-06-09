@@ -1,24 +1,13 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'firebase_notification_service.dart';
+import '../routes/app_router.dart';
+import '../routes/app_routes.dart';
 
 class NotificationService {
-  static final _firebaseMessaging = FirebaseMessaging.instance;
-  static final _localNotifications = FlutterLocalNotificationsPlugin();
-
   static Future<void> initialize() async {
-    await _firebaseMessaging.requestPermission();
-
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings();
-    const initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
+    await FirebaseNotificationService().initialize(
+      onOrderNotificationOpened: (orderId) {
+        appRouter.go('${AppRoutes.orderDetails}/$orderId');
+      },
     );
-
-    await _localNotifications.initialize(initSettings);
-  }
-
-  static Future<String?> getFcmToken() {
-    return _firebaseMessaging.getToken();
   }
 }

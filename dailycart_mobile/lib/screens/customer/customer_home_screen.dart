@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../models/product_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/category_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/wishlist_provider.dart';
 import '../../routes/app_routes.dart';
@@ -40,6 +41,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   Widget build(BuildContext context) {
     final categories = ref.watch(categoryProvider);
     final products = ref.watch(productProvider);
+    final notifications = ref.watch(notificationProvider);
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -49,6 +51,19 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             tooltip: 'Cart',
             onPressed: () => context.push(AppRoutes.cart),
             icon: const Icon(Icons.shopping_cart_outlined),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Badge(
+              isLabelVisible: notifications.unreadCount > 0,
+              label: Text('${notifications.unreadCount}'),
+              backgroundColor: AppColors.accentOrange,
+              child: IconButton(
+                tooltip: 'Notifications',
+                onPressed: () => context.push(AppRoutes.notifications),
+                icon: const Icon(Icons.notifications_none_rounded),
+              ),
+            ),
           ),
         ],
       ),
@@ -144,10 +159,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             context.push(AppRoutes.wishlist);
           }
           if (index == 3) {
-            _showPlaceholder(context, 'Orders placeholder');
+            context.push(AppRoutes.myOrders);
           }
           if (index == 4) {
-            _showPlaceholder(context, 'Profile placeholder');
+            context.push(AppRoutes.profile);
           }
         },
         destinations: const [

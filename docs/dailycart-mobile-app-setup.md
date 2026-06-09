@@ -147,3 +147,23 @@ Reusable UI is in `lib/widgets`, including buttons, text fields, loading, empty,
 15. Confirm cancel or failed URLs show `/payment-failed`.
 16. Select Bank Transfer or Wallet and confirm placeholder messages appear.
 17. Confirm all payment/order amounts are displayed in LKR only.
+
+## Orders, notifications, and profile testing checklist
+
+1. Open `/my-orders` and confirm the customer sees only their own orders.
+2. Test order filters: all, active, completed, cancelled, and refunded.
+3. Open `/order-details/:id` and confirm order information, items, and totals display in LKR.
+4. Cancel a pending order and confirm the status updates.
+5. Open `/order-tracking/:id` and confirm the timeline shows current status.
+6. Confirm rider name, rider phone, scheduled time, and estimated delivery time display when present.
+7. Open `/notifications` and confirm order, payment, promotion, and system notifications load.
+8. Mark a notification as read and confirm the unread badge count decreases.
+9. Mark all notifications as read.
+10. Delete a notification and confirm it disappears.
+11. Send a Firebase notification and confirm it is received in foreground.
+12. Open the app from an order notification and confirm it can navigate to order details.
+13. Open `/profile` and confirm the customer sees only their own profile.
+14. Update the profile photo and confirm it uploads.
+15. Edit profile details and confirm they save.
+16. Change password and confirm success.
+17. Logout, then login again successfully.

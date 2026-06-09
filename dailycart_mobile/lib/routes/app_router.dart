@@ -15,11 +15,18 @@ import '../screens/customer/checkout_preparation_screen.dart';
 import '../screens/customer/checkout_screen.dart';
 import '../screens/customer/customer_home_screen.dart';
 import '../screens/customer/delivery_schedule_screen.dart';
+import '../screens/customer/change_password_screen.dart';
+import '../screens/customer/edit_profile_screen.dart';
+import '../screens/customer/my_orders_screen.dart';
+import '../screens/customer/notifications_screen.dart';
+import '../screens/customer/order_details_screen.dart';
 import '../screens/customer/order_success_screen.dart';
+import '../screens/customer/order_tracking_screen.dart';
 import '../screens/customer/payhere_webview_screen.dart';
 import '../screens/customer/payment_failed_screen.dart';
 import '../screens/customer/payment_method_screen.dart';
 import '../screens/customer/payment_success_screen.dart';
+import '../screens/customer/profile_screen.dart';
 import '../screens/customer/product_details_screen.dart';
 import '../screens/customer/product_list_screen.dart';
 import '../screens/customer/search_screen.dart';
@@ -218,6 +225,47 @@ final appRouter = GoRouter(
                 ),
         );
       },
+    ),
+    GoRoute(
+      path: AppRoutes.myOrders,
+      name: 'my-orders',
+      builder: (context, state) => const MyOrdersScreen(),
+    ),
+    GoRoute(
+      path: '${AppRoutes.orderDetails}/:id',
+      name: 'order-details',
+      builder: (context, state) {
+        final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        return OrderDetailsScreen(orderId: orderId);
+      },
+    ),
+    GoRoute(
+      path: '${AppRoutes.orderTracking}/:id',
+      name: 'order-tracking',
+      builder: (context, state) {
+        final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        return OrderTrackingScreen(orderId: orderId);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.notifications,
+      name: 'notifications',
+      builder: (context, state) => const NotificationsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.profile,
+      name: 'profile',
+      builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.editProfile,
+      name: 'edit-profile',
+      builder: (context, state) => const EditProfileScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.changePassword,
+      name: 'change-password',
+      builder: (context, state) => const ChangePasswordScreen(),
     ),
   ],
 );

@@ -25,4 +25,11 @@ class AppRoutes {
   static const paymentSuccess = '/payment-success';
   static const paymentFailed = '/payment-failed';
   static const orderSuccess = '/order-success';
+  static const myOrders = '/my-orders';
+  static const orderDetails = '/order-details';
+  static const orderTracking = '/order-tracking';
+  static const notifications = '/notifications';
+  static const profile = '/profile';
+  static const editProfile = '/edit-profile';
+  static const changePassword = '/change-password';
 }

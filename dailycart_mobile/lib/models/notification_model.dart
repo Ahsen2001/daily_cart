@@ -26,7 +26,7 @@ class NotificationModel {
     this.orderId,
   });
 
-  final int id;
+  final String id;
   final String title;
   final String message;
   final NotificationType type;
@@ -40,7 +40,7 @@ class NotificationModel {
         : json;
 
     return NotificationModel(
-      id: _toInt(json['id']),
+      id: (json['id'] ?? data['id'] ?? '').toString(),
       title: (data['title'] ?? json['title'] ?? '').toString(),
       message: (data['message'] ?? json['message'] ?? '').toString(),
       type: NotificationType.fromName(
