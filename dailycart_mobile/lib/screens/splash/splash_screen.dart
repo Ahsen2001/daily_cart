@@ -39,9 +39,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     final onboardingSeen =
         await ref.read(onboardingServiceProvider).hasSeenOnboarding;
-    final authService = ref.read(authSessionServiceProvider);
-    final isLoggedIn = await authService.isLoggedIn;
-    final role = await authService.role;
+    final auth = ref.read(authProvider);
+    await auth.checkAuthStatus();
 
     if (!mounted) {
       return;
@@ -52,12 +51,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return;
     }
 
-    if (!isLoggedIn) {
+    if (!auth.isAuthenticated) {
       context.go(AppRoutes.login);
       return;
     }
 
-    context.go(role.homeRoute);
+    context.go(auth.role?.homeRoute ?? AppRoutes.login);
   }
 
   @override

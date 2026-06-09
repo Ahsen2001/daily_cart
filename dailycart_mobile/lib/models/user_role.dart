@@ -13,15 +13,16 @@ enum UserRole {
 
   String get homeRoute {
     return switch (this) {
-      UserRole.customer => '/customer',
-      UserRole.vendor => '/vendor',
-      UserRole.rider => '/rider',
+      UserRole.customer => '/customer-home',
+      UserRole.vendor => '/vendor-dashboard',
+      UserRole.rider => '/rider-dashboard',
     };
   }
 
   static UserRole fromName(String? value) {
+    final normalized = value?.trim().toLowerCase().replaceAll('-', '_');
     return UserRole.values.firstWhere(
-      (role) => role.name == value,
+      (role) => role.name == normalized,
       orElse: () => UserRole.customer,
     );
   }

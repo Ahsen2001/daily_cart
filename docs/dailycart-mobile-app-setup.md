@@ -56,6 +56,21 @@ API_BASE_URL=http://127.0.0.1:8000/api
 
 The Laravel app currently has web routes, but no dedicated mobile API routes or token auth. Add Laravel Sanctum or another bearer-token API auth layer before connecting real login, cart, checkout, and notifications.
 
+The Flutter app expects these auth endpoints under `https://dailycart.lk/api`:
+
+- `POST /login`
+- `POST /register`
+- `POST /logout`
+- `POST /forgot-password`
+- `POST /otp/verify`
+- `GET /user`
+
+The testing API base URL is configured as:
+
+```env
+TESTING_API_BASE_URL=https://your-laravel-cloud-url.laravel.cloud/api
+```
+
 ## UI foundation
 
 The app entrypoint now uses:
@@ -68,3 +83,15 @@ The app entrypoint now uses:
 - `lib/theme/app_text_styles.dart`
 
 Reusable UI is in `lib/widgets`, including buttons, text fields, loading, empty, error, app bar, app drawer, cards, and logo widgets.
+
+## Authentication testing checklist
+
+1. Test customer login with valid credentials and confirm redirect to `/customer-home`.
+2. Test vendor login while pending approval and confirm the pending approval message appears.
+3. Test rider login while pending approval and confirm the pending approval message appears.
+4. Test invalid password and confirm an error message appears without storing a token.
+5. Test logout from the drawer and confirm secure token/user data is cleared.
+6. Test app restart after login and confirm the splash screen restores the stored token and redirects by role.
+7. Test registration for customer, vendor, and rider.
+8. Test forgot password with a valid email and an invalid email.
+9. Test OTP verification with an invalid code and a valid 6-digit code.

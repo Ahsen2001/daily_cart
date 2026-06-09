@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../providers/auth_provider.dart';
+import '../routes/app_routes.dart';
 import '../theme/app_colors.dart';
 import 'app_logo.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerWidget {
   const AppDrawer({
     required this.roleName,
     super.key,
@@ -12,7 +16,7 @@ class AppDrawer extends StatelessWidget {
   final String roleName;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Drawer(
       backgroundColor: AppColors.lightBackground,
       child: SafeArea(
@@ -62,6 +66,18 @@ class AppDrawer extends StatelessWidget {
               leading: const Icon(Icons.person_outline_rounded),
               title: const Text('Profile'),
               onTap: () => Navigator.of(context).pop(),
+            ),
+            const Spacer(),
+            ListTile(
+              leading: const Icon(Icons.logout_rounded),
+              title: const Text('Logout'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await ref.read(authProvider).logout();
+                if (context.mounted) {
+                  context.go(AppRoutes.login);
+                }
+              },
             ),
           ],
         ),

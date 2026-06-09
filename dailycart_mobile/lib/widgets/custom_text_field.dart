@@ -8,6 +8,9 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType,
     this.obscureText = false,
     this.textInputAction,
+    this.validator,
+    this.maxLength,
+    this.onChanged,
     super.key,
   });
 
@@ -17,17 +20,24 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final TextInputAction? textInputAction;
+  final String? Function(String?)? validator;
+  final int? maxLength;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
       textInputAction: textInputAction,
+      validator: validator,
+      maxLength: maxLength,
+      onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: icon == null ? null : Icon(icon),
+        counterText: maxLength == null ? null : '',
       ),
     );
   }
