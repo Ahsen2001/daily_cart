@@ -6,10 +6,13 @@ import '../screens/auth/otp_verification_screen.dart';
 import '../screens/auth/pending_approval_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/customer/category_screen.dart';
+import '../screens/customer/cart_screen.dart';
+import '../screens/customer/checkout_preparation_screen.dart';
 import '../screens/customer/customer_home_screen.dart';
 import '../screens/customer/product_details_screen.dart';
 import '../screens/customer/product_list_screen.dart';
 import '../screens/customer/search_screen.dart';
+import '../screens/customer/wishlist_screen.dart';
 import '../screens/home/role_home_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/splash/splash_screen.dart';
@@ -107,6 +110,21 @@ final appRouter = GoRouter(
       path: AppRoutes.search,
       name: 'search',
       builder: (context, state) => const SearchScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.wishlist,
+      name: 'wishlist',
+      builder: (context, state) => const WishlistScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.cart,
+      name: 'cart',
+      builder: (context, state) => const CartScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.checkoutPreparation,
+      name: 'checkout-preparation',
+      builder: (context, state) => const CheckoutPreparationScreen(),
     ),
   ],
 );

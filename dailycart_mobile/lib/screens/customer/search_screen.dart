@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/cart_provider.dart';
 import '../../providers/search_provider.dart';
+import '../../providers/wishlist_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -84,12 +86,28 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   onTap: () => context.push(
                     '${AppRoutes.productDetails}/${product.id}',
                   ),
-                  onAddToCart: () => _showPlaceholder(
-                    '${product.name} added to cart placeholder',
-                  ),
-                  onWishlist: () => _showPlaceholder(
-                    '${product.name} wishlist placeholder',
-                  ),
+                  onAddToCart: () async {
+                    final ok = await ref.read(cartProvider).addToCart(
+                          product: product,
+                          quantity: 1,
+                        );
+                    _showPlaceholder(
+                      ok
+                          ? '${product.name} added to cart.'
+                          : ref.read(cartProvider).errorMessage ??
+                              'Unable to add cart item.',
+                    );
+                  },
+                  onWishlist: () async {
+                    final ok =
+                        await ref.read(wishlistProvider).addToWishlist(product);
+                    _showPlaceholder(
+                      ok
+                          ? '${product.name} added to wishlist.'
+                          : ref.read(wishlistProvider).errorMessage ??
+                              'Unable to add wishlist item.',
+                    );
+                  },
                 );
               },
               separatorBuilder: (context, index) => const SizedBox(height: 14),

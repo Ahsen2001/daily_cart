@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/product_model.dart';
+import '../../providers/cart_provider.dart';
 import '../../providers/category_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/wishlist_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_drawer.dart';
@@ -40,7 +42,16 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     final products = ref.watch(productProvider);
 
     return Scaffold(
-      appBar: const CustomAppBar(title: 'DailyCart'),
+      appBar: CustomAppBar(
+        title: 'DailyCart',
+        actions: [
+          IconButton(
+            tooltip: 'Cart',
+            onPressed: () => context.push(AppRoutes.cart),
+            icon: const Icon(Icons.shopping_cart_outlined),
+          ),
+        ],
+      ),
       drawer: const AppDrawer(roleName: 'Customer'),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -130,7 +141,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             context.push(AppRoutes.categories);
           }
           if (index == 2) {
-            _showPlaceholder(context, 'Wishlist placeholder');
+            context.push(AppRoutes.wishlist);
           }
           if (index == 3) {
             _showPlaceholder(context, 'Orders placeholder');
@@ -277,7 +288,7 @@ class _AdvertisementBanner extends StatelessWidget {
   }
 }
 
-class _ProductSection extends StatelessWidget {
+class _ProductSection extends ConsumerWidget {
   const _ProductSection({
     required this.title,
     required this.products,
@@ -291,7 +302,7 @@ class _ProductSection extends StatelessWidget {
   final bool showBadge;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -319,14 +330,33 @@ class _ProductSection extends StatelessWidget {
                               onTap: () => context.push(
                                 '${AppRoutes.productDetails}/${product.id}',
                               ),
-                              onAddToCart: () => _showPlaceholder(
-                                context,
-                                '${product.name} added to cart placeholder',
-                              ),
-                              onWishlist: () => _showPlaceholder(
-                                context,
-                                '${product.name} wishlist placeholder',
-                              ),
+                              onAddToCart: () async {
+                                final ok = await ref.read(cartProvider).addToCart(
+                                      product: product,
+                                      quantity: 1,
+                                    );
+                                _showPlaceholder(
+                                  context,
+                                  ok
+                                      ? '${product.name} added to cart.'
+                                      : ref.read(cartProvider).errorMessage ??
+                                          'Unable to add cart item.',
+                                );
+                              },
+                              onWishlist: () async {
+                                final ok = await ref
+                                    .read(wishlistProvider)
+                                    .addToWishlist(product);
+                                _showPlaceholder(
+                                  context,
+                                  ok
+                                      ? '${product.name} added to wishlist.'
+                                      : ref
+                                              .read(wishlistProvider)
+                                              .errorMessage ??
+                                          'Unable to add wishlist item.',
+                                );
+                              },
                             ),
                           );
                         },

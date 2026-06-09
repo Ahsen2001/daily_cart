@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../models/product_model.dart';
+import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/wishlist_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -103,10 +106,14 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                   '${AppRoutes.productDetails}/${product.id}',
                                 ),
                                 onAddToCart: () => _showPlaceholder(
-                                  '${product.name} added to cart placeholder',
+                                  '${product.name} added to cart.',
+                                  product: product,
+                                  isCartAction: true,
                                 ),
                                 onWishlist: () => _showPlaceholder(
-                                  '${product.name} wishlist placeholder',
+                                  '${product.name} added to wishlist.',
+                                  product: product,
+                                  isWishlistAction: true,
                                 ),
                               );
                             },
@@ -121,10 +128,14 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                   '${AppRoutes.productDetails}/${product.id}',
                                 ),
                                 onAddToCart: () => _showPlaceholder(
-                                  '${product.name} added to cart placeholder',
+                                  '${product.name} added to cart.',
+                                  product: product,
+                                  isCartAction: true,
                                 ),
                                 onWishlist: () => _showPlaceholder(
-                                  '${product.name} wishlist placeholder',
+                                  '${product.name} added to wishlist.',
+                                  product: product,
+                                  isWishlistAction: true,
                                 ),
                               );
                             },
@@ -237,9 +248,30 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     );
   }
 
-  void _showPlaceholder(String message) {
+  Future<void> _showPlaceholder(
+    String message, {
+    ProductModel? product,
+    bool isCartAction = false,
+    bool isWishlistAction = false,
+  }) async {
+    var finalMessage = message;
+    if (isCartAction && product != null) {
+      final ok = await ref.read(cartProvider).addToCart(
+            product: product,
+            quantity: 1,
+          );
+      finalMessage =
+          ok ? message : ref.read(cartProvider).errorMessage ?? 'Cart error.';
+    }
+    if (isWishlistAction && product != null) {
+      final ok = await ref.read(wishlistProvider).addToWishlist(product);
+      finalMessage = ok
+          ? message
+          : ref.read(wishlistProvider).errorMessage ?? 'Wishlist error.';
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(content: Text(finalMessage)),
     );
   }
 }

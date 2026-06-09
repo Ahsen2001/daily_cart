@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/product_model.dart';
+import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/wishlist_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
@@ -54,7 +56,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
         actions: [
           IconButton(
             tooltip: 'Share Product',
-            onPressed: () => _showPlaceholder('Share product placeholder'),
+            onPressed: () => _showMessage('Share product placeholder'),
             icon: const Icon(Icons.share_outlined),
           ),
         ],
@@ -93,9 +95,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                           child: CustomButton(
                             label: 'Add to Cart',
                             icon: Icons.add_shopping_cart_rounded,
-                            onPressed: () => _showPlaceholder(
-                              '${product.name} added to cart placeholder',
-                            ),
+                            onPressed: () => _addToCart(product),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -103,9 +103,12 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                           child: CustomButton(
                             label: 'Buy Now',
                             icon: Icons.flash_on_rounded,
-                            onPressed: () => _showPlaceholder(
-                              'Buy Now placeholder',
-                            ),
+                            onPressed: () async {
+                              final ok = await _addToCart(product);
+                              if (ok && mounted) {
+                                context.push(AppRoutes.checkoutPreparation);
+                              }
+                            },
                           ),
                         ),
                       ],
@@ -115,9 +118,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                       label: 'Add to Wishlist',
                       icon: Icons.favorite_border_rounded,
                       variant: CustomButtonVariant.secondary,
-                      onPressed: () => _showPlaceholder(
-                        '${product.name} wishlist placeholder',
-                      ),
+                      onPressed: () => _addToWishlist(product),
                     ),
                     const SizedBox(height: 24),
                     _ReviewsSection(reviews: product.reviews),
@@ -128,7 +129,31 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     );
   }
 
-  void _showPlaceholder(String message) {
+  Future<bool> _addToCart(ProductModel product) async {
+    final ok = await ref.read(cartProvider).addToCart(
+          product: product,
+          quantity: _quantity,
+          variantId: _selectedVariant?.id,
+        );
+    _showMessage(
+      ok
+          ? '${product.name} added to cart.'
+          : ref.read(cartProvider).errorMessage ?? 'Unable to add cart item.',
+    );
+    return ok;
+  }
+
+  Future<void> _addToWishlist(ProductModel product) async {
+    final ok = await ref.read(wishlistProvider).addToWishlist(product);
+    _showMessage(
+      ok
+          ? '${product.name} added to wishlist.'
+          : ref.read(wishlistProvider).errorMessage ??
+              'Unable to add wishlist item.',
+    );
+  }
+
+  void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );

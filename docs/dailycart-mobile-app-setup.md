@@ -110,3 +110,20 @@ Reusable UI is in `lib/widgets`, including buttons, text fields, loading, empty,
 10. Open `/search`, search by product name, brand, category, SKU, and barcode terms.
 11. Confirm recent searches and popular searches display.
 12. Confirm inactive, pending, and rejected products are not shown in customer product lists.
+
+## Wishlist, cart, coupon, and checkout preparation testing checklist
+
+1. Add an approved active product to wishlist and confirm it appears on `/wishlist`.
+2. Try adding the same product to wishlist twice and confirm duplicate prevention.
+3. Remove a wishlist item and confirm the empty wishlist message appears when no items remain.
+4. Move a wishlist item to cart and confirm it appears on `/cart`.
+5. Add an approved active product to cart from product details.
+6. Try adding an out-of-stock product and confirm the app blocks it.
+7. Increase and decrease cart quantity and confirm stock validation.
+8. Remove a cart item and confirm totals update.
+9. Clear the cart and confirm the empty cart message appears.
+10. Apply a valid coupon and confirm the discount updates in LKR.
+11. Apply an invalid or expired coupon and confirm an error message appears.
+12. Remove an applied coupon and confirm discount resets.
+13. Open `/checkout-preparation`, review cart items, confirm delivery address, and confirm totals.
+14. Confirm no payment flow starts from checkout preparation; payment belongs to Step 6.
