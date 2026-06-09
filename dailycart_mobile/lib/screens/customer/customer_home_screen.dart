@@ -5,17 +5,23 @@ import 'package:go_router/go_router.dart';
 import '../../models/product_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/category_provider.dart';
+import '../../providers/coupon_provider.dart';
+import '../../providers/loyalty_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/promotion_provider.dart';
 import '../../providers/wishlist_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/category_card.dart';
+import '../../widgets/coupon_card.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/dailycart_card.dart';
 import '../../widgets/empty_products_widget.dart';
+import '../../widgets/loyalty_balance_card.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/promotion_banner.dart';
 import '../../widgets/search_bar_widget.dart';
 
 class CustomerHomeScreen extends ConsumerStatefulWidget {
@@ -34,6 +40,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     Future.microtask(() {
       ref.read(categoryProvider).getCategories();
       ref.read(productProvider).loadHomeProducts();
+      ref.read(loyaltyProvider).getBalance();
+      ref.read(couponProvider).getAvailableCoupons();
+      ref.read(promotionProvider).getPromotions();
     });
   }
 
@@ -42,6 +51,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     final categories = ref.watch(categoryProvider);
     final products = ref.watch(productProvider);
     final notifications = ref.watch(notificationProvider);
+    final loyalty = ref.watch(loyaltyProvider);
+    final coupons = ref.watch(couponProvider);
+    final promotions = ref.watch(promotionProvider);
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -73,6 +85,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           await Future.wait([
             ref.read(categoryProvider).getCategories(),
             ref.read(productProvider).loadHomeProducts(),
+            ref.read(loyaltyProvider).getBalance(),
+            ref.read(couponProvider).getAvailableCoupons(),
+            ref.read(promotionProvider).getPromotions(),
           ]);
         },
         child: ListView(
@@ -85,6 +100,59 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
               readOnly: true,
               onTap: () => context.push(AppRoutes.search),
             ),
+            const SizedBox(height: 18),
+            _DashboardActions(),
+            const SizedBox(height: 18),
+            LoyaltyBalanceCard(
+              points: loyalty.loyaltyBalance,
+              onHistory: () => context.push(AppRoutes.loyaltyHistory),
+              onRedeem: loyalty.loyaltyBalance > 0
+                  ? () => _showPlaceholder(
+                        context,
+                        'Redeem points during checkout placeholder.',
+                      )
+                  : null,
+            ),
+            if (promotions.promotions.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              PromotionBanner(
+                promotion: promotions.promotions.first,
+                onTap: () => context.push(
+                  '${AppRoutes.promotionDetails}/${promotions.promotions.first.id}',
+                ),
+              ),
+            ],
+            if (coupons.coupons.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _SectionHeader(
+                title: 'Available Coupons',
+                onViewAll: () => context.push(AppRoutes.availableCoupons),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 230,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) {
+                    final coupon = coupons.coupons[index];
+                    return SizedBox(
+                      width: 300,
+                      child: CouponCard(
+                        coupon: coupon,
+                        onCopy: () => _showPlaceholder(
+                          context,
+                          '${coupon.code} is ready to use at checkout.',
+                        ),
+                        onApply: () => context.push(AppRoutes.checkout),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 12),
+                  itemCount: coupons.coupons.take(5).length,
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             _SectionHeader(
               title: 'Categories',
@@ -145,6 +213,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
               products: products.recentlyViewedProducts,
               isLoading: products.isLoading,
             ),
+            _RecentlyPurchasedSection(
+              products: products.recentlyViewedProducts,
+              isLoading: products.isLoading,
+            ),
           ],
         ),
       ),
@@ -192,6 +264,84 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             label: 'Profile',
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DashboardActions extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _QuickActionButton(
+            icon: Icons.support_agent_rounded,
+            label: 'Support',
+            onTap: () => context.push(AppRoutes.supportTickets),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _QuickActionButton(
+            icon: Icons.confirmation_number_outlined,
+            label: 'Coupons',
+            onTap: () => context.push(AppRoutes.availableCoupons),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _QuickActionButton(
+            icon: Icons.star_rate_rounded,
+            label: 'Reviews',
+            onTap: () => context.push(AppRoutes.myReviews),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickActionButton extends StatelessWidget {
+  const _QuickActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadow,
+              blurRadius: 18,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: AppColors.darkGreen),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -296,6 +446,112 @@ class _AdvertisementBanner extends StatelessWidget {
             Icons.eco_rounded,
             color: AppColors.white,
             size: 56,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentlyPurchasedSection extends ConsumerWidget {
+  const _RecentlyPurchasedSection({
+    required this.products,
+    required this.isLoading,
+  });
+
+  final List<ProductModel> products;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (products.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        children: [
+          _SectionHeader(title: 'Recently Purchased Products'),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 346,
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return SizedBox(
+                        width: 190,
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: ProductCard(
+                                product: product,
+                                onTap: () => context.push(
+                                  '${AppRoutes.productDetails}/${product.id}',
+                                ),
+                                onAddToCart: () async {
+                                  final ok =
+                                      await ref.read(cartProvider).addToCart(
+                                            product: product,
+                                            quantity: 1,
+                                          );
+                                  _showPlaceholder(
+                                    context,
+                                    ok
+                                        ? '${product.name} added to cart.'
+                                        : ref.read(cartProvider).errorMessage ??
+                                            'Unable to add cart item.',
+                                  );
+                                },
+                                onWishlist: () async {
+                                  final ok = await ref
+                                      .read(wishlistProvider)
+                                      .addToWishlist(product);
+                                  _showPlaceholder(
+                                    context,
+                                    ok
+                                        ? '${product.name} added to wishlist.'
+                                        : ref
+                                                .read(wishlistProvider)
+                                                .errorMessage ??
+                                            'Unable to add wishlist item.',
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  final ok =
+                                      await ref.read(cartProvider).addToCart(
+                                            product: product,
+                                            quantity: 1,
+                                          );
+                                  _showPlaceholder(
+                                    context,
+                                    ok
+                                        ? '${product.name} added to cart.'
+                                        : ref.read(cartProvider).errorMessage ??
+                                            'Unable to reorder item.',
+                                  );
+                                },
+                                icon: const Icon(Icons.refresh_rounded),
+                                label: const Text('Reorder'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 12),
+                    itemCount: products.length,
+                  ),
           ),
         ],
       ),

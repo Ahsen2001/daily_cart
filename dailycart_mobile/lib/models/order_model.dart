@@ -119,6 +119,7 @@ class OrderModel {
 class OrderItemModel {
   const OrderItemModel({
     required this.id,
+    required this.productId,
     required this.productName,
     required this.image,
     required this.quantity,
@@ -127,6 +128,7 @@ class OrderItemModel {
   });
 
   final int id;
+  final int productId;
   final String productName;
   final String image;
   final int quantity;
@@ -136,6 +138,7 @@ class OrderItemModel {
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     return OrderItemModel(
       id: OrderModel._toInt(json['id']),
+      productId: OrderModel._toInt(json['product_id']),
       productName: (json['product_name'] ?? json['name'] ?? '').toString(),
       image: (json['image'] ?? json['image_url'] ?? '').toString(),
       quantity: OrderModel._toInt(json['quantity']),

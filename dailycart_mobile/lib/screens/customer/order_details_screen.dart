@@ -202,6 +202,13 @@ class _OrderItemsCard extends StatelessWidget {
                     children: [
                       Text(item.productName),
                       Text('Qty: ${item.quantity}'),
+                      if (order.isCompleted)
+                        TextButton(
+                          onPressed: () => context.push(
+                            '${AppRoutes.addReview}/${order.id}/${item.productId}',
+                          ),
+                          child: const Text('Review'),
+                        ),
                     ],
                   ),
                 ),

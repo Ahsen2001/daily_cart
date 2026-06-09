@@ -44,7 +44,7 @@ class ApiListParser {
     final data = responseData;
     if (data is Map<String, dynamic>) {
       if (data['data'] is Map<String, dynamic>) {
-        return data['data'] as Map<String, dynamic>;
+        return extractObject(data['data'] as Map<String, dynamic>);
       }
       if (data['product'] is Map<String, dynamic>) {
         return data['product'] as Map<String, dynamic>;
@@ -57,6 +57,30 @@ class ApiListParser {
       }
       if (data['payment'] is Map<String, dynamic>) {
         return data['payment'] as Map<String, dynamic>;
+      }
+      if (data['review'] is Map<String, dynamic>) {
+        return data['review'] as Map<String, dynamic>;
+      }
+      if (data['ticket'] is Map<String, dynamic>) {
+        return data['ticket'] as Map<String, dynamic>;
+      }
+      if (data['coupon'] is Map<String, dynamic>) {
+        return data['coupon'] as Map<String, dynamic>;
+      }
+      if (data['promotion'] is Map<String, dynamic>) {
+        return data['promotion'] as Map<String, dynamic>;
+      }
+      if (data['profile'] is Map<String, dynamic>) {
+        return data['profile'] as Map<String, dynamic>;
+      }
+      if (data['dashboard'] is Map<String, dynamic>) {
+        return data['dashboard'] as Map<String, dynamic>;
+      }
+      if (data['vendor'] is Map<String, dynamic>) {
+        return data['vendor'] as Map<String, dynamic>;
+      }
+      if (data['earning'] is Map<String, dynamic>) {
+        return data['earning'] as Map<String, dynamic>;
       }
       return data;
     }

@@ -28,8 +28,53 @@ class CouponProvider extends ChangeNotifier {
   final Ref _ref;
 
   CouponModel? appliedCoupon;
+  List<CouponModel> coupons = const [];
   bool isLoading = false;
   String? errorMessage;
+
+  Future<void> getAvailableCoupons() async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      coupons = await _apiService.getAvailableCoupons();
+    } on ApiException catch (error) {
+      errorMessage = error.message;
+    } catch (_) {
+      errorMessage = 'Unable to load coupons.';
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> validateCoupon(String code) async {
+    final trimmedCode = code.trim();
+    if (trimmedCode.isEmpty) {
+      errorMessage = 'Enter a coupon code.';
+      notifyListeners();
+      return false;
+    }
+
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      appliedCoupon = await _apiService.validateCoupon(trimmedCode);
+      return true;
+    } on ApiException catch (error) {
+      errorMessage = error.message;
+      return false;
+    } catch (_) {
+      errorMessage = 'Invalid or expired coupon.';
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<bool> applyCoupon(String code) async {
     final trimmedCode = code.trim();

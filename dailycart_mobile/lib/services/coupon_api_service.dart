@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../config/app_config.dart';
 import '../models/coupon_model.dart';
 import '../utils/secure_storage_helper.dart';
+import 'api_list_parser.dart';
 import 'auth_api_service.dart';
 import 'authenticated_api_mixin.dart';
 
@@ -54,6 +55,36 @@ class CouponApiService with AuthenticatedApiMixin {
         '/coupons/remove',
         options: await authOptions(),
       );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<List<CouponModel>> getAvailableCoupons() async {
+    try {
+      final response = await _dio.get<dynamic>(
+        '/coupons/available',
+        options: await authOptions(),
+      );
+      return ApiListParser.extractList(response.data, key: 'coupons')
+          .map(CouponModel.fromJson)
+          .toList(growable: false);
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<CouponModel> validateCoupon(String code) async {
+    try {
+      final response = await _dio.post<dynamic>(
+        '/coupons/validate',
+        data: {'code': code},
+        options: await authOptions(),
+      );
+      return CouponModel.fromJson({
+        ...ApiListParser.extractObject(response.data),
+        'code': code,
+      });
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }

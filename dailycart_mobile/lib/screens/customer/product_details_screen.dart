@@ -121,7 +121,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                       onPressed: () => _addToWishlist(product),
                     ),
                     const SizedBox(height: 24),
-                    _ReviewsSection(reviews: product.reviews),
+                    _ReviewsSection(
+                      productId: product.id,
+                      reviews: product.reviews,
+                    ),
                     const SizedBox(height: 24),
                     _SimilarProducts(products: product.similarProducts),
                   ],
@@ -377,8 +380,12 @@ class _VariantSelector extends StatelessWidget {
 }
 
 class _ReviewsSection extends StatelessWidget {
-  const _ReviewsSection({required this.reviews});
+  const _ReviewsSection({
+    required this.productId,
+    required this.reviews,
+  });
 
+  final int productId;
   final List<ReviewModel> reviews;
 
   @override
@@ -387,11 +394,23 @@ class _ReviewsSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Customer Reviews',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Customer Reviews',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
+              ),
+              TextButton(
+                onPressed: () => context.push(
+                  '${AppRoutes.productReviews}/$productId',
+                ),
+                child: const Text('View all'),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           if (reviews.isEmpty)

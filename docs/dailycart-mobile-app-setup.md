@@ -167,3 +167,41 @@ Reusable UI is in `lib/widgets`, including buttons, text fields, loading, empty,
 15. Edit profile details and confirm they save.
 16. Change password and confirm success.
 17. Logout, then login again successfully.
+
+## Reviews, support, loyalty, coupons, and promotions testing checklist
+
+1. Open `/add-review/:orderId/:productId` from a delivered order and submit a 1-5 star review.
+2. Try submitting a review before delivery and confirm the Laravel API error is shown.
+3. Open `/my-reviews` and confirm the customer's own reviews load.
+4. Open `/product-reviews/:productId` and confirm product average rating and review count display.
+5. Delete a review only when the backend returns `can_delete`.
+6. Open `/support-tickets` and confirm only the customer's tickets load.
+7. Create a support ticket with low, medium, high, and urgent priorities.
+8. Open `/support-ticket-details/:id`, reply to the ticket, and close it.
+9. Open `/loyalty-points` and confirm point balance and LKR value display.
+10. Open `/loyalty-history` and confirm earned, redeemed, reversed, and adjusted entries display.
+11. Open `/available-coupons`, copy a coupon code, and validate/apply a valid coupon.
+12. Try an invalid coupon and confirm an error message appears.
+13. Open `/promotions` and confirm flash sales, seasonal offers, featured offers, and clearance sales display.
+14. Open `/promotion-details/:id` and confirm details and banners display.
+15. Confirm the customer dashboard shows loyalty summary, coupon section, promotion banner, recently purchased products, reorder, and quick support.
+16. Confirm all customer-facing money values use LKR formatting.
+
+## Vendor mobile module testing checklist
+
+1. Login as a pending vendor and confirm `/vendor-dashboard` shows the admin approval message.
+2. Login as an approved vendor and confirm dashboard cards load.
+3. Open `/vendor-products` and confirm only the vendor's own products are shown.
+4. Add a product from `/vendor-add-product` and confirm it is submitted for approval.
+5. Edit a product from `/vendor-edit-product/:id`.
+6. Open `/vendor-product-details/:id` and confirm approval status, price, stock, SKU, barcode, and expiry display.
+7. Upload product images from `/vendor-product-images/:id`.
+8. Review variants from `/vendor-product-variants/:id`.
+9. Update stock and expiry from `/vendor-inventory/:id`.
+10. Open `/vendor-orders` and filter by pending, confirmed, packed, delivered, and cancelled.
+11. Confirm a pending order from `/vendor-order-details/:id`.
+12. Mark a confirmed order as packed.
+13. Cancel or reject an eligible order with a reason.
+14. Open `/vendor-earnings` and confirm earnings, commission, payout, and refunded amounts use LKR.
+15. Open `/vendor-reviews` and filter customer reviews by rating.
+16. Open `/vendor-profile`, edit shop details, and confirm approval status remains visible.

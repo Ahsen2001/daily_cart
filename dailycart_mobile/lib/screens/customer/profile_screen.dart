@@ -69,6 +69,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             onTap: () => context.push(AppRoutes.notifications),
                           ),
                           SettingTile(
+                            icon: Icons.star_rate_rounded,
+                            title: 'My Reviews',
+                            onTap: () => context.push(AppRoutes.myReviews),
+                          ),
+                          SettingTile(
+                            icon: Icons.stars_rounded,
+                            title: 'Loyalty Points',
+                            onTap: () => context.push(AppRoutes.loyaltyPoints),
+                          ),
+                          SettingTile(
+                            icon: Icons.support_agent_rounded,
+                            title: 'Support Tickets',
+                            onTap: () => context.push(AppRoutes.supportTickets),
+                          ),
+                          SettingTile(
+                            icon: Icons.confirmation_number_outlined,
+                            title: 'Available Coupons',
+                            onTap: () => context.push(AppRoutes.availableCoupons),
+                          ),
+                          SettingTile(
+                            icon: Icons.local_offer_outlined,
+                            title: 'Promotions',
+                            onTap: () => context.push(AppRoutes.promotions),
+                          ),
+                          SettingTile(
                             icon: Icons.privacy_tip_outlined,
                             title: 'Privacy Policy',
                             onTap: () => _placeholder('Privacy Policy'),

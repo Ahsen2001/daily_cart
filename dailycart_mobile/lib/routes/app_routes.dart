@@ -8,6 +8,20 @@ class AppRoutes {
   static const pendingApproval = '/pending-approval';
   static const customerHome = '/customer-home';
   static const vendorDashboard = '/vendor-dashboard';
+  static const vendorProducts = '/vendor-products';
+  static const vendorAddProduct = '/vendor-add-product';
+  static const vendorEditProduct = '/vendor-edit-product';
+  static const vendorProductDetails = '/vendor-product-details';
+  static const vendorProductImages = '/vendor-product-images';
+  static const vendorProductVariants = '/vendor-product-variants';
+  static const vendorInventory = '/vendor-inventory';
+  static const vendorOrders = '/vendor-orders';
+  static const vendorOrderDetails = '/vendor-order-details';
+  static const vendorEarnings = '/vendor-earnings';
+  static const vendorEarningDetails = '/vendor-earning-details';
+  static const vendorReviews = '/vendor-reviews';
+  static const vendorProfile = '/vendor-profile';
+  static const vendorEditProfile = '/vendor-edit-profile';
   static const riderDashboard = '/rider-dashboard';
   static const categories = '/categories';
   static const products = '/products';
@@ -32,4 +46,15 @@ class AppRoutes {
   static const profile = '/profile';
   static const editProfile = '/edit-profile';
   static const changePassword = '/change-password';
+  static const addReview = '/add-review';
+  static const myReviews = '/my-reviews';
+  static const productReviews = '/product-reviews';
+  static const supportTickets = '/support-tickets';
+  static const createSupportTicket = '/create-support-ticket';
+  static const supportTicketDetails = '/support-ticket-details';
+  static const loyaltyPoints = '/loyalty-points';
+  static const loyaltyHistory = '/loyalty-history';
+  static const availableCoupons = '/available-coupons';
+  static const promotions = '/promotions';
+  static const promotionDetails = '/promotion-details';
 }
