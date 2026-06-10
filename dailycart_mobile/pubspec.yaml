@@ -15,6 +15,8 @@ dependencies:
   connectivity_plus: any
   dio: ^5.9.1
   firebase_core: ^4.9.0
+  firebase_analytics: any
+  firebase_crashlytics: any
   firebase_messaging: ^16.3.0
   flutter_dotenv: any
   flutter_local_notifications: any
@@ -28,11 +30,13 @@ dependencies:
   image_picker: any
   intl: any
   shared_preferences: ^2.5.5
+  shimmer: any
   webview_flutter: ^4.13.1
 
 dev_dependencies:
   flutter_launcher_icons: any
   flutter_lints: any
+  flutter_native_splash: any
   flutter_test:
     sdk: flutter
 
@@ -50,3 +54,10 @@ flutter_launcher_icons:
   image_path: assets/images/logo.png
   adaptive_icon_background: "#F4FFF7"
   adaptive_icon_foreground: assets/images/logo.png
+
+flutter_native_splash:
+  color: "#F4FFF7"
+  image: assets/images/logo.png
+  android: true
+  ios: true
+  web: false
