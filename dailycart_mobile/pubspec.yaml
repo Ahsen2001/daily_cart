@@ -20,7 +20,7 @@ dependencies:
   firebase_messaging: ^16.3.0
   flutter_dotenv: any
   flutter_local_notifications: any
-  flutter_riverpod: ^3.3.1
+  flutter_riverpod: ^2.6.1
   flutter_secure_storage: ^10.3.1
   geocoding: any
   geolocator: any
