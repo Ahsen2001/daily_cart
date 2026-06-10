@@ -34,7 +34,7 @@ class FirebaseNotificationService {
       android: androidSettings,
       iOS: iosSettings,
     );
-    await _localNotifications.initialize(settings);
+    await _localNotifications.initialize(settings: settings);
 
     try {
       await saveDeviceToken();
@@ -83,10 +83,10 @@ class FirebaseNotificationService {
     );
 
     await _localNotifications.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      details,
+      id: notification.hashCode,
+      title: notification.title,
+      body: notification.body,
+      notificationDetails: details,
     );
   }
 
