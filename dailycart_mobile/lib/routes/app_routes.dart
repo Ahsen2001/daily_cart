@@ -23,6 +23,13 @@ class AppRoutes {
   static const vendorProfile = '/vendor-profile';
   static const vendorEditProfile = '/vendor-edit-profile';
   static const riderDashboard = '/rider-dashboard';
+  static const assignedDeliveries = '/assigned-deliveries';
+  static const deliveryDetails = '/delivery-details';
+  static const deliveryProof = '/delivery-proof';
+  static const riderMap = '/rider-map';
+  static const riderEarnings = '/rider-earnings';
+  static const riderProfile = '/rider-profile';
+  static const editRiderProfile = '/edit-rider-profile';
   static const categories = '/categories';
   static const products = '/products';
   static const productDetails = '/product-details';

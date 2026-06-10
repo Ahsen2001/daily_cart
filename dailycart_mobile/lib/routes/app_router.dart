@@ -42,7 +42,6 @@ import '../screens/customer/search_screen.dart';
 import '../screens/customer/support_ticket_details_screen.dart';
 import '../screens/customer/support_tickets_screen.dart';
 import '../screens/customer/wishlist_screen.dart';
-import '../screens/home/role_home_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/splash/splash_screen.dart';
 import '../screens/vendor/add_product_screen.dart';
@@ -60,6 +59,14 @@ import '../screens/vendor/vendor_product_details_screen.dart';
 import '../screens/vendor/vendor_product_list_screen.dart';
 import '../screens/vendor/vendor_profile_screen.dart';
 import '../screens/vendor/vendor_reviews_screen.dart';
+import '../screens/rider/assigned_deliveries_screen.dart';
+import '../screens/rider/delivery_details_screen.dart';
+import '../screens/rider/delivery_proof_screen.dart';
+import '../screens/rider/edit_rider_profile_screen.dart';
+import '../screens/rider/rider_dashboard_screen.dart';
+import '../screens/rider/rider_earnings_screen.dart';
+import '../screens/rider/rider_map_screen.dart';
+import '../screens/rider/rider_profile_screen.dart';
 import 'app_routes.dart';
 
 final appRouter = GoRouter(
@@ -208,7 +215,51 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.riderDashboard,
       name: 'rider-dashboard',
-      builder: (context, state) => const RoleHomeScreen(roleName: 'Rider'),
+      builder: (context, state) => const RiderDashboardScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.assignedDeliveries,
+      name: 'assigned-deliveries',
+      builder: (context, state) => const AssignedDeliveriesScreen(),
+    ),
+    GoRoute(
+      path: '${AppRoutes.deliveryDetails}/:id',
+      name: 'delivery-details',
+      builder: (context, state) {
+        final deliveryId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        return DeliveryDetailsScreen(deliveryId: deliveryId);
+      },
+    ),
+    GoRoute(
+      path: '${AppRoutes.deliveryProof}/:id',
+      name: 'delivery-proof',
+      builder: (context, state) {
+        final deliveryId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        return DeliveryProofScreen(deliveryId: deliveryId);
+      },
+    ),
+    GoRoute(
+      path: '${AppRoutes.riderMap}/:id',
+      name: 'rider-map',
+      builder: (context, state) {
+        final deliveryId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        return RiderMapScreen(deliveryId: deliveryId);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.riderEarnings,
+      name: 'rider-earnings',
+      builder: (context, state) => const RiderEarningsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.riderProfile,
+      name: 'rider-profile',
+      builder: (context, state) => const RiderProfileScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.editRiderProfile,
+      name: 'edit-rider-profile',
+      builder: (context, state) => const EditRiderProfileScreen(),
     ),
     GoRoute(
       path: AppRoutes.categories,

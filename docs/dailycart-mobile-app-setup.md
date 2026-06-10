@@ -205,3 +205,19 @@ Reusable UI is in `lib/widgets`, including buttons, text fields, loading, empty,
 14. Open `/vendor-earnings` and confirm earnings, commission, payout, and refunded amounts use LKR.
 15. Open `/vendor-reviews` and filter customer reviews by rating.
 16. Open `/vendor-profile`, edit shop details, and confirm approval status remains visible.
+
+## Rider mobile module testing checklist
+
+1. Login as a pending rider and confirm `/rider-dashboard` shows the admin approval message.
+2. Login as an approved rider and confirm dashboard delivery and earnings cards load.
+3. Open `/assigned-deliveries` and confirm only assigned deliveries for the rider are shown.
+4. Open `/delivery-details/:id` and confirm order number, customer name, phone, address, schedule, payment method, payment status, and delivery status display.
+5. Mark an assigned delivery as picked up.
+6. Mark a picked up delivery as on the way.
+7. Open `/delivery-proof/:id`, capture proof image, add a note, and mark delivered.
+8. Mark an eligible delivery as failed with a reason.
+9. Open `/rider-map/:id` and confirm customer location, rider location, and route placeholder display.
+10. Update rider current location and confirm the backend accepts latitude and longitude.
+11. Open `/rider-earnings` and confirm daily, weekly, monthly earnings, completed count, failed count, and history display in LKR.
+12. Open `/rider-profile` and confirm vehicle, license, approval status, and profile photo display.
+13. Edit rider profile from `/edit-rider-profile`.

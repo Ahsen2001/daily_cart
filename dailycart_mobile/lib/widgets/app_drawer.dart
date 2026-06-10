@@ -18,6 +18,7 @@ class AppDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isVendor = roleName.toLowerCase() == 'vendor';
+    final isRider = roleName.toLowerCase() == 'rider';
 
     return Drawer(
       backgroundColor: AppColors.lightBackground,
@@ -65,6 +66,8 @@ class AppDrawer extends ConsumerWidget {
                       Navigator.of(context).pop();
                       if (isVendor) {
                         context.go(AppRoutes.vendorDashboard);
+                      } else if (isRider) {
+                        context.go(AppRoutes.riderDashboard);
                       }
                     },
                   ),
@@ -107,6 +110,31 @@ class AppDrawer extends ConsumerWidget {
                       onTap: () {
                         Navigator.of(context).pop();
                         context.push(AppRoutes.vendorProfile);
+                      },
+                    ),
+                  ] else if (isRider) ...[
+                    ListTile(
+                      leading: const Icon(Icons.assignment_outlined),
+                      title: const Text('Assigned Deliveries'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.assignedDeliveries);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.payments_outlined),
+                      title: const Text('Earnings'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.riderEarnings);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.person_outline_rounded),
+                      title: const Text('Rider Profile'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.riderProfile);
                       },
                     ),
                   ] else ...[
