@@ -64,6 +64,10 @@ class AdminProductController extends Controller
 
     public function feature(Product $product): RedirectResponse
     {
+        if ($product->status !== 'approved') {
+            return back()->with('status', 'Approve this product before featuring it.');
+        }
+
         $product->update([
             'is_featured' => ! $product->is_featured,
         ]);

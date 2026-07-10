@@ -9,6 +9,8 @@ use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CartService;
+use App\Services\CurrencyService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -39,9 +41,30 @@ class CartController extends Controller
         return redirect()->route('customer.cart.index')->with('status', 'Product added to cart.');
     }
 
-    public function update(UpdateCartItemRequest $request, CartItem $item): RedirectResponse
+    public function update(UpdateCartItemRequest $request, CartItem $item): RedirectResponse|JsonResponse
     {
-        $this->cartService->update($item->load(['product.category', 'variant.inventory']), (int) $request->quantity);
+        $item = $this->cartService->update($item->load(['product.category', 'variant.inventory']), (int) $request->quantity);
+
+        if ($request->expectsJson()) {
+            $cart = $item->cart->load(['items.product.category', 'items.variant']);
+            $totals = $this->cartService->totals($cart);
+            $lineTotal = round((float) $item->unit_price * $item->quantity, 2);
+
+            return response()->json([
+                'message' => 'Cart updated.',
+                'item' => [
+                    'id' => $item->id,
+                    'quantity' => $item->quantity,
+                    'line_total' => $lineTotal,
+                    'formatted_line_total' => CurrencyService::formatLkr($lineTotal),
+                ],
+                'totals' => [
+                    'subtotal' => $totals['subtotal'],
+                    'item_count' => $totals['item_count'],
+                    'formatted_subtotal' => CurrencyService::formatLkr($totals['subtotal']),
+                ],
+            ]);
+        }
 
         return back()->with('status', 'Cart updated.');
     }

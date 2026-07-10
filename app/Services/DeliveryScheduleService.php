@@ -13,7 +13,7 @@ class DeliveryScheduleService
 
     public function minimumDeliveryTime(?CarbonInterface $placedAt = null): CarbonInterface
     {
-        return ($placedAt ?? Carbon::now())->copy()->addMinutes(self::MINIMUM_LEAD_MINUTES);
+        return ($placedAt ?? Carbon::now())->copy()->startOfMinute()->addMinutes(self::MINIMUM_LEAD_MINUTES);
     }
 
     public function isAllowed(CarbonInterface $scheduledAt, ?CarbonInterface $placedAt = null): bool

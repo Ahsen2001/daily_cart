@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Setting;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -53,12 +54,14 @@ class OrderService
                 $deliveryFee = $this->deliveryChargeForItems($items);
                 $coupon = $couponApplied ? null : $this->couponService->findValid($data['coupon_code'] ?? null, $subtotal, (int) $vendorId, $customer);
                 $discount = $this->couponService->discount($coupon, $subtotal, $deliveryFee);
-                $serviceCharge = round($subtotal * self::SERVICE_CHARGE_RATE, 2);
+                $serviceCharge = self::serviceChargeForSubtotal($subtotal);
                 $beforeLoyaltyTotal = round($subtotal - $discount + $deliveryFee + $serviceCharge, 2);
                 $maxPointsForThisOrder = $redemptionValuePerPoint > 0 ? (int) floor($beforeLoyaltyTotal / $redemptionValuePerPoint) : 0;
                 $loyaltyPoints = min($remainingLoyaltyPoints, $maxPointsForThisOrder);
                 $loyaltyDiscount = $this->loyaltyPointService->validateRedemption($customer, $loyaltyPoints, $beforeLoyaltyTotal);
                 $total = round($beforeLoyaltyTotal - $loyaltyDiscount, 2);
+
+                $placedAt = Carbon::parse($data['client_current_at'] ?? now());
 
                 $order = Order::create([
                     'order_number' => $this->orderNumber(),
@@ -80,7 +83,7 @@ class OrderService
                     'delivery_distance_meters' => $data['delivery_distance_meters'] ?? null,
                     'order_status' => 'pending',
                     'payment_status' => 'pending',
-                    'placed_at' => Carbon::now(),
+                    'placed_at' => $placedAt,
                     'scheduled_delivery_at' => Carbon::parse($data['scheduled_delivery_at']),
                 ]);
 
@@ -143,7 +146,7 @@ class OrderService
             }
         }
 
-        $serviceCharge = round($subtotal * self::SERVICE_CHARGE_RATE, 2);
+        $serviceCharge = self::serviceChargeForSubtotal($subtotal);
         $beforeLoyaltyTotal = round($subtotal - $discount + $deliveryFee + $serviceCharge, 2);
         $loyaltyDiscount = $customer ? $this->loyaltyPointService->validateRedemption($customer, $loyaltyPoints, $beforeLoyaltyTotal) : 0;
 
@@ -166,8 +169,35 @@ class OrderService
         }
 
         return $quantity === 1
-            ? self::SINGLE_ITEM_DELIVERY_CHARGE
-            : self::BULK_DELIVERY_CHARGE;
+            ? self::singleItemDeliveryCharge()
+            : self::bulkDeliveryCharge();
+    }
+
+    public static function singleItemDeliveryCharge(): float
+    {
+        return self::settingFloat('delivery_charge_single_item', self::SINGLE_ITEM_DELIVERY_CHARGE);
+    }
+
+    public static function bulkDeliveryCharge(): float
+    {
+        return self::settingFloat('delivery_charge_bulk_items', self::BULK_DELIVERY_CHARGE);
+    }
+
+    public static function serviceChargeRate(): float
+    {
+        return self::settingFloat('service_charge_rate_percent', self::SERVICE_CHARGE_RATE * 100) / 100;
+    }
+
+    public static function serviceChargeForSubtotal(float|int|string $subtotal): float
+    {
+        return round((float) $subtotal * self::serviceChargeRate(), 2);
+    }
+
+    private static function settingFloat(string $key, float $default): float
+    {
+        $value = Setting::query()->where('setting_key', $key)->value('setting_value');
+
+        return is_numeric($value) ? max(0, (float) $value) : $default;
     }
 
     private function deliveryChargeForItems($items): float

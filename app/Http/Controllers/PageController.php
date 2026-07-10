@@ -31,7 +31,7 @@ class PageController extends Controller
 
         $products = Product::query()
             ->visibleToCustomers()
-            ->with(['category', 'vendor'])
+            ->with(['category', 'vendor', 'images'])
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where(function ($inner) use ($request) {
                     $inner->where('name', 'like', '%'.$request->search.'%')

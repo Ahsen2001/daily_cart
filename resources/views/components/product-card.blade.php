@@ -8,13 +8,7 @@
 <article {{ $attributes->merge(['class' => 'group overflow-hidden rounded-3xl border border-green-100 bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft']) }}>
     <a href="{{ route('customer.products.show', $product) }}" class="block">
         <div class="aspect-[4/3] bg-brand-light">
-            @if ($product->image)
-                <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
-            @else
-                <div class="flex h-full items-center justify-center">
-                    <x-application-logo :show-text="false" class="opacity-70" />
-                </div>
-            @endif
+            <img src="{{ $product->display_image_url }}" alt="{{ $product->name }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
         </div>
         <div class="space-y-3 p-5">
             <div>

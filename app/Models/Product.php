@@ -91,6 +91,41 @@ class Product extends Model
         return $this->images();
     }
 
+    public function getDisplayImageUrlAttribute(): string
+    {
+        if ($this->image && Storage::disk('public')->exists($this->image)) {
+            return asset('storage/'.$this->image);
+        }
+
+        $galleryImages = $this->relationLoaded('images')
+            ? $this->images
+            : $this->images()
+                ->orderByDesc('is_primary')
+                ->orderBy('sort_order')
+                ->get();
+
+        $galleryImage = $galleryImages
+            ->sortBy(fn (ProductImage $image) => sprintf(
+                '%d-%010d-%010d',
+                $image->is_primary ? 0 : 1,
+                $image->sort_order ?? 0,
+                $image->id ?? 0
+            ))
+            ->first(
+                fn (ProductImage $image) => $image->image_path && Storage::disk('public')->exists($image->image_path)
+            );
+
+        if ($galleryImage) {
+            return asset('storage/'.$galleryImage->image_path);
+        }
+
+        if ($this->relationLoaded('category') || $this->category_id) {
+            return $this->category?->display_image_url ?? asset('images/logo.png');
+        }
+
+        return asset('images/logo.png');
+    }
+
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);

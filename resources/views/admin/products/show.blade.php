@@ -73,12 +73,12 @@
                     <form method="POST" action="{{ route('admin.products.reject', $product) }}">
                         @csrf
                         @method('PATCH')
-                        <x-secondary-button>{{ __('Reject') }}</x-secondary-button>
+                        <x-secondary-button type="submit">{{ __('Reject') }}</x-secondary-button>
                     </form>
                     <form method="POST" action="{{ route('admin.products.feature', $product) }}">
                         @csrf
                         @method('PATCH')
-                        <x-secondary-button>{{ $product->is_featured ? __('Unfeature') : __('Feature') }}</x-secondary-button>
+                        <x-secondary-button type="submit">{{ $product->is_featured ? __('Unfeature') : __('Feature') }}</x-secondary-button>
                     </form>
                     <form method="POST" action="{{ route('admin.products.status', $product) }}" class="flex gap-2">
                         @csrf
@@ -88,7 +88,7 @@
                                 <option value="{{ $status }}" @selected($product->status === $status)>{{ str_replace('_', ' ', ucfirst($status)) }}</option>
                             @endforeach
                         </select>
-                        <x-secondary-button>{{ __('Update Status') }}</x-secondary-button>
+                        <x-secondary-button type="submit">{{ __('Update Status') }}</x-secondary-button>
                     </form>
                 </div>
             </div>

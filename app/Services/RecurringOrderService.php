@@ -57,7 +57,7 @@ class RecurringOrderService
             $scheduledAt = $this->scheduledDateTime($subscription);
             $subtotal = round((float) $subscription->unit_price * $subscription->quantity, 2);
             $deliveryFee = OrderService::deliveryChargeForQuantity((int) $subscription->quantity);
-            $serviceCharge = round($subtotal * OrderService::SERVICE_CHARGE_RATE, 2);
+            $serviceCharge = OrderService::serviceChargeForSubtotal($subtotal);
             $total = round($subtotal + $deliveryFee + $serviceCharge, 2);
 
             $order = Order::create([

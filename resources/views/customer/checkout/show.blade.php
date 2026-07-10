@@ -49,6 +49,7 @@
 
                         <input type="hidden" name="coupon_code" value="{{ $couponCode }}">
                         <input type="hidden" name="loyalty_points" value="{{ $loyaltyPoints }}">
+                        <input type="hidden" id="client_current_at" name="client_current_at" value="{{ old('client_current_at') }}">
 
                         <section class="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
                             <div class="mb-5 flex items-center justify-between">
@@ -115,11 +116,11 @@
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <div class="rounded-2xl bg-green-50 p-4">
                                     <p class="text-xs font-bold uppercase tracking-wide text-green-700">{{ __('Current date and time') }}</p>
-                                    <p class="mt-1 font-semibold text-gray-900">{{ $currentDateTime->format('M d, Y h:i A') }}</p>
+                                    <p id="client-current-time-display" class="mt-1 font-semibold text-gray-900">{{ $currentDateTime->format('M d, Y h:i A') }}</p>
                                 </div>
                                 <div class="rounded-2xl bg-orange-50 p-4">
                                     <p class="text-xs font-bold uppercase tracking-wide text-orange-600">{{ __('Earliest delivery time') }}</p>
-                                    <p class="mt-1 font-semibold text-gray-900">{{ $minimumDeliveryTime->format('M d, Y h:i A') }}</p>
+                                    <p id="minimum-delivery-time-display" class="mt-1 font-semibold text-gray-900">{{ $minimumDeliveryTime->format('M d, Y h:i A') }}</p>
                                 </div>
                             </div>
 
@@ -347,6 +348,63 @@
     @endif
 
     <script>
+        const scheduleInput = document.getElementById('scheduled_delivery_at');
+        const clientCurrentInput = document.getElementById('client_current_at');
+        const currentTimeDisplay = document.getElementById('client-current-time-display');
+        const minimumTimeDisplay = document.getElementById('minimum-delivery-time-display');
+        const checkoutForm = document.getElementById('checkout-form');
+
+        const padDatePart = (value) => String(value).padStart(2, '0');
+        const toLocalInputValue = (date) => {
+            return [
+                date.getFullYear(),
+                padDatePart(date.getMonth() + 1),
+                padDatePart(date.getDate()),
+            ].join('-') + 'T' + [
+                padDatePart(date.getHours()),
+                padDatePart(date.getMinutes()),
+            ].join(':');
+        };
+        const formatDisplayTime = (date) => new Intl.DateTimeFormat(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        }).format(date);
+        const deviceNowAtMinute = () => {
+            const date = new Date();
+            date.setSeconds(0, 0);
+            return date;
+        };
+        const refreshDeliverySchedule = () => {
+            if (!scheduleInput || !clientCurrentInput) return;
+
+            const now = deviceNowAtMinute();
+            const minimum = new Date(now.getTime() + 30 * 60 * 1000);
+            const currentValue = scheduleInput.value;
+            const minimumValue = toLocalInputValue(minimum);
+
+            clientCurrentInput.value = toLocalInputValue(now);
+            scheduleInput.min = minimumValue;
+
+            if (!currentValue || currentValue < minimumValue) {
+                scheduleInput.value = minimumValue;
+            }
+
+            if (currentTimeDisplay) {
+                currentTimeDisplay.textContent = formatDisplayTime(now);
+            }
+
+            if (minimumTimeDisplay) {
+                minimumTimeDisplay.textContent = formatDisplayTime(minimum);
+            }
+        };
+
+        refreshDeliverySchedule();
+        window.setInterval(refreshDeliverySchedule, 60 * 1000);
+        checkoutForm?.addEventListener('submit', refreshDeliverySchedule);
+
         const bankModal = document.getElementById('bank-transfer-modal');
         const openBankModal = () => {
             bankModal?.classList.remove('hidden');

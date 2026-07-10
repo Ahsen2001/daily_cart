@@ -98,21 +98,22 @@ class PaymentService
         }
 
         $deliveryFee = OrderService::deliveryChargeForQuantity((int) $order->items->sum('quantity'));
+        $serviceCharge = OrderService::serviceChargeForSubtotal($order->subtotal);
         $total = round(
             (float) $order->subtotal
             - (float) $order->discount_amount
             - (float) $order->loyalty_discount_amount
             + $deliveryFee
-            + (float) $order->service_charge
+            + $serviceCharge
             + (float) $order->tax_amount,
             2
         );
 
-        if ((float) $order->delivery_fee === $deliveryFee && (float) $order->total_amount === $total) {
+        if ((float) $order->delivery_fee === $deliveryFee && (float) $order->service_charge === $serviceCharge && (float) $order->total_amount === $total) {
             return $payment;
         }
 
-        return DB::transaction(function () use ($payment, $deliveryFee, $total) {
+        return DB::transaction(function () use ($payment, $deliveryFee, $serviceCharge, $total) {
             $payment = Payment::whereKey($payment->id)->lockForUpdate()->with('order')->firstOrFail();
             $order = $payment->order()->lockForUpdate()->firstOrFail();
 
@@ -122,11 +123,13 @@ class PaymentService
 
             $order->update([
                 'delivery_fee' => $deliveryFee,
+                'service_charge' => $serviceCharge,
                 'total_amount' => $total,
             ]);
 
             $payment->update([
                 'delivery_fee' => $deliveryFee,
+                'service_charge' => $serviceCharge,
                 'grand_total' => $total,
                 'amount' => $total,
             ]);

@@ -15,6 +15,7 @@
                     @if (Auth::user()->isSuperAdmin())
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.admins.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.admins.index') }}">{{ __('Admin Accounts') }}</a>
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.roles.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.roles.index') }}">{{ __('Roles & Permissions') }}</a>
+                        <a class="dc-sidebar-link {{ request()->routeIs('super-admin.settings.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.settings.index') }}">{{ __('Platform Settings') }}</a>
                     @endif
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.customers.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.customers.index') }}">{{ __('Customers') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.reports.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.reports.sales') }}">{{ __('Reports') }}</a>

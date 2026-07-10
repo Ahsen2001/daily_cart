@@ -81,6 +81,28 @@
                     </div>
                 </div>
 
+                <div class="bg-white p-6 shadow-sm sm:rounded-lg border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900 border-b pb-2 mb-4">{{ __('Checkout Charges') }}</h3>
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <div>
+                            <x-input-label for="delivery_charge_single_item" :value="__('Single Item Delivery Charge')" />
+                            <x-text-input id="delivery_charge_single_item" name="delivery_charge_single_item" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="old('delivery_charge_single_item', $settings['delivery_charge_single_item'])" />
+                            <x-input-error :messages="$errors->get('delivery_charge_single_item')" class="mt-2" />
+                        </div>
+                        <div>
+                            <x-input-label for="delivery_charge_bulk_items" :value="__('Multiple Items Delivery Charge')" />
+                            <x-text-input id="delivery_charge_bulk_items" name="delivery_charge_bulk_items" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="old('delivery_charge_bulk_items', $settings['delivery_charge_bulk_items'])" />
+                            <x-input-error :messages="$errors->get('delivery_charge_bulk_items')" class="mt-2" />
+                        </div>
+                        <div>
+                            <x-input-label for="service_charge_rate_percent" :value="__('Service Charge (%)')" />
+                            <x-text-input id="service_charge_rate_percent" name="service_charge_rate_percent" type="number" min="0" max="100" step="0.01" class="mt-1 block w-full" :value="old('service_charge_rate_percent', $settings['service_charge_rate_percent'])" />
+                            <x-input-error :messages="$errors->get('service_charge_rate_percent')" class="mt-2" />
+                        </div>
+                    </div>
+                    <p class="mt-3 text-sm text-gray-500">{{ __('These values control checkout quotes, new orders, pending payment recalculations, and recurring subscription orders.') }}</p>
+                </div>
+
                 <!-- Currency, Timezone & Maintenance Settings -->
                 <div class="bg-white p-6 shadow-sm sm:rounded-lg border border-gray-100">
                     <h3 class="text-lg font-bold text-gray-900 border-b pb-2 mb-4">{{ __('System Parameter Configurations') }}</h3>

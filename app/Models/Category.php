@@ -53,7 +53,7 @@ class Category extends Model
     public function getDisplayImageUrlAttribute(): string
     {
         if ($this->image && Storage::disk('public')->exists($this->image)) {
-            return Storage::disk('public')->url($this->image);
+            return asset('storage/'.$this->image);
         }
 
         $name = Str::lower($this->name);

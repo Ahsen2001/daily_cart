@@ -1,10 +1,17 @@
 @php
     $featuredProducts = \App\Models\Product::query()
         ->visibleToCustomers()
-        ->with(['category', 'vendor'])
+        ->with(['category', 'vendor', 'images'])
         ->latest()
         ->limit(4)
         ->get();
+
+    $homepageCategories = [
+        ['name' => 'Grocery', 'slug' => 'grocery', 'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80'],
+        ['name' => 'Vegetables', 'slug' => 'vegetables', 'image' => 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80'],
+        ['name' => 'Bakery', 'slug' => 'bakery', 'image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80'],
+        ['name' => 'Pharmacy', 'slug' => 'pharmacy', 'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=900&q=80'],
+    ];
 @endphp
 
 <!DOCTYPE html>
@@ -70,32 +77,38 @@
                         <a class="dc-button-secondary" href="{{ route('categories.index') }}">{{ __('Browse All') }}</a>
                     </div>
                     <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                        @forelse ($featuredProducts as $product)
-                            <x-product-card :product="$product" />
-                        @empty
-                            @foreach ([
-                                ['name' => 'Grocery', 'slug' => 'grocery', 'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80'],
-                                ['name' => 'Vegetables', 'slug' => 'vegetables', 'image' => 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80'],
-                                ['name' => 'Bakery', 'slug' => 'bakery', 'image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80'],
-                                ['name' => 'Pharmacy', 'slug' => 'pharmacy', 'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=900&q=80'],
-                            ] as $category)
-                                <a href="{{ route('products.index', ['category' => $category['slug']]) }}" class="dc-card block overflow-hidden p-0 text-center">
-                                    <div class="aspect-[4/3] overflow-hidden bg-brand-light">
-                                        <img
-                                            src="{{ $category['image'] }}"
-                                            alt="{{ $category['name'] }}"
-                                            class="h-full w-full object-cover"
-                                            loading="lazy"
-                                        >
-                                    </div>
-                                    <div class="p-6">
-                                        <h3 class="font-bold">{{ $category['name'] }}</h3>
-                                        <p class="mt-2 text-sm text-brand-text/60">{{ __('View approved products in this category.') }}</p>
-                                    </div>
-                                </a>
-                            @endforeach
-                        @endforelse
+                        @foreach ($homepageCategories as $category)
+                            <a href="{{ route('products.index', ['category' => $category['slug']]) }}" class="dc-card block overflow-hidden p-0 text-center">
+                                <div class="aspect-[4/3] overflow-hidden bg-brand-light">
+                                    <img
+                                        src="{{ $category['image'] }}"
+                                        alt="{{ $category['name'] }}"
+                                        class="h-full w-full object-cover"
+                                        loading="lazy"
+                                    >
+                                </div>
+                                <div class="p-6">
+                                    <h3 class="font-bold">{{ $category['name'] }}</h3>
+                                    <p class="mt-2 text-sm text-brand-text/60">{{ __('View approved products in this category.') }}</p>
+                                </div>
+                            </a>
+                        @endforeach
                     </div>
+
+                    @if ($featuredProducts->isNotEmpty())
+                        <div class="mt-12 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p class="font-semibold text-brand-dark">{{ __('Featured Products') }}</p>
+                                <h3 class="mt-2 text-2xl font-extrabold">{{ __('Recently approved items') }}</h3>
+                            </div>
+                            <a class="dc-button-secondary" href="{{ route('products.index') }}">{{ __('View Products') }}</a>
+                        </div>
+                        <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                            @foreach ($featuredProducts as $product)
+                                <x-product-card :product="$product" />
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </section>
         </main>

@@ -131,7 +131,7 @@
                     <a class="flex flex-col justify-between rounded-xl border border-gray-100 p-4 hover:bg-gray-50 transition" href="{{ route('super-admin.settings.index') }}">
                         <div>
                             <p class="font-bold text-gray-800">{{ __('Platform Settings') }}</p>
-                            <p class="mt-1 text-xs text-gray-500">{{ __('Configure SMTP, PayHere, Firebase, currency & maintenance.') }}</p>
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Configure delivery charges, service charges, SMTP, PayHere, currency & maintenance.') }}</p>
                         </div>
                         <span class="mt-4 text-xs font-semibold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1">
                             {{ __('Access Settings') }}
