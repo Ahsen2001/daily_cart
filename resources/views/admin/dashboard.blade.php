@@ -113,7 +113,9 @@
                             {{ $summary['todays_orders'] }} {{ __('orders placed today') }}
                         </span>
                     </div>
-                    <canvas id="ordersBar" class="h-64"></canvas>
+                    <div class="relative h-72 max-h-72 overflow-hidden">
+                        <canvas id="ordersBar" class="block h-full w-full"></canvas>
+                    </div>
                 </div>
 
                 <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-100">
@@ -159,6 +161,8 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: false,
+                resizeDelay: 150,
                 plugins: {
                     legend: { display: false }
                 },

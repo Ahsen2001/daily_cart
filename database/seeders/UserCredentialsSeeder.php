@@ -14,7 +14,27 @@ class UserCredentialsSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Vendor
+        // 1. Admin
+        $adminRole = Role::query()->where('name', 'Admin')->firstOrFail();
+        $adminUser = User::firstOrCreate(
+            ['email' => 'admin@dailycart.lk'],
+            [
+                'name' => 'DailyCart Admin',
+                'role_id' => $adminRole->id,
+                'phone' => '0700000001',
+                'password' => Hash::make('Password@123'),
+                'status' => 'active',
+            ]
+        );
+
+        $adminUser->forceFill([
+            'role_id' => $adminRole->id,
+            'status' => 'active',
+        ])->save();
+
+        $adminUser->assignRole($adminRole->name);
+
+        // 2. Vendor
         $vendorRole = Role::query()->where('name', 'Vendor')->firstOrFail();
         $vendorUser = User::firstOrCreate(
             ['email' => 'afrijhaque@gmail.com'],
@@ -43,7 +63,7 @@ class UserCredentialsSeeder extends Seeder
             ]
         );
 
-        // 2. Customer
+        // 3. Customer
         $customerRole = Role::query()->where('name', 'Customer')->firstOrFail();
         $customerUser = User::firstOrCreate(
             ['email' => 'uahsens1@gmail.com'],
@@ -79,7 +99,7 @@ class UserCredentialsSeeder extends Seeder
             ]
         );
 
-        // 3. Rider
+        // 4. Rider
         $riderRole = Role::query()->where('name', 'Rider')->firstOrFail();
         $riderUser = User::firstOrCreate(
             ['email' => 'uahsens2001@gmail.com'],

@@ -24,6 +24,9 @@
             <div class="dc-container flex h-20 items-center justify-between">
                 <a href="/" class="transition hover:scale-[1.02]"><x-application-logo /></a>
                 <nav class="hidden items-center gap-3 md:flex">
+                    <a class="text-sm font-semibold text-brand-text/70 transition hover:text-brand-dark" href="{{ route('pages.about') }}">{{ __('About') }}</a>
+                    <a class="text-sm font-semibold text-brand-text/70 transition hover:text-brand-dark" href="{{ route('pages.offers') }}">{{ __('Offers') }}</a>
+                    <a class="text-sm font-semibold text-brand-text/70 transition hover:text-brand-dark" href="{{ route('pages.contact') }}">{{ __('Contact') }}</a>
                     <a class="dc-button-secondary" href="{{ route('login') }}">{{ __('Login') }}</a>
                     <a class="dc-button" href="{{ route('register') }}">{{ __('Start Shopping') }}</a>
                 </nav>
@@ -71,12 +74,12 @@
                             <x-product-card :product="$product" />
                         @empty
                             @foreach ([
-                                ['name' => 'Grocery', 'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80'],
-                                ['name' => 'Vegetables', 'image' => 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80'],
-                                ['name' => 'Bakery', 'image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80'],
-                                ['name' => 'Pharmacy', 'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=900&q=80'],
+                                ['name' => 'Grocery', 'slug' => 'grocery', 'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80'],
+                                ['name' => 'Vegetables', 'slug' => 'vegetables', 'image' => 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80'],
+                                ['name' => 'Bakery', 'slug' => 'bakery', 'image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80'],
+                                ['name' => 'Pharmacy', 'slug' => 'pharmacy', 'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=900&q=80'],
                             ] as $category)
-                                <div class="dc-card overflow-hidden p-0 text-center">
+                                <a href="{{ route('products.index', ['category' => $category['slug']]) }}" class="dc-card block overflow-hidden p-0 text-center">
                                     <div class="aspect-[4/3] overflow-hidden bg-brand-light">
                                         <img
                                             src="{{ $category['image'] }}"
@@ -87,9 +90,9 @@
                                     </div>
                                     <div class="p-6">
                                         <h3 class="font-bold">{{ $category['name'] }}</h3>
-                                    <p class="mt-2 text-sm text-brand-text/60">{{ __('Products will appear here after admin approval.') }}</p>
+                                        <p class="mt-2 text-sm text-brand-text/60">{{ __('View approved products in this category.') }}</p>
                                     </div>
-                                </div>
+                                </a>
                             @endforeach
                         @endforelse
                     </div>

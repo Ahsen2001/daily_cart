@@ -38,7 +38,7 @@
 
                     <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         @forelse ($categories as $category)
-                            <article class="group overflow-hidden rounded-3xl border border-green-100 bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft">
+                            <a href="{{ route('products.index', ['category' => $category->slug]) }}" class="group overflow-hidden rounded-3xl border border-green-100 bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft">
                                 <div class="aspect-[4/3] overflow-hidden bg-brand-light">
                                     <img
                                         src="{{ $category->display_image_url }}"
@@ -58,7 +58,7 @@
                                         {{ $category->description ?: __('Fresh DailyCart essentials selected for this category.') }}
                                     </p>
                                 </div>
-                            </article>
+                            </a>
                         @empty
                             <div class="dc-card sm:col-span-2 lg:col-span-3 xl:col-span-4">
                                 <p class="text-sm text-brand-text/70">{{ __('No active categories are available yet.') }}</p>

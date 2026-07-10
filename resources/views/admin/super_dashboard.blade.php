@@ -62,14 +62,14 @@
             <div class="grid gap-6 lg:grid-cols-2">
                 <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4">{{ __('Revenue Trend') }}</h3>
-                    <div class="h-72">
-                        <canvas id="revenueLine"></canvas>
+                    <div class="relative h-72 max-h-72 overflow-hidden">
+                        <canvas id="revenueLine" class="block h-full w-full"></canvas>
                     </div>
                 </div>
                 <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4">{{ __('Order Volume') }}</h3>
-                    <div class="h-72">
-                        <canvas id="ordersBar"></canvas>
+                    <div class="relative h-72 max-h-72 overflow-hidden">
+                        <canvas id="ordersBar" class="block h-full w-full"></canvas>
                     </div>
                 </div>
             </div>
@@ -195,6 +195,8 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: false,
+                resizeDelay: 150,
                 scales: {
                     y: { beginAtZero: true }
                 }
@@ -215,6 +217,8 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: false,
+                resizeDelay: 150,
                 plugins: {
                     legend: { display: false }
                 },

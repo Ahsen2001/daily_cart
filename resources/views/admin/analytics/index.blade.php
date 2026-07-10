@@ -32,7 +32,9 @@
                 ] as $key => $title)
                     <div class="rounded-lg bg-white p-6 shadow-sm">
                         <h3 class="font-semibold text-gray-900">{{ __($title) }}</h3>
-                        <canvas id="{{ $key }}" class="mt-4 h-64"></canvas>
+                        <div class="relative mt-4 h-72 max-h-72 overflow-hidden">
+                            <canvas id="{{ $key }}" class="block h-full w-full"></canvas>
+                        </div>
                     </div>
                 @endforeach
             </div>
@@ -55,6 +57,12 @@
                 data: {
                     labels: charts[key].labels,
                     datasets: [{ label: key.replaceAll('_', ' '), data: charts[key].values }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    resizeDelay: 150,
                 },
             });
         });

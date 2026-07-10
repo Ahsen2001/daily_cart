@@ -52,8 +52,8 @@ class Category extends Model
 
     public function getDisplayImageUrlAttribute(): string
     {
-        if ($this->image) {
-            return Storage::url($this->image);
+        if ($this->image && Storage::disk('public')->exists($this->image)) {
+            return Storage::disk('public')->url($this->image);
         }
 
         $name = Str::lower($this->name);
@@ -66,7 +66,7 @@ class Category extends Model
             'beverage' => 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=900&q=80',
             'frozen' => 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=900&q=80',
             'household' => 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80',
-            'powder' => 'https://images.unsplash.com/photo-1622484211148-5d74c6c4f15c?auto=format&fit=crop&w=900&q=80',
+            'powder' => 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=900&q=80',
             'baby' => 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=900&q=80',
             'personal' => 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=80',
             'pet' => 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=900&q=80',

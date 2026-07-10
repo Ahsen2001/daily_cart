@@ -23,8 +23,10 @@
             <div>
                 <h3 class="font-bold text-brand-text">{{ __('Quick Links') }}</h3>
                 <div class="mt-4 grid gap-2 text-sm text-brand-text/70">
-                    <a class="hover:text-brand-dark" href="{{ route('customer.products.index') }}">{{ __('Products') }}</a>
-                    <a class="hover:text-brand-dark" href="{{ route('support.tickets.index') }}">{{ __('Customer Support') }}</a>
+                    <a class="hover:text-brand-dark" href="{{ route('products.index') }}">{{ __('Products') }}</a>
+                    <a class="hover:text-brand-dark" href="{{ route('pages.about') }}">{{ __('About') }}</a>
+                    <a class="hover:text-brand-dark" href="{{ route('pages.offers') }}">{{ __('Offers') }}</a>
+                    <a class="hover:text-brand-dark" href="{{ route('pages.contact') }}">{{ __('Contact') }}</a>
                     <a class="hover:text-brand-dark" href="{{ route('vendor.register') }}">{{ __('Become a Vendor') }}</a>
                     <a class="hover:text-brand-dark" href="{{ route('rider.register') }}">{{ __('Become a Rider') }}</a>
                 </div>

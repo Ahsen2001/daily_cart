@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Admin\AdminSupportTicketController;
 use App\Http\Controllers\Admin\AdvertisementController as AdminAdvertisementController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ContentPageController;
 use App\Http\Controllers\Admin\DeliveryController;
 use App\Http\Controllers\Admin\RefundController as AdminRefundController;
 use App\Http\Controllers\Admin\RiderApprovalController;
@@ -73,7 +74,11 @@ Route::get('/', function () {
 Route::get('/refund-policy', [PageController::class, 'refundPolicy'])->name('pages.refund-policy');
 Route::get('/privacy-policy', [PageController::class, 'privacyPolicy'])->name('pages.privacy-policy');
 Route::get('/terms-and-conditions', [PageController::class, 'termsAndConditions'])->name('pages.terms-and-conditions');
+Route::get('/about', [PageController::class, 'about'])->name('pages.about');
+Route::get('/contact', [PageController::class, 'contact'])->name('pages.contact');
+Route::get('/offers', [PageController::class, 'offers'])->name('pages.offers');
 Route::get('/categories', [PageController::class, 'categories'])->name('categories.index');
+Route::get('/products', [PageController::class, 'products'])->name('products.index');
 
 Route::post('/newsletter', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
 Route::post('/payment/payhere/notify', [PayHereController::class, 'notify'])->name('payhere.notify');
@@ -140,6 +145,9 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::patch('/riders/{rider}/reject', [RiderApprovalController::class, 'reject'])->name('riders.reject');
 
     Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::get('/pages', [ContentPageController::class, 'index'])->name('pages.index');
+    Route::get('/pages/{page}/edit', [ContentPageController::class, 'edit'])->name('pages.edit');
+    Route::put('/pages/{page}', [ContentPageController::class, 'update'])->name('pages.update');
 
     Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
     Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show');

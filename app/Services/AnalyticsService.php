@@ -9,6 +9,8 @@ class AnalyticsService
 {
     public function adminCharts(array $filters = []): array
     {
+        $filters = $this->withDefaultDateWindow($filters);
+
         return [
             'revenue_line' => $this->dailyRevenue($filters),
             'orders_bar' => $this->dailyOrders($filters),
@@ -20,6 +22,7 @@ class AnalyticsService
     public function vendorCharts(int $vendorId, array $filters = []): array
     {
         $filters['vendor_id'] = $vendorId;
+        $filters = $this->withDefaultDateWindow($filters);
 
         return [
             'revenue_line' => $this->dailyRevenue($filters),
@@ -97,6 +100,16 @@ class AnalyticsService
             ->when($filters['vendor_id'] ?? null, fn ($query, $vendorId) => $query->where('vendor_id', $vendorId))
             ->when($filters['customer_id'] ?? null, fn ($query, $customerId) => $query->where('customer_id', $customerId))
             ->when($filters['order_status'] ?? null, fn ($query, $status) => $query->where('order_status', $status));
+    }
+
+    private function withDefaultDateWindow(array $filters): array
+    {
+        if (empty($filters['from']) && empty($filters['to'])) {
+            $filters['from'] = now()->subDays(29)->toDateString();
+            $filters['to'] = now()->toDateString();
+        }
+
+        return $filters;
     }
 
     private function chartPair($rows): array

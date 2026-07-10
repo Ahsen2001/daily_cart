@@ -15,6 +15,7 @@
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.reports.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.reports.sales') }}">{{ __('Reports') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.subscriptions.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.subscriptions.index') }}">{{ __('Subscriptions') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.scheduled-orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.scheduled-orders.index') }}">{{ __('Scheduled Orders') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.pages.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.pages.index') }}">{{ __('Pages') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.products.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.products.index') }}">{{ __('Products') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.orders.index') }}">{{ __('Orders') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.delivery-fees.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.delivery-fees.index') }}">{{ __('Delivery Fees') }}</a>
