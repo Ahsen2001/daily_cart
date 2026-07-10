@@ -15,7 +15,11 @@ class AdminManagementController extends Controller
 {
     public function index(): View
     {
-        $admins = User::role('Admin')->latest()->paginate(15);
+        $admins = User::query()
+            ->whereHas('role', fn ($query) => $query->where('name', 'Admin'))
+            ->latest()
+            ->paginate(15);
+
         return view('admin.management.admins.index', compact('admins'));
     }
 

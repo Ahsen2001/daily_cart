@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -71,13 +71,8 @@ class SystemMaintenanceController extends Controller
 
     public function clearCompiled(): RedirectResponse
     {
-        collect([
-            base_path('bootstrap/cache/config.php'),
-            base_path('bootstrap/cache/routes-v7.php'),
-            base_path('bootstrap/cache/services.php'),
-            base_path('bootstrap/cache/packages.php'),
-        ])->each(fn ($path) => File::exists($path) ? File::delete($path) : null);
+        Artisan::call('optimize:clear');
 
-        return back()->with('status', 'Compiled application cache files cleared.');
+        return back()->with('status', 'Application, route, config, event, and view caches cleared.');
     }
 }

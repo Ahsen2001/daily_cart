@@ -12,7 +12,7 @@
                 <div class="rounded-lg bg-white p-6 shadow-sm">
                     <h3 class="font-bold text-gray-900">{{ __('System Restore') }}</h3>
                     <p class="mt-2 text-sm leading-6 text-gray-600">{{ __('Available backups are listed below for download and manual restore review. Live destructive restore is intentionally not automatic from the dashboard.') }}</p>
-                    <form method="POST" action="{{ route('super-admin.maintenance.clear-compiled') }}" class="mt-5">@csrf<x-secondary-button>{{ __('Clear Compiled Cache') }}</x-secondary-button></form>
+                    <form method="POST" action="{{ route('super-admin.maintenance.clear-compiled') }}" class="mt-5">@csrf<x-secondary-button type="submit">{{ __('Clear Compiled Cache') }}</x-secondary-button></form>
                 </div>
             </div>
             <div class="rounded-lg bg-white p-6 shadow-sm">
