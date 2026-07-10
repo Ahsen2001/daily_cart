@@ -18,36 +18,37 @@
 
             <!-- Operations Alerts / Action Needed -->
             <div class="grid gap-6 md:grid-cols-3">
-                <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-6 shadow-sm backdrop-blur">
+                <div class="flex min-h-44 flex-col rounded-xl border border-amber-100 bg-amber-50/50 p-6 shadow-sm backdrop-blur">
                     <div class="flex items-center justify-between">
                         <h3 class="font-bold text-amber-900">{{ __('Pending Approvals') }}</h3>
                         <span class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
                             {{ $summary['pending_vendor_approvals'] + $summary['pending_rider_approvals'] + $summary['pending_product_approvals'] }}
                         </span>
                     </div>
-                    <div class="mt-4 space-y-3">
-                        <div class="flex items-center justify-between text-sm">
+                    <p class="mt-2 text-xs text-amber-700">{{ __('Vendor, rider, and product approvals waiting for review.') }}</p>
+                    <div class="mt-auto space-y-2 pt-4 text-sm">
+                        <div class="flex items-center justify-between gap-4">
                             <span class="text-amber-800">{{ __('Vendor Approvals') }}</span>
-                            <a class="font-semibold text-indigo-600 hover:text-indigo-800" href="{{ route('admin.vendors.index') }}">
-                                {{ $summary['pending_vendor_approvals'] }} {{ __('pending') }}
+                            <a class="shrink-0 font-semibold text-indigo-600 hover:text-indigo-800" href="{{ route('admin.vendors.index') }}">
+                                {{ $summary['pending_vendor_approvals'] }}
                             </a>
                         </div>
-                        <div class="flex items-center justify-between text-sm">
+                        <div class="flex items-center justify-between gap-4">
                             <span class="text-amber-800">{{ __('Rider Approvals') }}</span>
-                            <a class="font-semibold text-indigo-600 hover:text-indigo-800" href="{{ route('admin.riders.index') }}">
-                                {{ $summary['pending_rider_approvals'] }} {{ __('pending') }}
+                            <a class="shrink-0 font-semibold text-indigo-600 hover:text-indigo-800" href="{{ route('admin.riders.index') }}">
+                                {{ $summary['pending_rider_approvals'] }}
                             </a>
                         </div>
-                        <div class="flex items-center justify-between text-sm">
+                        <div class="flex items-center justify-between gap-4">
                             <span class="text-amber-800">{{ __('Product Approvals') }}</span>
-                            <a class="font-semibold text-indigo-600 hover:text-indigo-800" href="{{ route('admin.products.index') }}">
-                                {{ $summary['pending_product_approvals'] }} {{ __('pending') }}
+                            <a class="shrink-0 font-semibold text-indigo-600 hover:text-indigo-800" href="{{ route('admin.products.index') }}">
+                                {{ $summary['pending_product_approvals'] }}
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <div class="rounded-xl border border-red-100 bg-red-50/50 p-6 shadow-sm backdrop-blur">
+                <div class="flex min-h-44 flex-col rounded-xl border border-red-100 bg-red-50/50 p-6 shadow-sm backdrop-blur">
                     <div class="flex items-center justify-between">
                         <h3 class="font-bold text-red-900">{{ __('Inventory & Stock') }}</h3>
                         <span class="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800">
@@ -55,7 +56,7 @@
                         </span>
                     </div>
                     <p class="mt-2 text-xs text-red-700">{{ __('Products have reached or fallen below the warning limit of 5 units.') }}</p>
-                    <div class="mt-4">
+                    <div class="mt-auto pt-4">
                         <a class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-800" href="{{ route('admin.products.index') }}">
                             <span>{{ __('Manage Stock Alerts') }}</span>
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -63,7 +64,7 @@
                     </div>
                 </div>
 
-                <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-6 shadow-sm backdrop-blur">
+                <div class="flex min-h-44 flex-col rounded-xl border border-blue-100 bg-blue-50/50 p-6 shadow-sm backdrop-blur">
                     <div class="flex items-center justify-between">
                         <h3 class="font-bold text-blue-900">{{ __('Support Tickets') }}</h3>
                         <span class="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
@@ -71,7 +72,7 @@
                         </span>
                     </div>
                     <p class="mt-2 text-xs text-blue-700">{{ __('Active support queries require prompt response from the operations team.') }}</p>
-                    <div class="mt-4">
+                    <div class="mt-auto pt-4">
                         <a class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-800" href="{{ route('admin.support-tickets.index') }}">
                             <span>{{ __('Open Support Queue') }}</span>
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

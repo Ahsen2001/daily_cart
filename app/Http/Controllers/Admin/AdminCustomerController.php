@@ -37,7 +37,7 @@ class AdminCustomerController extends Controller
                 'user',
                 'addresses',
                 'orders' => fn ($query) => $query->latest()->limit(10),
-                'searchHistories' => fn ($query) => $query->latest()->limit(10),
+                'searchHistories' => fn ($query) => $query->latest('searched_at')->limit(10),
                 'favoriteVendors',
             ]),
         ]);
