@@ -48,7 +48,7 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $role = Role::where('name', 'Customer')->firstOrFail();
+        $role = Role::findOrCreate('Customer', 'web');
 
         $user = User::create([
             'name' => $request->name,
@@ -58,17 +58,24 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        Customer::create([
+        $customer = Customer::create([
             'user_id' => $user->id,
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
+            'phone' => $request->phone,
+            'status' => 'active',
+        ]);
+
+        $customer->addresses()->create([
+            'label' => 'Home',
+            'recipient_name' => $user->name,
             'phone' => $request->phone,
             'address_line_1' => $request->address_line_1,
             'address_line_2' => $request->address_line_2,
             'city' => $request->city,
             'district' => $request->district,
             'postal_code' => $request->postal_code,
-            'status' => 'active',
+            'is_default' => true,
         ]);
 
         $user->assignRole($role->name);

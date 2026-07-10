@@ -16,7 +16,7 @@ class DeliveryController extends Controller
             ->with(['order.customer.user', 'order.vendor', 'rider.user'])
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->status))
             ->when($request->filled('rider_id'), fn ($query) => $query->where('rider_id', $request->rider_id))
-            ->when($request->filled('date'), fn ($query) => $query->whereDate('scheduled_at', $request->date))
+            ->when($request->filled('date'), fn ($query) => $query->whereDate('scheduled_at', '=', $request->date))
             ->latest('scheduled_at')
             ->paginate(20)
             ->withQueryString();

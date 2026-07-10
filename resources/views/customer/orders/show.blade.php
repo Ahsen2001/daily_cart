@@ -114,6 +114,38 @@
                     </section>
 
                     <section class="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+                        <h2 class="text-lg font-bold text-gray-900 mb-4">{{ __('Status History Updates Log') }}</h2>
+                        <div class="space-y-4">
+                            @forelse ($order->statusHistories()->latest()->get() as $history)
+                                <div class="flex gap-4">
+                                    <div class="flex flex-col items-center">
+                                        <div class="flex h-7 w-7 items-center justify-center rounded-full bg-green-50 text-green-700 text-xs font-bold border border-green-200">
+                                            ✓
+                                        </div>
+                                        @if (! $loop->last)
+                                            <div class="h-full w-0.5 bg-gray-100 mt-2 min-h-[20px]"></div>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1 pb-2">
+                                        <div class="flex justify-between items-start">
+                                            <p class="text-sm font-semibold text-gray-900">{{ str_replace('_', ' ', ucfirst($history->status)) }}</p>
+                                            <span class="text-xs text-gray-400 font-medium">{{ $history->created_at->format('M d, Y h:i A') }}</span>
+                                        </div>
+                                        @if ($history->remarks)
+                                            <p class="text-xs text-gray-600 mt-1 italic">{{ $history->remarks }}</p>
+                                        @endif
+                                        @if ($history->updater)
+                                            <p class="text-[10px] text-gray-400 mt-0.5">{{ __('Updated by') }}: {{ $history->updater->name }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-sm text-gray-500 italic">{{ __('No tracking status updates logged yet.') }}</p>
+                            @endforelse
+                        </div>
+                    </section>
+
+                    <section class="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
                         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <h2 class="text-lg font-bold text-gray-900">{{ __('Items in this order') }}</h2>
                             <span class="rounded-full bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-500">{{ $order->items->sum('quantity') }} {{ __('items') }}</span>

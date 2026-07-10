@@ -2,11 +2,12 @@
     use App\Services\CurrencyService;
 
     $customer = Auth::user()->customer;
-    $defaultAddress = collect([
-        $customer?->address_line_1,
-        $customer?->city,
-        $customer?->district,
-    ])->filter()->implode(', ');
+    $addressModel = $customer?->addresses()->where('is_default', true)->first() ?? $customer?->addresses()->first();
+    $defaultAddress = $addressModel ? collect([
+        $addressModel->address_line_1,
+        $addressModel->city,
+        $addressModel->district,
+    ])->filter()->implode(', ') : '';
 @endphp
 
 <x-app-layout>
@@ -85,8 +86,8 @@
                             </div>
 
                             <textarea id="delivery_address" name="delivery_address" rows="4" class="block w-full rounded-2xl border-gray-200 shadow-sm focus:border-green-500 focus:ring-green-500" required placeholder="{{ __('House number, street, city, district') }}">{{ old('delivery_address', $defaultAddress) }}</textarea>
-                            <input type="hidden" id="delivery_latitude" name="delivery_latitude" value="{{ old('delivery_latitude', $customer?->latitude) }}">
-                            <input type="hidden" id="delivery_longitude" name="delivery_longitude" value="{{ old('delivery_longitude', $customer?->longitude) }}">
+                            <input type="hidden" id="delivery_latitude" name="delivery_latitude" value="{{ old('delivery_latitude', $addressModel?->latitude) }}">
+                            <input type="hidden" id="delivery_longitude" name="delivery_longitude" value="{{ old('delivery_longitude', $addressModel?->longitude) }}">
                             <input type="hidden" id="delivery_distance_meters" name="delivery_distance_meters" value="{{ old('delivery_distance_meters') }}">
                             <x-input-error :messages="$errors->get('delivery_address')" class="mt-2" />
 

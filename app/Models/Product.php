@@ -17,6 +17,7 @@ class Product extends Model
     protected $fillable = [
         'vendor_id',
         'category_id',
+        'brand_id',
         'name',
         'slug',
         'brand',
@@ -128,5 +129,15 @@ class Product extends Model
     public function reviewCount(): int
     {
         return $this->reviews()->where('status', 'visible')->count();
+    }
+
+    public function brandRelation(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class, 'brand_id');
+    }
+
+    public function brand(): BelongsTo
+    {
+        return $this->brandRelation();
     }
 }

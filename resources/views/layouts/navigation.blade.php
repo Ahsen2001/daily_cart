@@ -18,7 +18,11 @@
                 @endif
 
                 @if (Auth::user()->isAdminUser())
-                    <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">{{ __('Admin') }}</x-nav-link>
+                    @if (Auth::user()->isSuperAdmin())
+                        <x-nav-link :href="route('super-admin.dashboard')" :active="request()->routeIs('super-admin.*') || request()->routeIs('admin.*')">{{ __('Super Admin') }}</x-nav-link>
+                    @else
+                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">{{ __('Admin') }}</x-nav-link>
+                    @endif
                 @endif
 
                 @if (Auth::user()->hasPrimaryRole('Vendor'))
@@ -85,7 +89,11 @@
             @endif
 
             @if (Auth::user()->isAdminUser())
-                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">{{ __('Admin Dashboard') }}</x-responsive-nav-link>
+                @if (Auth::user()->isSuperAdmin())
+                    <x-responsive-nav-link :href="route('super-admin.dashboard')" :active="request()->routeIs('super-admin.*') || request()->routeIs('admin.*')">{{ __('Super Admin Dashboard') }}</x-responsive-nav-link>
+                @else
+                    <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">{{ __('Admin Dashboard') }}</x-responsive-nav-link>
+                @endif
                 <x-responsive-nav-link :href="route('admin.reports.sales')" :active="request()->routeIs('admin.reports.*')">{{ __('Reports') }}</x-responsive-nav-link>
             @endif
 

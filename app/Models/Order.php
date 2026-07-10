@@ -19,6 +19,7 @@ class Order extends Model
         'vendor_id',
         'coupon_id',
         'subscription_id',
+        'delivery_schedule_id',
         'subtotal',
         'discount_amount',
         'loyalty_points_redeemed',
@@ -57,6 +58,27 @@ class Order extends Model
             'scheduled_delivery_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (Order $order) {
+            $order->statusHistories()->create([
+                'status' => 'pending',
+                'remarks' => 'Order placed successfully.',
+                'updated_by' => auth()->id(),
+            ]);
+        });
+
+        static::updated(function (Order $order) {
+            if ($order->isDirty('order_status')) {
+                $order->statusHistories()->create([
+                    'status' => $order->order_status,
+                    'remarks' => 'Order status updated to ' . str_replace('_', ' ', $order->order_status) . '.',
+                    'updated_by' => auth()->id(),
+                ]);
+            }
+        });
     }
 
     public function customer(): BelongsTo
@@ -107,5 +129,15 @@ class Order extends Model
     public function refund(): HasOne
     {
         return $this->hasOne(Refund::class);
+    }
+
+    public function deliverySchedule(): BelongsTo
+    {
+        return $this->belongsTo(DeliverySchedule::class);
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(OrderStatusHistory::class);
     }
 }

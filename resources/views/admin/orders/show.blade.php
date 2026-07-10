@@ -68,6 +68,38 @@
                         <div class="flex justify-between font-semibold"><span>{{ __('Total') }}</span><span>{{ \App\Services\CurrencyService::formatLkr($order->total_amount) }}</span></div>
                     </div>
                 </div>
+
+                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <h3 class="mb-4 font-semibold text-gray-900 border-b pb-2">{{ __('Tracking Timeline Log') }}</h3>
+                    <div class="space-y-4">
+                        @forelse ($order->statusHistories()->latest()->get() as $history)
+                            <div class="flex gap-3 text-xs">
+                                <div class="flex flex-col items-center">
+                                    <div class="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                        ✓
+                                    </div>
+                                    @if (! $loop->last)
+                                        <div class="h-full w-0.5 bg-gray-100 mt-1 min-h-[15px]"></div>
+                                    @endif
+                                </div>
+                                <div class="flex-1 pb-2">
+                                    <div class="flex justify-between">
+                                        <span class="font-semibold text-gray-800">{{ str_replace('_', ' ', ucfirst($history->status)) }}</span>
+                                        <span class="text-gray-400 text-[10px]">{{ $history->created_at->format('M d H:i') }}</span>
+                                    </div>
+                                    @if ($history->remarks)
+                                        <p class="text-gray-500 mt-0.5 italic">{{ $history->remarks }}</p>
+                                    @endif
+                                    @if ($history->updater)
+                                        <p class="text-[9px] text-gray-400 mt-0.5">{{ __('By') }}: {{ $history->updater->name }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-xs text-gray-500 italic">{{ __('No tracking status updates logged yet.') }}</p>
+                        @endforelse
+                    </div>
+                </div>
             </div>
         </div>
     </div>

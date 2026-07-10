@@ -16,7 +16,7 @@ class FinanceReportService
     public function adminSummary(?string $from = null, ?string $to = null): array
     {
         $orders = $this->dateRange(Order::query(), 'placed_at', $from, $to);
-        $deliveredOrders = (clone $orders)->where('order_status', 'delivered');
+        $deliveredOrders = (clone $orders)->with('vendor')->where('order_status', 'delivered');
 
         $vendorPayouts = $deliveredOrders->get()->sum(fn (Order $order) => $this->vendorEarning($order));
 
@@ -44,17 +44,28 @@ class FinanceReportService
     public function vendorSummary(Vendor $vendor, ?string $from = null, ?string $to = null): array
     {
         $orders = $this->dateRange(Order::query()->where('vendor_id', $vendor->id), 'placed_at', $from, $to);
-        $delivered = (clone $orders)->where('order_status', 'delivered')->get();
 
         return [
             'pending' => (float) (clone $orders)->whereIn('order_status', ['pending', 'confirmed', 'packed', 'assigned_to_rider', 'out_for_delivery'])->sum('total_amount'),
-            'completed' => (float) $delivered->sum(fn (Order $order) => $this->vendorEarning($order)),
+            'completed' => $this->vendorEarningsSum($vendor, $from, $to),
             'refunded' => (float) (clone $orders)->where('order_status', 'refunded')->sum('total_amount'),
             'orders' => $this->dateRange(Order::query()->with('payment')->where('vendor_id', $vendor->id), 'placed_at', $from, $to)
                 ->latest()
                 ->paginate(15)
                 ->withQueryString(),
         ];
+    }
+
+    public function vendorEarningsSum(Vendor $vendor, ?string $from = null, ?string $to = null): float
+    {
+        $base = (float) $this->dateRange(Order::query()->where('vendor_id', $vendor->id), 'placed_at', $from, $to)
+            ->where('order_status', 'delivered')
+            ->where('payment_status', 'paid')
+            ->sum(\Illuminate\Support\Facades\DB::raw('subtotal - discount_amount'));
+
+        $commissionRate = (float) ($vendor->commission_rate ?? 0);
+
+        return round($base - ($base * ($commissionRate / 100)), 2);
     }
 
     public function vendorEarning(Order $order): float

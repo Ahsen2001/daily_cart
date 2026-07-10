@@ -36,7 +36,7 @@ class VendorRegistrationController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $role = Role::where('name', 'Vendor')->firstOrFail();
+        $role = Role::findOrCreate('Vendor', 'web');
 
         $user = User::create([
             'name' => $request->name,

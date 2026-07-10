@@ -18,14 +18,22 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
+        $this->seed(\Database\Seeders\RoleSeeder::class);
+
         $response = $this->post('/register', [
             'name' => 'Test User',
+            'first_name' => 'Test',
+            'last_name' => 'User',
             'email' => 'test@example.com',
+            'phone' => '0771234567',
+            'address_line_1' => '123 Main St',
+            'city' => 'Colombo',
+            'district' => 'Colombo',
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('customer.dashboard', absolute: false));
     }
 }

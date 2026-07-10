@@ -64,17 +64,31 @@
                             <p class="font-semibold text-brand-dark">{{ __('Popular Products') }}</p>
                             <h2 class="mt-2 text-3xl font-extrabold">{{ __('Fresh picks for today') }}</h2>
                         </div>
-                        <a class="dc-button-secondary" href="{{ route('login') }}">{{ __('Browse All') }}</a>
+                        <a class="dc-button-secondary" href="{{ route('categories.index') }}">{{ __('Browse All') }}</a>
                     </div>
                     <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         @forelse ($featuredProducts as $product)
                             <x-product-card :product="$product" />
                         @empty
-                            @foreach (['Grocery', 'Vegetables', 'Bakery', 'Pharmacy'] as $name)
-                                <div class="dc-card text-center">
-                                    <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-brand-light text-2xl font-bold text-brand-dark">{{ substr($name, 0, 1) }}</div>
-                                    <h3 class="mt-4 font-bold">{{ $name }}</h3>
+                            @foreach ([
+                                ['name' => 'Grocery', 'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80'],
+                                ['name' => 'Vegetables', 'image' => 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80'],
+                                ['name' => 'Bakery', 'image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80'],
+                                ['name' => 'Pharmacy', 'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=900&q=80'],
+                            ] as $category)
+                                <div class="dc-card overflow-hidden p-0 text-center">
+                                    <div class="aspect-[4/3] overflow-hidden bg-brand-light">
+                                        <img
+                                            src="{{ $category['image'] }}"
+                                            alt="{{ $category['name'] }}"
+                                            class="h-full w-full object-cover"
+                                            loading="lazy"
+                                        >
+                                    </div>
+                                    <div class="p-6">
+                                        <h3 class="font-bold">{{ $category['name'] }}</h3>
                                     <p class="mt-2 text-sm text-brand-text/60">{{ __('Products will appear here after admin approval.') }}</p>
+                                    </div>
                                 </div>
                             @endforeach
                         @endforelse

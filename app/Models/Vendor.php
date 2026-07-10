@@ -68,4 +68,14 @@ class Vendor extends Model
     {
         return $this->hasMany(Subscription::class);
     }
+
+    public function wallet(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(VendorWallet::class);
+    }
+
+    public function favoriteCustomers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Customer::class, 'favorite_vendors');
+    }
 }

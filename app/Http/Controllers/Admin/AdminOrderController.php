@@ -24,7 +24,7 @@ class AdminOrderController extends Controller
             ->when($request->filled('vendor_id'), fn ($query) => $query->where('vendor_id', $request->vendor_id))
             ->when($request->filled('customer_id'), fn ($query) => $query->where('customer_id', $request->customer_id))
             ->when($request->filled('rider_id'), fn ($query) => $query->whereHas('delivery', fn ($delivery) => $delivery->where('rider_id', $request->rider_id)))
-            ->when($request->filled('date'), fn ($query) => $query->whereDate('placed_at', $request->date))
+            ->when($request->filled('date'), fn ($query) => $query->whereDate('placed_at', '=', $request->date))
             ->latest()
             ->paginate(20)
             ->withQueryString();

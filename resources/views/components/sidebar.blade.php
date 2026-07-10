@@ -7,28 +7,27 @@
             </div>
 
             <nav class="space-y-2">
-                <a class="dc-sidebar-link {{ request()->routeIs('dashboard') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
+                <a class="dc-sidebar-link {{ request()->routeIs('dashboard', 'super-admin.dashboard', 'admin.dashboard', 'vendor.dashboard', 'rider.dashboard', 'customer.dashboard') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
                 <a class="dc-sidebar-link {{ request()->routeIs('notifications.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('notifications.index') }}">{{ __('Notifications') }}</a>
                 <a class="dc-sidebar-link {{ request()->routeIs('support.tickets.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('support.tickets.index') }}">{{ __('Support Tickets') }}</a>
 
                 @if (Auth::user()->hasPrimaryRole('Admin', 'Super Admin'))
-                    <a class="dc-sidebar-link {{ request()->routeIs('admin.dashboard') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.dashboard') }}">{{ __('Admin Dashboard') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.reports.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.reports.sales') }}">{{ __('Reports') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.subscriptions.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.subscriptions.index') }}">{{ __('Subscriptions') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.scheduled-orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.scheduled-orders.index') }}">{{ __('Scheduled Orders') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.products.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.products.index') }}">{{ __('Products') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.orders.index') }}">{{ __('Orders') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.delivery-fees.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.delivery-fees.index') }}">{{ __('Delivery Fees') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.delivery-schedules.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.delivery-schedules.index') }}">{{ __('Delivery Schedules') }}</a>
                 @endif
 
                 @if (Auth::user()->hasPrimaryRole('Vendor'))
-                    <a class="dc-sidebar-link {{ request()->routeIs('vendor.dashboard') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.dashboard') }}">{{ __('Vendor Dashboard') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('vendor.products.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.products.index') }}">{{ __('My Products') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('vendor.orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.orders.index') }}">{{ __('Orders') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('vendor.subscriptions.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.subscriptions.index') }}">{{ __('Subscriptions') }}</a>
                 @endif
 
                 @if (Auth::user()->hasPrimaryRole('Rider'))
-                    <a class="dc-sidebar-link {{ request()->routeIs('rider.dashboard') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('rider.dashboard') }}">{{ __('Rider Dashboard') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('rider.deliveries.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('rider.deliveries.index') }}">{{ __('Deliveries') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('rider.earnings.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('rider.earnings.index') }}">{{ __('Earnings') }}</a>
                 @endif

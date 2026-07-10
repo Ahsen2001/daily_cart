@@ -35,7 +35,7 @@ class RiderRegistrationController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $role = Role::where('name', 'Rider')->firstOrFail();
+        $role = Role::findOrCreate('Rider', 'web');
 
         $user = User::create([
             'name' => $request->name,

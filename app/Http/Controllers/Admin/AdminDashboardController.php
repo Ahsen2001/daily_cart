@@ -6,13 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Services\AnalyticsService;
 use App\Services\DashboardService;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
 {
-    public function index(Request $request, DashboardService $dashboardService, AnalyticsService $analyticsService): View
+    public function index(Request $request, DashboardService $dashboardService, AnalyticsService $analyticsService): View|RedirectResponse
     {
-        abort_unless($request->user()->isAdminUser(), 403);
+        if ($request->user()->isSuperAdmin()) {
+            return redirect()->route('super-admin.dashboard');
+        }
+
+        abort_unless($request->user()->hasPrimaryRole('Admin'), 403);
 
         return view('admin.dashboard', [
             'summary' => $dashboardService->adminOverview(),

@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             SuperAdminSeeder::class,
             CategorySeeder::class,
+            UserCredentialsSeeder::class,
         ]);
     }
 }

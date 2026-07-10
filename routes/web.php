@@ -2,7 +2,12 @@
 
 use App\Http\Controllers\Admin\AdminAnalyticsController;
 use App\Http\Controllers\Admin\AdminCouponController;
+use App\Http\Controllers\Admin\AdminDeliveryManagementController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\SuperAdminDashboardController;
+use App\Http\Controllers\Admin\AdminManagementController;
+use App\Http\Controllers\Admin\PlatformSettingsController;
+use App\Http\Controllers\Admin\SystemLogController;
 use App\Http\Controllers\Admin\AdminFinanceController;
 use App\Http\Controllers\Admin\AdminLoyaltySettingController;
 use App\Http\Controllers\Admin\AdminNotificationController;
@@ -68,6 +73,7 @@ Route::get('/', function () {
 Route::get('/refund-policy', [PageController::class, 'refundPolicy'])->name('pages.refund-policy');
 Route::get('/privacy-policy', [PageController::class, 'privacyPolicy'])->name('pages.privacy-policy');
 Route::get('/terms-and-conditions', [PageController::class, 'termsAndConditions'])->name('pages.terms-and-conditions');
+Route::get('/categories', [PageController::class, 'categories'])->name('categories.index');
 
 Route::post('/newsletter', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
 Route::post('/payment/payhere/notify', [PayHereController::class, 'notify'])->name('payhere.notify');
@@ -93,7 +99,25 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'role:Super Admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Admins CRUD
+    Route::get('/admins', [AdminManagementController::class, 'index'])->name('admins.index');
+    Route::get('/admins/create', [AdminManagementController::class, 'create'])->name('admins.create');
+    Route::post('/admins', [AdminManagementController::class, 'store'])->name('admins.store');
+    Route::get('/admins/{admin}/edit', [AdminManagementController::class, 'edit'])->name('admins.edit');
+    Route::put('/admins/{admin}', [AdminManagementController::class, 'update'])->name('admins.update');
+    Route::patch('/admins/{admin}/suspend', [AdminManagementController::class, 'suspend'])->name('admins.suspend');
+    Route::delete('/admins/{admin}', [AdminManagementController::class, 'destroy'])->name('admins.destroy');
+
+    // Settings
+    Route::get('/settings', [PlatformSettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [PlatformSettingsController::class, 'update'])->name('settings.update');
+
+    // Logs
+    Route::get('/logs/activity', [SystemLogController::class, 'activityLogs'])->name('logs.activity');
+    Route::get('/logs/api', [SystemLogController::class, 'apiLogs'])->name('logs.api');
+    Route::get('/logs/security', [SystemLogController::class, 'securityLogs'])->name('logs.security');
 });
 
 Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -131,6 +155,18 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::patch('/orders/{order}/assign-rider', [AdminOrderController::class, 'assignRider'])->name('orders.assign-rider.store');
 
     Route::get('/deliveries', [DeliveryController::class, 'index'])->name('deliveries.index');
+
+    // Delivery Fees configurations
+    Route::get('/delivery-fees', [AdminDeliveryManagementController::class, 'feesIndex'])->name('delivery-fees.index');
+    Route::get('/delivery-fees/create', [AdminDeliveryManagementController::class, 'feesCreate'])->name('delivery-fees.create');
+    Route::post('/delivery-fees', [AdminDeliveryManagementController::class, 'feesStore'])->name('delivery-fees.store');
+    Route::get('/delivery-fees/{fee}/edit', [AdminDeliveryManagementController::class, 'feesEdit'])->name('delivery-fees.edit');
+    Route::put('/delivery-fees/{fee}', [AdminDeliveryManagementController::class, 'feesUpdate'])->name('delivery-fees.update');
+    Route::delete('/delivery-fees/{fee}', [AdminDeliveryManagementController::class, 'feesDestroy'])->name('delivery-fees.destroy');
+
+    // Delivery Schedules
+    Route::get('/delivery-schedules', [AdminDeliveryManagementController::class, 'schedulesIndex'])->name('delivery-schedules.index');
+    Route::patch('/delivery-schedules/{schedule}', [AdminDeliveryManagementController::class, 'schedulesUpdate'])->name('delivery-schedules.update');
 
     Route::get('/finance', [AdminFinanceController::class, 'index'])->name('finance.index');
     Route::get('/refunds', [AdminRefundController::class, 'index'])->name('refunds.index');

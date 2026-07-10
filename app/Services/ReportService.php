@@ -96,7 +96,7 @@ class ReportService
             'top_vendors' => $this->salesByVendor($filters)->take(15),
             'commission_report' => Vendor::with('user')->get()->map(fn (Vendor $vendor) => [
                 'vendor' => $vendor,
-                'earnings' => $this->financeReportService->vendorSummary($vendor, $filters['from'] ?? null, $filters['to'] ?? null)['completed'],
+                'earnings' => $this->financeReportService->vendorEarningsSum($vendor, $filters['from'] ?? null, $filters['to'] ?? null),
                 'commission_rate' => (float) $vendor->commission_rate,
             ]),
             'filters' => $this->filters(),
@@ -246,7 +246,7 @@ class ReportService
         return (float) $this->filteredOrders($filters)
             ->where('order_status', 'delivered')
             ->where('payment_status', 'paid')
-            ->when($period === 'day', fn ($query) => $query->whereDate('placed_at', now()->toDateString()))
+            ->when($period === 'day', fn ($query) => $query->whereDate('placed_at', '=', now()->toDateString()))
             ->when($period === 'week', fn ($query) => $query->whereBetween('placed_at', [now()->startOfWeek(), now()->endOfWeek()]))
             ->when($period === 'month', fn ($query) => $query->whereYear('placed_at', now()->year)->whereMonth('placed_at', now()->month))
             ->when($period === 'year', fn ($query) => $query->whereYear('placed_at', now()->year))

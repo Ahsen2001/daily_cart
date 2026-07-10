@@ -18,14 +18,6 @@ class Customer extends Model
         'first_name',
         'last_name',
         'phone',
-        'address_line_1',
-        'address_line_2',
-        'city',
-        'district',
-        'postal_code',
-        'latitude',
-        'longitude',
-        'formatted_address',
         'status',
         'wallet_balance',
     ];
@@ -34,8 +26,6 @@ class Customer extends Model
     {
         return [
             'wallet_balance' => 'decimal:2',
-            'latitude' => 'decimal:7',
-            'longitude' => 'decimal:7',
             'deleted_at' => 'datetime',
         ];
     }
@@ -88,5 +78,20 @@ class Customer extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    public function searchHistories(): HasMany
+    {
+        return $this->hasMany(SearchHistory::class);
+    }
+
+    public function favoriteVendors(): BelongsToMany
+    {
+        return $this->belongsToMany(Vendor::class, 'favorite_vendors');
     }
 }
