@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\ContactMessage;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Setting;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -62,6 +64,21 @@ class PageController extends Controller
     public function contact(): View
     {
         return $this->contentPage('contact');
+    }
+
+    public function submitContact(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:60'],
+            'subject' => ['required', 'string', 'max:255'],
+            'message' => ['required', 'string', 'max:5000'],
+        ]);
+
+        ContactMessage::create($validated + ['status' => 'pending']);
+
+        return back()->with('contact_status', 'Your message has been sent.');
     }
 
     public function offers(): View

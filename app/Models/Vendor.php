@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vendor extends Model
@@ -72,6 +73,16 @@ class Vendor extends Model
     public function wallet(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(VendorWallet::class);
+    }
+
+    public function promotions(): HasMany
+    {
+        return $this->hasMany(Promotion::class);
+    }
+
+    public function deliveries(): HasManyThrough
+    {
+        return $this->hasManyThrough(Delivery::class, Order::class);
     }
 
     public function favoriteCustomers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany

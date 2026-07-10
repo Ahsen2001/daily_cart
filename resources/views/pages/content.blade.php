@@ -56,6 +56,23 @@
                         <div class="space-y-4 text-sm leading-8 text-brand-text/75">
                             {!! nl2br(e($body)) !!}
                         </div>
+
+                        @if ($page === 'contact')
+                            <form method="POST" action="{{ route('pages.contact.store') }}" class="mt-8 grid gap-4">
+                                @csrf
+                                @if (session('contact_status'))
+                                    <div class="rounded-lg bg-green-50 p-4 text-sm font-medium text-green-700">{{ session('contact_status') }}</div>
+                                @endif
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <input name="name" value="{{ old('name') }}" class="rounded-2xl border-gray-200" placeholder="{{ __('Name') }}" required>
+                                    <input name="email" type="email" value="{{ old('email') }}" class="rounded-2xl border-gray-200" placeholder="{{ __('Email') }}" required>
+                                </div>
+                                <input name="phone" value="{{ old('phone') }}" class="rounded-2xl border-gray-200" placeholder="{{ __('Phone') }}">
+                                <input name="subject" value="{{ old('subject') }}" class="rounded-2xl border-gray-200" placeholder="{{ __('Subject') }}" required>
+                                <textarea name="message" rows="5" class="rounded-2xl border-gray-200" placeholder="{{ __('Message') }}" required>{{ old('message') }}</textarea>
+                                <button class="dc-button justify-self-start" type="submit">{{ __('Send Message') }}</button>
+                            </form>
+                        @endif
                     </article>
 
                     <aside class="space-y-6">

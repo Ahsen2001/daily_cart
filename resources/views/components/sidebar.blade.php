@@ -12,14 +12,25 @@
                 <a class="dc-sidebar-link {{ request()->routeIs('support.tickets.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('support.tickets.index') }}">{{ __('Support Tickets') }}</a>
 
                 @if (Auth::user()->hasPrimaryRole('Admin', 'Super Admin'))
+                    @if (Auth::user()->isSuperAdmin())
+                        <a class="dc-sidebar-link {{ request()->routeIs('super-admin.admins.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.admins.index') }}">{{ __('Admin Accounts') }}</a>
+                        <a class="dc-sidebar-link {{ request()->routeIs('super-admin.roles.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.roles.index') }}">{{ __('Roles & Permissions') }}</a>
+                    @endif
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.customers.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.customers.index') }}">{{ __('Customers') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.reports.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.reports.sales') }}">{{ __('Reports') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.subscriptions.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.subscriptions.index') }}">{{ __('Subscriptions') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.scheduled-orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.scheduled-orders.index') }}">{{ __('Scheduled Orders') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.pages.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.pages.index') }}">{{ __('Pages') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.brands.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.brands.index') }}">{{ __('Brands') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.products.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.products.index') }}">{{ __('Products') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.orders.index') }}">{{ __('Orders') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.delivery-fees.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.delivery-fees.index') }}">{{ __('Delivery Fees') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.delivery-schedules.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.delivery-schedules.index') }}">{{ __('Delivery Schedules') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.contact-messages.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.contact-messages.index') }}">{{ __('Contact Messages') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.newsletter.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.newsletter.index') }}">{{ __('Newsletter') }}</a>
+                    @if (Auth::user()->isSuperAdmin())
+                        <a class="dc-sidebar-link {{ request()->routeIs('super-admin.maintenance.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.maintenance.index') }}">{{ __('Backup & Restore') }}</a>
+                    @endif
                 @endif
 
                 @if (Auth::user()->hasPrimaryRole('Vendor'))

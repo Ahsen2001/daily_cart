@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminAnalyticsController;
+use App\Http\Controllers\Admin\AdminBrandController;
 use App\Http\Controllers\Admin\AdminCouponController;
+use App\Http\Controllers\Admin\AdminCustomerController;
 use App\Http\Controllers\Admin\AdminDeliveryManagementController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\SuperAdminDashboardController;
@@ -21,9 +23,13 @@ use App\Http\Controllers\Admin\AdminSupportTicketController;
 use App\Http\Controllers\Admin\AdvertisementController as AdminAdvertisementController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ContentPageController;
+use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DeliveryController;
+use App\Http\Controllers\Admin\NewsletterManagementController;
 use App\Http\Controllers\Admin\RefundController as AdminRefundController;
 use App\Http\Controllers\Admin\RiderApprovalController;
+use App\Http\Controllers\Admin\RolePermissionController;
+use App\Http\Controllers\Admin\SystemMaintenanceController;
 use App\Http\Controllers\Admin\VendorApprovalController;
 use App\Http\Controllers\Customer\AdvertisementController;
 use App\Http\Controllers\Customer\CartController;
@@ -76,6 +82,7 @@ Route::get('/privacy-policy', [PageController::class, 'privacyPolicy'])->name('p
 Route::get('/terms-and-conditions', [PageController::class, 'termsAndConditions'])->name('pages.terms-and-conditions');
 Route::get('/about', [PageController::class, 'about'])->name('pages.about');
 Route::get('/contact', [PageController::class, 'contact'])->name('pages.contact');
+Route::post('/contact', [PageController::class, 'submitContact'])->name('pages.contact.store');
 Route::get('/offers', [PageController::class, 'offers'])->name('pages.offers');
 Route::get('/categories', [PageController::class, 'categories'])->name('categories.index');
 Route::get('/products', [PageController::class, 'products'])->name('products.index');
@@ -123,11 +130,21 @@ Route::middleware(['auth', 'verified', 'role:Super Admin'])->prefix('super-admin
     Route::get('/logs/activity', [SystemLogController::class, 'activityLogs'])->name('logs.activity');
     Route::get('/logs/api', [SystemLogController::class, 'apiLogs'])->name('logs.api');
     Route::get('/logs/security', [SystemLogController::class, 'securityLogs'])->name('logs.security');
+
+    Route::get('/roles', [RolePermissionController::class, 'index'])->name('roles.index');
+    Route::put('/roles/{role}', [RolePermissionController::class, 'update'])->name('roles.update');
+    Route::get('/maintenance', [SystemMaintenanceController::class, 'index'])->name('maintenance.index');
+    Route::post('/maintenance/backup', [SystemMaintenanceController::class, 'backup'])->name('maintenance.backup');
+    Route::get('/maintenance/backups/{file}', [SystemMaintenanceController::class, 'download'])->name('maintenance.download');
+    Route::post('/maintenance/clear-compiled', [SystemMaintenanceController::class, 'clearCompiled'])->name('maintenance.clear-compiled');
 });
 
 Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/analytics', [AdminAnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/{customer}', [AdminCustomerController::class, 'show'])->name('customers.show');
+    Route::patch('/customers/{customer}/status', [AdminCustomerController::class, 'updateStatus'])->name('customers.status');
     Route::get('/reports/sales', [AdminReportController::class, 'sales'])->name('reports.sales');
     Route::get('/reports/products', [AdminReportController::class, 'products'])->name('reports.products');
     Route::get('/reports/vendors', [AdminReportController::class, 'vendors'])->name('reports.vendors');
@@ -145,9 +162,15 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::patch('/riders/{rider}/reject', [RiderApprovalController::class, 'reject'])->name('riders.reject');
 
     Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::resource('brands', AdminBrandController::class)->except(['show']);
     Route::get('/pages', [ContentPageController::class, 'index'])->name('pages.index');
     Route::get('/pages/{page}/edit', [ContentPageController::class, 'edit'])->name('pages.edit');
     Route::put('/pages/{page}', [ContentPageController::class, 'update'])->name('pages.update');
+    Route::get('/contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
+    Route::get('/contact-messages/{message}', [ContactMessageController::class, 'show'])->name('contact-messages.show');
+    Route::patch('/contact-messages/{message}', [ContactMessageController::class, 'update'])->name('contact-messages.update');
+    Route::get('/newsletter', [NewsletterManagementController::class, 'index'])->name('newsletter.index');
+    Route::patch('/newsletter/{subscription}', [NewsletterManagementController::class, 'update'])->name('newsletter.update');
 
     Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
     Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show');

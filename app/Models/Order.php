@@ -131,9 +131,9 @@ class Order extends Model
         return $this->hasOne(Refund::class);
     }
 
-    public function deliverySchedule(): BelongsTo
+    public function deliverySchedule(): HasOne
     {
-        return $this->belongsTo(DeliverySchedule::class);
+        return $this->hasOne(DeliverySchedule::class);
     }
 
     public function statusHistories(): HasMany
