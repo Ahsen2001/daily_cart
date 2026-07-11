@@ -35,7 +35,7 @@
                                         {{ ucfirst($admin->status) }}
                                     </span>
                                 </td>
-                                <td class="p-4 text-gray-400">{{ $admin->created_at->format('M d, Y h:i A') }}</td>
+                                <td class="p-4 text-gray-400"><x-local-time :date="$admin->created_at" /></td>
                                 <td class="p-4 text-right space-x-2">
                                     <a href="{{ route('super-admin.admins.edit', $admin) }}" class="text-indigo-600 hover:text-indigo-900 font-semibold">{{ __('Edit') }}</a>
                                     

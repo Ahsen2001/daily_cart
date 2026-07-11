@@ -28,7 +28,7 @@
                                 <td class="p-4 font-semibold text-gray-800">{{ str_replace('_', ' ', $log->action) }}</td>
                                 <td class="p-4 text-xs">{{ $log->description }}</td>
                                 <td class="p-4 font-mono text-xs text-gray-400">{{ $log->ip_address }}</td>
-                                <td class="p-4 text-xs text-gray-400">{{ $log->created_at->format('M d, Y h:i:s A') }}</td>
+                                <td class="p-4 text-xs text-gray-400"><x-local-time :date="$log->created_at" format="seconds" /></td>
                             </tr>
                         @empty
                             <tr>

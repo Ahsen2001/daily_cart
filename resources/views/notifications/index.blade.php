@@ -17,7 +17,7 @@
                                 <div>
                                     <div class="font-semibold text-gray-900">{{ $notification->title }}</div>
                                     <div class="mt-1 text-sm text-gray-700">{{ $notification->message }}</div>
-                                    <div class="mt-2 text-xs text-gray-500">{{ $notification->created_at->format('M d, Y h:i A') }}</div>
+                                    <div class="mt-2 text-xs text-gray-500"><x-local-time :date="$notification->created_at" /></div>
                                 </div>
                                 <form method="POST" action="{{ $notification->read_at ? route('notifications.unread', $notification) : route('notifications.read', $notification) }}">
                                     @csrf

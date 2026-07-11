@@ -22,7 +22,7 @@
                         <div class="flex items-center justify-between py-3">
                             <div>
                                 <p class="font-semibold">{{ $backup['name'] }}</p>
-                                <p class="text-xs text-gray-500">{{ number_format($backup['size'] / 1024, 1) }} KB · {{ \Carbon\Carbon::createFromTimestamp($backup['modified'])->format('M d, Y h:i A') }}</p>
+                                <p class="text-xs text-gray-500">{{ number_format($backup['size'] / 1024, 1) }} KB · <x-local-time :date="\Carbon\Carbon::createFromTimestamp($backup['modified'])" /></p>
                             </div>
                             <a class="text-indigo-700 underline" href="{{ route('super-admin.maintenance.download', $backup['name']) }}">{{ __('Download') }}</a>
                         </div>

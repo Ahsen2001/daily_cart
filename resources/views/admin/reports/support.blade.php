@@ -25,7 +25,7 @@
                     <thead class="bg-gray-50 text-left text-xs uppercase text-gray-500"><tr><th class="px-4 py-3">{{ __('Subject') }}</th><th>{{ __('User') }}</th><th>{{ __('Priority') }}</th><th>{{ __('Status') }}</th><th>{{ __('Assigned Admin') }}</th><th>{{ __('Created') }}</th></tr></thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach ($tickets as $ticket)
-                            <tr><td class="px-4 py-3">{{ $ticket->subject }}</td><td>{{ $ticket->user?->name }}</td><td>{{ $ticket->priority }}</td><td>{{ $ticket->status }}</td><td>{{ $ticket->assignedAdmin?->name }}</td><td>{{ $ticket->created_at?->format('Y-m-d H:i') }}</td></tr>
+                            <tr><td class="px-4 py-3">{{ $ticket->subject }}</td><td>{{ $ticket->user?->name }}</td><td>{{ $ticket->priority }}</td><td>{{ $ticket->status }}</td><td>{{ $ticket->assignedAdmin?->name }}</td><td><x-local-time :date="$ticket->created_at" /></td></tr>
                         @endforeach
                     </tbody>
                 </table>

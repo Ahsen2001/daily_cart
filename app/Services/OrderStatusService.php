@@ -26,7 +26,10 @@ class OrderStatusService
         'refunded',
     ];
 
-    public function __construct(private readonly LoyaltyPointService $loyaltyPoints) {}
+    public function __construct(
+        private readonly LoyaltyPointService $loyaltyPoints,
+        private readonly NotificationService $notifications,
+    ) {}
 
     public function confirm(Order $order): Order
     {
@@ -52,6 +55,13 @@ class OrderStatusService
         return DB::transaction(function () use ($order) {
             $order->update(['order_status' => 'packed']);
             $this->notify($order->customer->user, new OrderPackedNotification($order));
+            $order->loadMissing(['vendor.user']);
+            $vendorName = $order->vendor?->store_name ?: $order->vendor?->user?->name ?: 'Vendor';
+            $this->notifications->notifyAdmins(
+                'Order packed',
+                'Order '.$order->order_number.' has been packed by '.$vendorName.' and is ready for rider assignment.',
+                'order_packed_admin'
+            );
             app(ExternalEmailService::class)->orderStatus($order->loadMissing('customer.user'), 'Your order '.$order->order_number.' has been packed.');
 
             return $order->refresh();

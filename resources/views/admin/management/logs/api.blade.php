@@ -32,7 +32,7 @@
                                 </td>
                                 <td class="p-4 font-mono text-xs">{{ $log->reference ?? '-' }}</td>
                                 <td class="p-4 text-xs text-red-600 font-medium max-w-xs truncate">{{ $log->error_message ?? '-' }}</td>
-                                <td class="p-4 text-xs text-gray-400">{{ $log->created_at->format('M d, Y h:i:s A') }}</td>
+                                <td class="p-4 text-xs text-gray-400"><x-local-time :date="$log->created_at" format="seconds" /></td>
                             </tr>
                         @empty
                             <tr>

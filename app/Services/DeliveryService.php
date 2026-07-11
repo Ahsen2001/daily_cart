@@ -43,6 +43,7 @@ class DeliveryService
 
             $order->update(['order_status' => 'assigned_to_rider']);
             $rider->update(['availability_status' => 'delivering']);
+            $order->load(['delivery.rider.user', 'customer.user']);
 
             $this->orderStatusService->notify($order->customer->user, new RiderAssignedNotification($order));
             $this->orderStatusService->notify($rider->user, new RiderAssignedNotification($order));

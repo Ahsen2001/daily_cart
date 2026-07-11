@@ -31,7 +31,7 @@
                     <thead class="bg-gray-50 text-left text-xs uppercase text-gray-500"><tr><th class="px-4 py-3">{{ __('Order') }}</th><th>{{ __('Customer') }}</th><th>{{ __('Amount') }}</th><th>{{ __('Status') }}</th><th>{{ __('Processed') }}</th></tr></thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach ($refunds as $refund)
-                            <tr><td class="px-4 py-3">{{ $refund->order?->order_number }}</td><td>{{ $refund->order?->customer?->user?->name }}</td><td>{{ CurrencyService::formatLkr($refund->amount) }}</td><td>{{ $refund->status }}</td><td>{{ $refund->processed_at?->format('Y-m-d H:i') }}</td></tr>
+                            <tr><td class="px-4 py-3">{{ $refund->order?->order_number }}</td><td>{{ $refund->order?->customer?->user?->name }}</td><td>{{ CurrencyService::formatLkr($refund->amount) }}</td><td>{{ $refund->status }}</td><td><x-local-time :date="$refund->processed_at" /></td></tr>
                         @endforeach
                     </tbody>
                 </table>

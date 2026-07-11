@@ -11,7 +11,7 @@
                         <thead><tr class="text-left text-xs font-semibold uppercase text-gray-500"><th class="px-3 py-2">{{ __('Date') }}</th><th class="px-3 py-2">{{ __('Type') }}</th><th class="px-3 py-2">{{ __('Direction') }}</th><th class="px-3 py-2">{{ __('Amount') }}</th><th class="px-3 py-2">{{ __('Balance After') }}</th></tr></thead>
                         <tbody class="divide-y divide-gray-100 text-sm">
                             @forelse ($transactions as $transaction)
-                                <tr><td class="px-3 py-3">{{ $transaction->created_at->format('M d, Y h:i A') }}</td><td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($transaction->transaction_type)) }}</td><td class="px-3 py-3">{{ ucfirst($transaction->type) }}</td><td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr($transaction->amount) }}</td><td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr($transaction->balance_after) }}</td></tr>
+                                <tr><td class="px-3 py-3"><x-local-time :date="$transaction->created_at" /></td><td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($transaction->transaction_type)) }}</td><td class="px-3 py-3">{{ ucfirst($transaction->type) }}</td><td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr($transaction->amount) }}</td><td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr($transaction->balance_after) }}</td></tr>
                             @empty
                                 <tr><td colspan="5" class="px-3 py-6 text-center text-gray-500">{{ __('No transactions found.') }}</td></tr>
                             @endforelse

@@ -28,9 +28,17 @@
                         <thead><tr class="text-left text-xs font-semibold uppercase text-gray-500"><th class="px-3 py-2">{{ __('Order') }}</th><th class="px-3 py-2">{{ __('Customer') }}</th><th class="px-3 py-2">{{ __('Vendor') }}</th><th class="px-3 py-2">{{ __('Scheduled') }}</th><th class="px-3 py-2">{{ __('Status') }}</th><th class="px-3 py-2"></th></tr></thead>
                         <tbody class="divide-y divide-gray-100 text-sm">
                             @forelse ($deliveries as $delivery)
+                                @php
+                                    $customerPhone = $delivery->order?->customer?->phone ?: $delivery->order?->customer?->user?->phone;
+                                @endphp
                                 <tr>
                                     <td class="px-3 py-3 font-medium text-gray-900">{{ $delivery->order?->order_number }}</td>
-                                    <td class="px-3 py-3">{{ $delivery->order?->customer?->user?->name }}</td>
+                                    <td class="px-3 py-3">
+                                        <div>{{ $delivery->order?->customer?->user?->name }}</div>
+                                        @if ($customerPhone)
+                                            <div class="text-xs text-gray-500">{{ __('Contact') }}: {{ $customerPhone }}</div>
+                                        @endif
+                                    </td>
                                     <td class="px-3 py-3">{{ $delivery->order?->vendor?->store_name }}</td>
                                     <td class="px-3 py-3">{{ $delivery->scheduled_at?->format('M d, Y h:i A') }}</td>
                                     <td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($delivery->status)) }}</td>

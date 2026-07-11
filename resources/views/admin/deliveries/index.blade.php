@@ -33,7 +33,7 @@
                                     <td class="px-3 py-3">{{ $delivery->rider?->user?->name ?? __('Not assigned') }}</td>
                                     <td class="px-3 py-3">{{ $delivery->scheduled_at?->format('M d, Y h:i A') }}</td>
                                     <td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($delivery->status)) }}</td>
-                                    <td class="px-3 py-3">{{ $delivery->delivered_at?->format('M d, Y h:i A') ?? '-' }}</td>
+                                    <td class="px-3 py-3"><x-local-time :date="$delivery->delivered_at" /></td>
                                 </tr>
                             @empty
                                 <tr><td colspan="5" class="px-3 py-6 text-center text-gray-500">{{ __('No deliveries found.') }}</td></tr>

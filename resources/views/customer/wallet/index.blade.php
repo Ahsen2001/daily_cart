@@ -38,7 +38,7 @@
                                 </div>
                                 <div class="text-right">
                                     <div>{{ \App\Services\CurrencyService::formatLkr($transaction->amount) }}</div>
-                                    <div class="text-gray-500">{{ $transaction->created_at->format('M d, Y') }}</div>
+                                    <div class="text-gray-500"><x-local-time :date="$transaction->created_at" format="date" /></div>
                                 </div>
                             </div>
                         @empty

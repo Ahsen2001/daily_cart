@@ -1,6 +1,7 @@
 @php
     use App\Services\CurrencyService;
 
+    $customerPhone = $order->customer?->phone ?: $order->customer?->user?->phone;
     $vendorItemsTotal = (float) $order->items->sum('total_price');
     $vendorNetTotal = max((float) $order->subtotal - (float) $order->discount_amount - (float) $order->loyalty_discount_amount, 0);
 @endphp
@@ -26,6 +27,7 @@
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div><div class="text-sm text-gray-500">{{ __('Order') }}</div><div class="font-semibold">{{ $order->order_number }}</div></div>
                     <div><div class="text-sm text-gray-500">{{ __('Customer') }}</div><div class="font-semibold">{{ $order->customer?->user?->name }}</div></div>
+                    <div><div class="text-sm text-gray-500">{{ __('Customer Contact') }}</div><div class="font-semibold">{{ $customerPhone ?: '-' }}</div></div>
                     <div><div class="text-sm text-gray-500">{{ __('Scheduled Delivery') }}</div><div class="font-semibold">{{ $order->scheduled_delivery_at?->format('M d, Y h:i A') }}</div></div>
                     <div><div class="text-sm text-gray-500">{{ __('Status') }}</div><div class="font-semibold">{{ str_replace('_', ' ', ucfirst($order->order_status)) }}</div></div>
                 </div>
@@ -116,7 +118,7 @@
                                 <div class="flex-1 pb-2">
                                     <div class="flex justify-between">
                                         <span class="font-semibold text-gray-800">{{ str_replace('_', ' ', ucfirst($history->status)) }}</span>
-                                        <span class="text-gray-400 text-[10px]">{{ $history->created_at->format('M d H:i') }}</span>
+                                        <span class="text-gray-400 text-[10px]"><x-local-time :date="$history->created_at" format="short" /></span>
                                     </div>
                                     @if ($history->remarks)
                                         <p class="text-gray-500 mt-0.5 italic">{{ $history->remarks }}</p>

@@ -85,7 +85,7 @@
                                 <div class="flex-1 pb-2">
                                     <div class="flex justify-between">
                                         <span class="font-semibold text-gray-800">{{ str_replace('_', ' ', ucfirst($history->status)) }}</span>
-                                        <span class="text-gray-400 text-[10px]">{{ $history->created_at->format('M d H:i') }}</span>
+                                        <span class="text-gray-400 text-[10px]"><x-local-time :date="$history->created_at" format="short" /></span>
                                     </div>
                                     @if ($history->remarks)
                                         <p class="text-gray-500 mt-0.5 italic">{{ $history->remarks }}</p>

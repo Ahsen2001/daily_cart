@@ -2,6 +2,7 @@
     use App\Services\CurrencyService;
 
     $paidAt = $order->payment?->paid_at ?? $order->delivery?->delivered_at;
+    $riderPhone = $order->delivery?->rider?->user?->phone;
 @endphp
 
 <!DOCTYPE html>
@@ -50,7 +51,7 @@
                     <div class="text-left sm:text-right">
                         <p class="text-xs font-semibold uppercase tracking-wide text-green-700">{{ __('Delivery Receipt') }}</p>
                         <h1 class="mt-1 text-2xl font-bold text-gray-900">{{ $order->order_number }}</h1>
-                        <p class="mt-2 text-sm text-gray-600">{{ __('Issued') }}: {{ now()->format('M d, Y h:i A') }}</p>
+                        <p class="mt-2 text-sm text-gray-600">{{ __('Issued') }}: <x-local-time :date="now()" /></p>
                     </div>
                 </div>
             </div>
@@ -69,9 +70,18 @@
                 <div>
                     <p class="text-xs font-semibold uppercase text-gray-500">{{ __('Delivery') }}</p>
                     <p class="mt-1 font-semibold text-gray-900">{{ __('Delivered') }}</p>
-                    <p class="mt-1 text-gray-600">{{ $order->delivery?->delivered_at?->format('M d, Y h:i A') ?? $order->scheduled_delivery_at?->format('M d, Y h:i A') }}</p>
+                    <p class="mt-1 text-gray-600">
+                        @if ($order->delivery?->delivered_at)
+                            <x-local-time :date="$order->delivery->delivered_at" />
+                        @else
+                            {{ $order->scheduled_delivery_at?->format('M d, Y h:i A') }}
+                        @endif
+                    </p>
                     @if ($order->delivery?->rider)
                         <p class="mt-1 text-gray-600">{{ __('Rider') }}: {{ $order->delivery->rider->user?->name }}</p>
+                        @if ($riderPhone)
+                            <p class="mt-1 text-gray-600">{{ __('Rider Contact') }}: {{ $riderPhone }}</p>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -87,7 +97,7 @@
                         <p>{{ __('Method') }}: <span class="font-semibold">{{ str_replace('_', ' ', ucfirst($order->payment?->payment_method ?? 'pending')) }}</span></p>
                         <p>{{ __('Status') }}: <span class="font-semibold">{{ str_replace('_', ' ', ucfirst($order->payment?->status ?? $order->payment_status)) }}</span></p>
                         @if ($paidAt)
-                            <p>{{ __('Paid At') }}: <span class="font-semibold">{{ $paidAt->format('M d, Y h:i A') }}</span></p>
+                            <p>{{ __('Paid At') }}: <span class="font-semibold"><x-local-time :date="$paidAt" /></span></p>
                         @endif
                         @if ($order->payment?->transaction_reference)
                             <p>{{ __('Reference') }}: <span class="font-semibold">{{ $order->payment->transaction_reference }}</span></p>

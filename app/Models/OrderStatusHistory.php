@@ -19,6 +19,20 @@ class OrderStatusHistory extends Model
         'updated_by',
     ];
 
+    public function displayCreatedAt(?string $format = null): string
+    {
+        if (! $this->created_at) {
+            return '';
+        }
+
+        $timezone = Setting::query()->where('setting_key', 'timezone')->value('setting_value') ?: 'Asia/Colombo';
+
+        return $this->created_at
+            ->copy()
+            ->timezone($timezone)
+            ->format($format ?? 'M d, Y h:i A');
+    }
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

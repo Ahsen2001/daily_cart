@@ -13,6 +13,8 @@
     $currentIndex = max(0, array_search($order->order_status, $statusKeys, true) ?: 0);
     $isTerminal = in_array($order->order_status, ['cancelled', 'refunded'], true);
     $progressPercent = $isTerminal ? 100 : (int) round(($currentIndex + 1) / count($statusSteps) * 100);
+    $assignedRider = $order->delivery?->rider;
+    $assignedRiderPhone = $assignedRider?->user?->phone;
     $latestLocation = $order->delivery?->rider?->locations?->sortByDesc('recorded_at')->first();
 @endphp
 
@@ -98,10 +100,21 @@
                                                     {{ $order->placed_at?->format('M d, Y h:i A') ?? __('Waiting for vendor confirmation.') }}
                                                     @break
                                                 @case('assigned_to_rider')
-                                                    {{ $order->delivery?->rider?->user?->name ? __('Assigned to :rider', ['rider' => $order->delivery->rider->user->name]) : __('Waiting for rider assignment.') }}
+                                                    @if ($assignedRider?->user?->name)
+                                                        <span>{{ __('Assigned to :rider', ['rider' => $assignedRider->user->name]) }}</span>
+                                                        @if ($assignedRiderPhone)
+                                                            <span class="block">{{ __('Contact') }}: {{ $assignedRiderPhone }}</span>
+                                                        @endif
+                                                    @else
+                                                        {{ __('Waiting for rider assignment.') }}
+                                                    @endif
                                                     @break
                                                 @case('delivered')
-                                                    {{ $order->delivery?->delivered_at?->format('M d, Y h:i A') ?? __('Delivery proof will appear after completion.') }}
+                                                    @if ($order->delivery?->delivered_at)
+                                                        <x-local-time :date="$order->delivery->delivered_at" />
+                                                    @else
+                                                        {{ __('Delivery proof will appear after completion.') }}
+                                                    @endif
                                                     @break
                                                 @default
                                                     {{ $isActive ? __('In progress now.') : __('Pending update.') }}
@@ -129,7 +142,7 @@
                                     <div class="flex-1 pb-2">
                                         <div class="flex justify-between items-start">
                                             <p class="text-sm font-semibold text-gray-900">{{ str_replace('_', ' ', ucfirst($history->status)) }}</p>
-                                            <span class="text-xs text-gray-400 font-medium">{{ $history->created_at->format('M d, Y h:i A') }}</span>
+                                            <span class="text-xs text-gray-400 font-medium"><x-local-time :date="$history->created_at" /></span>
                                         </div>
                                         @if ($history->remarks)
                                             <p class="text-xs text-gray-600 mt-1 italic">{{ $history->remarks }}</p>
@@ -175,6 +188,9 @@
                         <p class="mt-3 text-sm leading-6 text-gray-700">{{ $order->delivery_address }}</p>
                         @if ($order->delivery?->rider)
                             <p class="mt-3 text-sm text-gray-700">{{ __('Rider') }}: <span class="font-semibold">{{ $order->delivery->rider->user?->name }}</span></p>
+                            @if ($assignedRiderPhone)
+                                <p class="mt-1 text-sm text-gray-700">{{ __('Rider Contact') }}: <span class="font-semibold">{{ $assignedRiderPhone }}</span></p>
+                            @endif
                         @endif
                         @if ($googleMapsBrowserKey && $order->delivery_latitude && $order->delivery_longitude)
                             <div id="order-tracking-map" class="mt-4 h-72 rounded-2xl border border-green-100 bg-green-50"></div>

@@ -29,7 +29,7 @@
                     <thead class="bg-gray-50 text-left text-xs uppercase text-gray-500"><tr><th class="px-4 py-3">{{ __('Order') }}</th><th>{{ __('Customer') }}</th><th>{{ __('Status') }}</th><th>{{ __('Scheduled') }}</th><th>{{ __('Delivered') }}</th></tr></thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach ($deliveries as $delivery)
-                            <tr><td class="px-4 py-3">{{ $delivery->order?->order_number }}</td><td>{{ $delivery->order?->customer?->user?->name }}</td><td>{{ $delivery->status }}</td><td>{{ $delivery->scheduled_at?->format('Y-m-d H:i') }}</td><td>{{ $delivery->delivered_at?->format('Y-m-d H:i') }}</td></tr>
+                            <tr><td class="px-4 py-3">{{ $delivery->order?->order_number }}</td><td>{{ $delivery->order?->customer?->user?->name }}</td><td>{{ $delivery->status }}</td><td>{{ $delivery->scheduled_at?->format('Y-m-d H:i') }}</td><td><x-local-time :date="$delivery->delivered_at" /></td></tr>
                         @endforeach
                     </tbody>
                 </table>

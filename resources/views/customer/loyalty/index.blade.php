@@ -9,7 +9,7 @@
         <div class="bg-white p-6 shadow-sm sm:rounded-lg">
             <table class="min-w-full divide-y divide-gray-200"><thead><tr class="text-left text-xs font-semibold uppercase text-gray-500"><th class="px-3 py-2">{{ __('Date') }}</th><th class="px-3 py-2">{{ __('Type') }}</th><th class="px-3 py-2">{{ __('Points') }}</th><th class="px-3 py-2">{{ __('Balance') }}</th><th class="px-3 py-2">{{ __('Description') }}</th></tr></thead><tbody class="divide-y divide-gray-100 text-sm">
                 @forelse ($transactions as $transaction)
-                    <tr><td class="px-3 py-3">{{ $transaction->created_at->format('M d, Y') }}</td><td class="px-3 py-3">{{ ucfirst($transaction->type) }}</td><td class="px-3 py-3">{{ $transaction->points }}</td><td class="px-3 py-3">{{ $transaction->balance_after }}</td><td class="px-3 py-3">{{ $transaction->description }}</td></tr>
+                    <tr><td class="px-3 py-3"><x-local-time :date="$transaction->created_at" format="date" /></td><td class="px-3 py-3">{{ ucfirst($transaction->type) }}</td><td class="px-3 py-3">{{ $transaction->points }}</td><td class="px-3 py-3">{{ $transaction->balance_after }}</td><td class="px-3 py-3">{{ $transaction->description }}</td></tr>
                 @empty
                     <tr><td colspan="5" class="px-3 py-6 text-center text-gray-500">{{ __('No loyalty history yet.') }}</td></tr>
                 @endforelse

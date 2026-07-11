@@ -17,7 +17,7 @@
                         <thead><tr class="text-left text-xs font-semibold uppercase text-gray-500"><th class="px-3 py-2">{{ __('Subject') }}</th><th class="px-3 py-2">{{ __('Priority') }}</th><th class="px-3 py-2">{{ __('Status') }}</th><th class="px-3 py-2">{{ __('Created') }}</th><th class="px-3 py-2"></th></tr></thead>
                         <tbody class="divide-y divide-gray-100 text-sm">
                             @forelse ($tickets as $ticket)
-                                <tr><td class="px-3 py-3 font-medium">{{ $ticket->subject }}</td><td class="px-3 py-3">{{ ucfirst($ticket->priority) }}</td><td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($ticket->status)) }}</td><td class="px-3 py-3">{{ $ticket->created_at->format('M d, Y') }}</td><td class="px-3 py-3 text-right"><a class="text-indigo-700 underline" href="{{ route('support.tickets.show', $ticket) }}">{{ __('View') }}</a></td></tr>
+                                <tr><td class="px-3 py-3 font-medium">{{ $ticket->subject }}</td><td class="px-3 py-3">{{ ucfirst($ticket->priority) }}</td><td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($ticket->status)) }}</td><td class="px-3 py-3"><x-local-time :date="$ticket->created_at" format="date" /></td><td class="px-3 py-3 text-right"><a class="text-indigo-700 underline" href="{{ route('support.tickets.show', $ticket) }}">{{ __('View') }}</a></td></tr>
                             @empty
                                 <tr><td colspan="5" class="px-3 py-6 text-center text-gray-500">{{ __('No tickets found.') }}</td></tr>
                             @endforelse

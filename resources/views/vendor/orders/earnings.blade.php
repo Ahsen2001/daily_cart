@@ -16,7 +16,7 @@
                         <thead><tr class="text-left text-xs font-semibold uppercase text-gray-500"><th class="px-3 py-2">{{ __('Order') }}</th><th class="px-3 py-2">{{ __('Delivered') }}</th><th class="px-3 py-2">{{ __('Amount') }}</th></tr></thead>
                         <tbody class="divide-y divide-gray-100 text-sm">
                             @forelse ($completedOrders as $order)
-                                <tr><td class="px-3 py-3">{{ $order->order_number }}</td><td class="px-3 py-3">{{ $order->updated_at->format('M d, Y') }}</td><td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr(max((float) $order->subtotal - (float) $order->discount_amount - (float) $order->loyalty_discount_amount, 0)) }}</td></tr>
+                                <tr><td class="px-3 py-3">{{ $order->order_number }}</td><td class="px-3 py-3"><x-local-time :date="$order->updated_at" format="date" /></td><td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr(max((float) $order->subtotal - (float) $order->discount_amount - (float) $order->loyalty_discount_amount, 0)) }}</td></tr>
                             @empty
                                 <tr><td colspan="3" class="px-3 py-6 text-center text-gray-500">{{ __('No completed orders yet.') }}</td></tr>
                             @endforelse

@@ -1,3 +1,7 @@
+@php
+    $customerPhone = $delivery->order?->customer?->phone ?: $delivery->order?->customer?->user?->phone;
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
@@ -20,6 +24,7 @@
                     <div><div class="text-sm text-gray-500">{{ __('Order') }}</div><div class="font-semibold">{{ $delivery->order?->order_number }}</div></div>
                     <div><div class="text-sm text-gray-500">{{ __('Status') }}</div><div class="font-semibold">{{ str_replace('_', ' ', ucfirst($delivery->status)) }}</div></div>
                     <div><div class="text-sm text-gray-500">{{ __('Customer') }}</div><div class="font-semibold">{{ $delivery->order?->customer?->user?->name }}</div></div>
+                    <div><div class="text-sm text-gray-500">{{ __('Customer Contact') }}</div><div class="font-semibold">{{ $customerPhone ?: '-' }}</div></div>
                     <div><div class="text-sm text-gray-500">{{ __('Scheduled Delivery') }}</div><div class="font-semibold">{{ $delivery->scheduled_at?->format('M d, Y h:i A') }}</div></div>
                     <div class="sm:col-span-2"><div class="text-sm text-gray-500">{{ __('Delivery Address') }}</div><div class="font-semibold">{{ $delivery->delivery_address }}</div></div>
                     <div class="sm:col-span-2"><div class="text-sm text-gray-500">{{ __('Pickup Address') }}</div><div class="font-semibold">{{ $delivery->pickup_address }}</div></div>
@@ -32,7 +37,7 @@
                             @foreach ($delivery->proofs as $proof)
                                 <div class="rounded-md border p-3 text-sm">
                                     <img src="{{ Storage::url($proof->proof_image) }}" alt="Delivery proof" class="mb-3 h-40 w-full rounded object-cover">
-                                    <div>{{ $proof->submitted_at?->format('M d, Y h:i A') }}</div>
+                                    <div><x-local-time :date="$proof->submitted_at" /></div>
                                     @if ($proof->note)
                                         <div class="mt-1 text-gray-500">{{ $proof->note }}</div>
                                     @endif
