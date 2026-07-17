@@ -14,6 +14,7 @@ class OtpVerification extends Model
         'user_id',
         'type',
         'otp',
+        'attempts',
         'expires_at',
         'verified_at',
     ];
@@ -23,6 +24,7 @@ class OtpVerification extends Model
         return [
             'expires_at' => 'datetime',
             'verified_at' => 'datetime',
+            'attempts' => 'integer',
         ];
     }
 

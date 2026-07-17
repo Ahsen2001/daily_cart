@@ -22,7 +22,6 @@ class CheckoutRequest extends FormRequest
             'delivery_longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'delivery_distance_meters' => ['nullable', 'integer', 'min:0'],
             'scheduled_delivery_at' => ['required', 'date'],
-            'client_current_at' => ['nullable', 'date'],
             'payment_method' => ['required', Rule::in(['cash_on_delivery', 'card', 'bank_transfer', 'wallet'])],
             'coupon_code' => ['nullable', 'string', 'max:255'],
             'loyalty_points' => ['nullable', 'integer', 'min:0'],
@@ -39,9 +38,7 @@ class CheckoutRequest extends FormRequest
             }
 
             $schedule = app(DeliveryScheduleService::class);
-            $placedAt = $this->filled('client_current_at')
-                ? Carbon::parse($this->input('client_current_at'))
-                : now();
+            $placedAt = now();
 
             if (! $schedule->isAllowed(Carbon::parse($scheduledAt), $placedAt)) {
                 $validator->errors()->add('scheduled_delivery_at', DeliveryScheduleService::ERROR_MESSAGE);

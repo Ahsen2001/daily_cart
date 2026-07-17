@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +16,7 @@ class AdminManagementController extends Controller
     public function index(): View
     {
         $admins = User::query()
-            ->whereHas('role', fn ($query) => $query->where('name', 'Admin'))
+            ->whereHas('roles', fn ($query) => $query->where('name', 'Admin'))
             ->latest()
             ->paginate(15);
 
@@ -55,6 +55,7 @@ class AdminManagementController extends Controller
     public function edit(User $admin): View
     {
         abort_if($admin->hasRole('Super Admin'), 403);
+
         return view('admin.management.admins.edit', [
             'admin' => $admin,
         ]);
@@ -66,7 +67,7 @@ class AdminManagementController extends Controller
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $admin->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$admin->id],
             'password' => ['nullable', 'confirmed', Password::defaults()],
             'status' => ['required', 'in:active,suspended,inactive'],
         ]);

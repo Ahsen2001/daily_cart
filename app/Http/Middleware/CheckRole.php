@@ -12,7 +12,7 @@ class CheckRole
     {
         $user = $request->user();
 
-        if (! $user || ! in_array($user->role?->name, $roles, true)) {
+        if (! $user || ! $user->hasAnyRole($roles)) {
             abort(403, 'You are not allowed to access this area.');
         }
 

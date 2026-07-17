@@ -45,23 +45,26 @@ class OrderService
 
         return DB::transaction(function () use ($cart, $customer, $data) {
             $orders = [];
-            $couponApplied = false;
-            $remainingLoyaltyPoints = (int) ($data['loyalty_points'] ?? 0);
-            $redemptionValuePerPoint = (float) $this->loyaltyPointService->setting()->redemption_value_per_point;
+            $pricingLines = $this->pricingLines(
+                $cart,
+                $data['coupon_code'] ?? null,
+                $customer,
+                (int) ($data['loyalty_points'] ?? 0)
+            );
 
-            foreach ($cart->items->groupBy(fn (CartItem $item) => $item->product->vendor_id) as $vendorId => $items) {
-                $subtotal = $items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity);
-                $deliveryFee = $this->deliveryChargeForItems($items);
-                $coupon = $couponApplied ? null : $this->couponService->findValid($data['coupon_code'] ?? null, $subtotal, (int) $vendorId, $customer);
-                $discount = $this->couponService->discount($coupon, $subtotal, $deliveryFee);
-                $serviceCharge = self::serviceChargeForSubtotal($subtotal);
-                $beforeLoyaltyTotal = round($subtotal - $discount + $deliveryFee + $serviceCharge, 2);
-                $maxPointsForThisOrder = $redemptionValuePerPoint > 0 ? (int) floor($beforeLoyaltyTotal / $redemptionValuePerPoint) : 0;
-                $loyaltyPoints = min($remainingLoyaltyPoints, $maxPointsForThisOrder);
-                $loyaltyDiscount = $this->loyaltyPointService->validateRedemption($customer, $loyaltyPoints, $beforeLoyaltyTotal);
-                $total = round($beforeLoyaltyTotal - $loyaltyDiscount, 2);
+            foreach ($pricingLines as $pricing) {
+                $vendorId = $pricing['vendor_id'];
+                $items = $pricing['items'];
+                $subtotal = $pricing['subtotal'];
+                $deliveryFee = $pricing['delivery_fee'];
+                $coupon = $pricing['coupon'];
+                $discount = $pricing['discount'];
+                $serviceCharge = $pricing['service_charge'];
+                $loyaltyPoints = $pricing['loyalty_points'];
+                $loyaltyDiscount = $pricing['loyalty_discount'];
+                $total = $pricing['total'];
 
-                $placedAt = Carbon::parse($data['client_current_at'] ?? now());
+                $placedAt = now();
 
                 $order = Order::create([
                     'order_number' => $this->orderNumber(),
@@ -114,8 +117,6 @@ class OrderService
 
                 $this->couponService->markUsed($coupon, $customer, $order, $discount);
                 $this->loyaltyPointService->redeem($customer, $order, $loyaltyPoints);
-                $couponApplied = $coupon !== null || $couponApplied;
-                $remainingLoyaltyPoints -= $loyaltyPoints;
 
                 $orders[] = $order;
             }
@@ -129,37 +130,91 @@ class OrderService
 
     public function quote(Cart $cart, ?string $couponCode = null, ?Customer $customer = null, int $loyaltyPoints = 0): array
     {
-        $cart->loadMissing(['items.product.category', 'items.variant']);
-
-        $subtotal = $cart->items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity);
-        $deliveryFee = $this->deliveryChargeForItems($cart->items);
-        $coupon = null;
-        $discount = 0.0;
-
-        foreach ($cart->items->groupBy(fn (CartItem $item) => $item->product->vendor_id) as $vendorId => $items) {
-            $vendorSubtotal = $items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity);
-            $coupon = $this->couponService->findValid($couponCode, $vendorSubtotal, (int) $vendorId, $customer);
-
-            if ($coupon) {
-                $discount = $this->couponService->discount($coupon, $vendorSubtotal, $deliveryFee);
-                break;
-            }
-        }
-
-        $serviceCharge = self::serviceChargeForSubtotal($subtotal);
-        $beforeLoyaltyTotal = round($subtotal - $discount + $deliveryFee + $serviceCharge, 2);
-        $loyaltyDiscount = $customer ? $this->loyaltyPointService->validateRedemption($customer, $loyaltyPoints, $beforeLoyaltyTotal) : 0;
+        $lines = collect($this->pricingLines($cart, $couponCode, $customer, $loyaltyPoints));
 
         return [
-            'coupon' => $coupon,
-            'subtotal' => round($subtotal, 2),
-            'discount' => $discount,
-            'loyalty_points' => $loyaltyPoints,
-            'loyalty_discount' => $loyaltyDiscount,
-            'delivery_fee' => $deliveryFee,
-            'service_charge' => $serviceCharge,
-            'grand_total' => round($beforeLoyaltyTotal - $loyaltyDiscount, 2),
+            'coupon' => $lines->firstWhere('coupon', '!=', null)['coupon'] ?? null,
+            'subtotal' => round((float) $lines->sum('subtotal'), 2),
+            'discount' => round((float) $lines->sum('discount'), 2),
+            'loyalty_points' => (int) $lines->sum('loyalty_points'),
+            'loyalty_discount' => round((float) $lines->sum('loyalty_discount'), 2),
+            'delivery_fee' => round((float) $lines->sum('delivery_fee'), 2),
+            'service_charge' => round((float) $lines->sum('service_charge'), 2),
+            'grand_total' => round((float) $lines->sum('total'), 2),
         ];
+    }
+
+    /**
+     * Calculate the per-vendor totals used by both checkout quotes and order creation.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function pricingLines(Cart $cart, ?string $couponCode, ?Customer $customer, int $loyaltyPoints): array
+    {
+        $cart->loadMissing(['items.product.category', 'items.variant.inventory']);
+
+        $lines = [];
+        $couponApplied = false;
+
+        foreach ($cart->items->groupBy(fn (CartItem $item) => $item->product->vendor_id) as $vendorId => $items) {
+            $subtotal = round((float) $items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity), 2);
+            $deliveryFee = $this->deliveryChargeForItems($items);
+            $coupon = $couponApplied
+                ? null
+                : $this->couponService->findValid($couponCode, $subtotal, (int) $vendorId, $customer);
+            $discount = $this->couponService->discount($coupon, $subtotal, $deliveryFee);
+            $serviceCharge = self::serviceChargeForSubtotal($subtotal);
+            $beforeLoyaltyTotal = round($subtotal - $discount + $deliveryFee + $serviceCharge, 2);
+
+            $lines[] = [
+                'vendor_id' => (int) $vendorId,
+                'items' => $items,
+                'coupon' => $coupon,
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'delivery_fee' => $deliveryFee,
+                'service_charge' => $serviceCharge,
+                'before_loyalty_total' => $beforeLoyaltyTotal,
+            ];
+
+            $couponApplied = $coupon !== null || $couponApplied;
+        }
+
+        $beforeLoyaltyTotal = round((float) collect($lines)->sum('before_loyalty_total'), 2);
+        $redemptionValuePerPoint = (float) $this->loyaltyPointService->setting()->redemption_value_per_point;
+
+        if ($customer) {
+            $this->loyaltyPointService->validateRedemption($customer, $loyaltyPoints, $beforeLoyaltyTotal);
+        } elseif ($loyaltyPoints > 0) {
+            throw ValidationException::withMessages([
+                'loyalty_points' => 'A customer is required to redeem loyalty points.',
+            ]);
+        }
+
+        $pointCapacity = $redemptionValuePerPoint > 0
+            ? (int) collect($lines)->sum(fn (array $line) => floor($line['before_loyalty_total'] / $redemptionValuePerPoint))
+            : 0;
+
+        if ($loyaltyPoints > $pointCapacity) {
+            throw ValidationException::withMessages([
+                'loyalty_points' => 'Loyalty discount cannot make an order total negative.',
+            ]);
+        }
+
+        $remainingPoints = $loyaltyPoints;
+
+        foreach ($lines as &$line) {
+            $maxPoints = $redemptionValuePerPoint > 0
+                ? (int) floor($line['before_loyalty_total'] / $redemptionValuePerPoint)
+                : 0;
+            $line['loyalty_points'] = min($remainingPoints, $maxPoints);
+            $line['loyalty_discount'] = round($line['loyalty_points'] * $redemptionValuePerPoint, 2);
+            $line['total'] = round($line['before_loyalty_total'] - $line['loyalty_discount'], 2);
+            $remainingPoints -= $line['loyalty_points'];
+        }
+        unset($line);
+
+        return $lines;
     }
 
     public static function deliveryChargeForQuantity(int $quantity): float

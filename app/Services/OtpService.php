@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\EmailOtp;
 use App\Models\User;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -60,6 +61,7 @@ class OtpService
 
         if ($purpose === 'email_verification' && blank($user->email_verified_at)) {
             $user->forceFill(['email_verified_at' => now()])->save();
+            event(new Verified($user));
         }
 
         return $user;

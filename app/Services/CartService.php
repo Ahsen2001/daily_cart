@@ -74,6 +74,12 @@ class CartService
 
     public function ensureProductCanBeOrdered(Product $product, int $quantity, ?ProductVariant $variant = null): void
     {
+        if ($variant && (int) $variant->product_id !== (int) $product->id) {
+            throw ValidationException::withMessages([
+                'product_variant_id' => 'The selected variant does not belong to this product.',
+            ]);
+        }
+
         if ($product->status !== 'approved' || $product->category?->status !== 'active') {
             throw ValidationException::withMessages([
                 'product' => 'This product is not available for ordering.',

@@ -45,4 +45,15 @@ return [
         'expires_minutes' => env('OTP_EXPIRES_MINUTES', 10),
     ],
 
+    'sms' => [
+        'endpoint' => env('SMS_GATEWAY_URL'),
+        'token' => env('SMS_GATEWAY_TOKEN'),
+        'sender' => env('SMS_SENDER_ID', 'DailyCart'),
+    ],
+
+    'push' => [
+        'endpoint' => env('PUSH_GATEWAY_URL'),
+        'token' => env('PUSH_GATEWAY_TOKEN'),
+    ],
+
 ];

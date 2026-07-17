@@ -14,6 +14,7 @@ class ProductController extends Controller
     public function categories(): JsonResponse
     {
         $categories = Category::where('status', 'active')->orderBy('name')->get();
+
         return response()->json([
             'categories' => $categories,
         ]);
@@ -28,7 +29,7 @@ class ProductController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         if ($request->filled('sort')) {
@@ -65,6 +66,11 @@ class ProductController extends Controller
 
     public function show(Product $product): JsonResponse
     {
+        abort_unless(
+            Product::visibleToCustomers()->whereKey($product->getKey())->exists(),
+            404
+        );
+
         return response()->json([
             'product' => new ProductResource($product),
         ]);

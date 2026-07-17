@@ -24,12 +24,16 @@ class UserCredentialsSeeder extends Seeder
                 'phone' => '0700000001',
                 'password' => Hash::make('Password@123'),
                 'status' => 'active',
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
             ]
         );
 
         $adminUser->forceFill([
             'role_id' => $adminRole->id,
             'status' => 'active',
+            'email_verified_at' => $adminUser->email_verified_at ?? now(),
+            'phone_verified_at' => $adminUser->phone_verified_at ?? now(),
         ])->save();
 
         $adminUser->assignRole($adminRole->name);
@@ -44,8 +48,15 @@ class UserCredentialsSeeder extends Seeder
                 'phone' => '0711111111',
                 'password' => Hash::make('Password@123'),
                 'status' => 'active',
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
             ]
         );
+        $vendorUser->forceFill([
+            'role_id' => $vendorRole->id,
+            'email_verified_at' => $vendorUser->email_verified_at ?? now(),
+            'phone_verified_at' => $vendorUser->phone_verified_at ?? now(),
+        ])->save();
         $vendorUser->assignRole($vendorRole->name);
 
         Vendor::firstOrCreate(
@@ -73,8 +84,15 @@ class UserCredentialsSeeder extends Seeder
                 'phone' => '0722222222',
                 'password' => Hash::make('Password@123'),
                 'status' => 'active',
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
             ]
         );
+        $customerUser->forceFill([
+            'role_id' => $customerRole->id,
+            'email_verified_at' => $customerUser->email_verified_at ?? now(),
+            'phone_verified_at' => $customerUser->phone_verified_at ?? now(),
+        ])->save();
         $customerUser->assignRole($customerRole->name);
 
         $customer = Customer::firstOrCreate(
@@ -109,8 +127,15 @@ class UserCredentialsSeeder extends Seeder
                 'phone' => '0733333333',
                 'password' => Hash::make('Password@123'),
                 'status' => 'active',
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
             ]
         );
+        $riderUser->forceFill([
+            'role_id' => $riderRole->id,
+            'email_verified_at' => $riderUser->email_verified_at ?? now(),
+            'phone_verified_at' => $riderUser->phone_verified_at ?? now(),
+        ])->save();
         $riderUser->assignRole($riderRole->name);
 
         Rider::firstOrCreate(

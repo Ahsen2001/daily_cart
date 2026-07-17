@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,13 +11,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmailContract
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes {
+        assignRole as private assignSpatieRole;
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -52,9 +54,22 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'deleted_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (User $user) {
+            if (! $user->wasChanged('role_id')) {
+                return;
+            }
+
+            $role = $user->role_id ? $user->role()->first() : null;
+            $user->syncRoles($role ? [$role] : []);
+        });
     }
 
     public function role(): BelongsTo
@@ -64,7 +79,36 @@ class User extends Authenticatable
 
     public function hasPrimaryRole(string ...$roles): bool
     {
-        return in_array($this->role?->name, $roles, true);
+        return $this->hasAnyRole($roles);
+    }
+
+    public function assignRole(...$roles)
+    {
+        $result = $this->assignSpatieRole(...$roles);
+        $primaryRole = collect($roles)->flatten()->first();
+
+        if ($primaryRole !== null) {
+            $role = $primaryRole instanceof Role
+                ? $primaryRole
+                : Role::findByName((string) $primaryRole, $this->getDefaultGuardName());
+
+            if ((int) $this->role_id !== (int) $role->id) {
+                $this->forceFill(['role_id' => $role->id])->saveQuietly();
+                $this->setRelation('role', $role);
+            }
+        }
+
+        return $result;
+    }
+
+    public function hasVerifiedPhone(): bool
+    {
+        return $this->phone_verified_at !== null;
+    }
+
+    public function markPhoneAsVerified(): bool
+    {
+        return $this->forceFill(['phone_verified_at' => $this->freshTimestamp()])->save();
     }
 
     public function isSuperAdmin(): bool

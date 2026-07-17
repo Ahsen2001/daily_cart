@@ -44,11 +44,13 @@ class ExternalEmailService
 
     public function otp(string $email, string $code, string $purpose): void
     {
-        Mail::to($email)->send(new OtpMail($code, $purpose));
+        Mail::to($email)->queue((new OtpMail($code, $purpose))->afterCommit());
     }
 
     private function send(User $user, string $subject, string $message): void
     {
-        Mail::to($user->email)->send(new DailyCartStatusMail($subject, $user->name, $message));
+        Mail::to($user->email)->queue(
+            (new DailyCartStatusMail($subject, $user->name, $message))->afterCommit()
+        );
     }
 }

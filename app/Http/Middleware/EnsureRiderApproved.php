@@ -13,6 +13,12 @@ class EnsureRiderApproved
         $rider = $request->user()?->rider;
 
         if (! $rider || $rider->verification_status !== 'verified') {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Your rider account is not approved.',
+                ], 403);
+            }
+
             return redirect()->route('rider.pending');
         }
 

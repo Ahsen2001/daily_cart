@@ -30,7 +30,7 @@ class AdminSupportTicketController extends Controller
     {
         return view('admin.support-tickets.show', [
             'ticket' => $ticket->load(['user', 'order', 'assignedAdmin', 'replies.user']),
-            'admins' => User::whereHas('role', fn ($query) => $query->whereIn('name', ['Admin', 'Super Admin']))->get(),
+            'admins' => User::whereHas('roles', fn ($query) => $query->whereIn('name', ['Admin', 'Super Admin']))->get(),
         ]);
     }
 

@@ -1,8 +1,13 @@
 <?php
 
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\EnsurePhoneIsVerified;
+use App\Http\Middleware\EnsureRiderApproved;
+use App\Http\Middleware\EnsureVendorApproved;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,9 +25,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'role' => \App\Http\Middleware\CheckRole::class,
-            'vendor.approved' => \App\Http\Middleware\EnsureVendorApproved::class,
-            'rider.approved' => \App\Http\Middleware\EnsureRiderApproved::class,
+            'role' => CheckRole::class,
+            'vendor.approved' => EnsureVendorApproved::class,
+            'rider.approved' => EnsureRiderApproved::class,
+            'phone.verified' => EnsurePhoneIsVerified::class,
+            'ability' => CheckForAnyAbility::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

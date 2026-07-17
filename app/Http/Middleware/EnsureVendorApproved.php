@@ -13,6 +13,12 @@ class EnsureVendorApproved
         $vendor = $request->user()?->vendor;
 
         if (! $vendor || $vendor->status !== 'approved') {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Your vendor account is not approved.',
+                ], 403);
+            }
+
             return redirect()->route('vendor.pending');
         }
 

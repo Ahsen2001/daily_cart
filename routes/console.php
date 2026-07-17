@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('dailycart:process-subscriptions')->dailyAt('00:10');
+Schedule::command('sanctum:prune-expired --hours=24')->dailyAt('01:00');

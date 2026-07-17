@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\SendNotificationChannelJob;
 use App\Mail\GenericNotificationMail;
 use App\Models\Notification;
 use App\Models\Product;
@@ -21,19 +22,21 @@ class NotificationService
         ]);
 
         if (in_array('mail', $channels, true)) {
-            Mail::to($user->email)->send(new GenericNotificationMail($title, $message));
+            Mail::to($user->email)->queue(
+                (new GenericNotificationMail($title, $message))->afterCommit()
+            );
         }
 
         if (in_array('sms', $channels, true)) {
-            $this->sendSmsPlaceholder($user, $message);
+            SendNotificationChannelJob::dispatch($user->id, 'sms', $title, $message)->afterCommit();
         }
 
         if (in_array('whatsapp', $channels, true)) {
-            $this->sendWhatsAppPlaceholder($user, $message);
+            SendNotificationChannelJob::dispatch($user->id, 'whatsapp', $title, $message)->afterCommit();
         }
 
         if (in_array('push', $channels, true)) {
-            $this->sendPushPlaceholder($user, $title, $message);
+            SendNotificationChannelJob::dispatch($user->id, 'push', $title, $message)->afterCommit();
         }
 
         return $notification;
@@ -75,21 +78,6 @@ class NotificationService
 
     private function adminUsers(): Collection
     {
-        return User::whereHas('role', fn ($query) => $query->whereIn('name', ['Admin', 'Super Admin']))->get();
-    }
-
-    private function sendSmsPlaceholder(User $user, string $message): void
-    {
-        // SMS provider integration will be added later.
-    }
-
-    private function sendWhatsAppPlaceholder(User $user, string $message): void
-    {
-        // WhatsApp provider integration will be added later.
-    }
-
-    private function sendPushPlaceholder(User $user, string $title, string $message): void
-    {
-        // Push provider integration will be added later.
+        return User::whereHas('roles', fn ($query) => $query->whereIn('name', ['Admin', 'Super Admin']))->get();
     }
 }

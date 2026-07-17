@@ -21,12 +21,16 @@ class SuperAdminSeeder extends Seeder
                 'phone' => '0700000000',
                 'password' => Hash::make('Password@123'),
                 'status' => 'active',
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
             ]
         );
 
         $user->forceFill([
             'role_id' => $role->id,
             'status' => 'active',
+            'email_verified_at' => $user->email_verified_at ?? now(),
+            'phone_verified_at' => $user->phone_verified_at ?? now(),
         ])->save();
 
         $user->assignRole($role->name);

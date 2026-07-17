@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CheckoutRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
-use App\Services\OrderService;
 use App\Services\CartService;
+use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -57,6 +58,11 @@ class OrderController extends Controller
 
     public function quote(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'coupon_code' => ['nullable', 'string', 'max:255'],
+            'loyalty_points' => ['nullable', 'integer', 'min:0'],
+        ]);
+
         $customer = $request->user()->customer;
         if (! $customer) {
             return response()->json(['message' => 'Customer profile not found.'], 404);
@@ -66,9 +72,9 @@ class OrderController extends Controller
 
         $quote = $this->orderService->quote(
             $cart,
-            $request->coupon_code,
+            $validated['coupon_code'] ?? null,
             $customer,
-            (int) $request->input('loyalty_points', 0)
+            (int) ($validated['loyalty_points'] ?? 0)
         );
 
         return response()->json([
@@ -84,25 +90,14 @@ class OrderController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(CheckoutRequest $request): JsonResponse
     {
-        $request->validate([
-            'delivery_address' => ['required', 'string'],
-            'delivery_latitude' => ['nullable', 'numeric'],
-            'delivery_longitude' => ['nullable', 'numeric'],
-            'delivery_distance_meters' => ['nullable', 'integer'],
-            'payment_method' => ['required', 'string', 'in:cash_on_delivery,online_payment'],
-            'scheduled_delivery_at' => ['required', 'date'],
-            'coupon_code' => ['nullable', 'string'],
-            'loyalty_points' => ['nullable', 'integer', 'min:0'],
-        ]);
-
         $customer = $request->user()->customer;
         if (! $customer) {
             return response()->json(['message' => 'Customer profile not found.'], 404);
         }
 
-        $orders = $this->orderService->createFromCart($customer, $request->all());
+        $orders = $this->orderService->createFromCart($customer, $request->validated());
 
         return response()->json([
             'message' => 'Orders placed successfully.',
