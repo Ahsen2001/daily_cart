@@ -1,19 +1,19 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ __('My Products') }}</h2>
-            <a href="{{ route('vendor.products.create') }}" class="text-sm font-medium text-indigo-700 underline">{{ __('Add Product') }}</a>
+            <div><p class="dc-page-eyebrow">{{ __('Catalog') }}</p><h2 class="dc-page-title">{{ __('My Products') }}</h2></div>
+            <a href="{{ route('vendor.products.create') }}" class="dc-button">{{ __('Add Product') }}</a>
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div class="p-6 bg-white shadow-sm sm:rounded-lg">
+    <div class="dc-page-section">
+        <div class="dc-container">
+            <div class="dc-panel">
                 @if (session('status'))
                     <div class="mb-4 text-sm font-medium text-green-700">{{ session('status') }}</div>
                 @endif
 
-                <form method="GET" class="grid gap-3 mb-6 sm:grid-cols-4">
+                <form method="GET" class="dc-filter-bar mb-6 sm:grid-cols-4">
                     <x-text-input name="search" placeholder="Search products" :value="request('search')" />
                     <select name="category_id" class="border-gray-300 rounded-md shadow-sm">
                         <option value="">{{ __('All categories') }}</option>
@@ -49,10 +49,10 @@
                                     <td class="px-3 py-3">{{ $product->category?->name }}</td>
                                     <td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr($product->discount_price ?? $product->price) }}</td>
                                     <td class="px-3 py-3">{{ $product->stock_quantity }}</td>
-                                    <td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($product->status)) }}</td>
+                                    <td class="px-3 py-3"><x-status-badge :status="$product->status" /></td>
                                     <td class="px-3 py-3 text-right">
-                                        <a class="text-indigo-700 underline" href="{{ route('vendor.products.show', $product) }}">{{ __('View') }}</a>
-                                        <a class="ml-3 text-indigo-700 underline" href="{{ route('vendor.products.edit', $product) }}">{{ __('Edit') }}</a>
+                                        <a class="font-bold text-brand-dark hover:underline" href="{{ route('vendor.products.show', $product) }}">{{ __('View') }}</a>
+                                        <a class="ml-3 font-bold text-brand-dark hover:underline" href="{{ route('vendor.products.edit', $product) }}">{{ __('Edit') }}</a>
                                     </td>
                                 </tr>
                             @empty

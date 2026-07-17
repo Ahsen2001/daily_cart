@@ -1,13 +1,21 @@
-<nav x-data="{ open: false }" class="sticky top-0 z-40 border-b border-green-100 bg-white/90 backdrop-blur-xl">
+@php
+    $unreadNotifications = Auth::user()->notifications()->whereNull('read_at')->count();
+@endphp
+
+<nav x-data="{ open: false }" @keydown.escape.window="open = false" class="sticky top-0 z-40 border-b border-brand-border bg-white/95 backdrop-blur-xl" aria-label="{{ __('Primary navigation') }}">
     <div class="dc-container">
         <div class="flex h-20 items-center justify-between gap-4">
             <a href="{{ route('dashboard') }}" class="transition duration-300 hover:scale-[1.02]">
                 <x-application-logo />
             </a>
 
-            <form method="GET" action="{{ Auth::user()->hasPrimaryRole('Customer') ? route('customer.products.index') : route('dashboard') }}" class="hidden max-w-xl flex-1 md:block">
-                <x-search-bar name="search" placeholder="Search groceries, essentials, orders..." />
-            </form>
+            @if (Auth::user()->hasPrimaryRole('Customer'))
+                <form method="GET" action="{{ route('customer.products.index') }}" class="hidden max-w-xl flex-1 md:block" role="search">
+                    <x-search-bar name="search" placeholder="Search groceries and essentials..." />
+                </form>
+            @else
+                <div class="hidden flex-1 md:block"></div>
+            @endif
 
             <div class="hidden items-center gap-3 lg:flex">
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">{{ __('Dashboard') }}</x-nav-link>
@@ -33,16 +41,19 @@
                     <x-nav-link :href="route('rider.dashboard')" :active="request()->routeIs('rider.*')">{{ __('Rider') }}</x-nav-link>
                 @endif
 
-                <a href="{{ route('notifications.index') }}" class="relative rounded-full bg-brand-light px-4 py-2 text-sm font-semibold text-brand-dark transition hover:bg-brand-primary hover:text-white">
-                    {{ __('Alerts') }}
-                    <x-notification-badge class="absolute -right-2 -top-2">!</x-notification-badge>
+                <a href="{{ route('notifications.index') }}" class="relative inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-light px-4 py-2 text-sm font-bold text-brand-dark transition hover:bg-brand-primary hover:text-white" aria-label="{{ trans_choice(':count unread notification|:count unread notifications', $unreadNotifications, ['count' => $unreadNotifications]) }}">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14.9 18a3 3 0 0 1-5.8 0m9.4-3H5.6c1.3-1.5 2-3.5 2-5.5a4.4 4.4 0 1 1 8.8 0c0 2 .7 4 2.1 5.5Z" /></svg>
+                    <span class="hidden xl:inline">{{ __('Alerts') }}</span>
+                    @if ($unreadNotifications > 0)
+                        <x-notification-badge class="absolute -right-1 -top-1 min-w-6 justify-center">{{ $unreadNotifications > 99 ? '99+' : $unreadNotifications }}</x-notification-badge>
+                    @endif
                 </a>
             </div>
 
             <div class="hidden sm:flex sm:items-center">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="flex items-center gap-3 rounded-full border border-green-100 bg-white px-3 py-2 text-sm font-semibold text-brand-text shadow-sm transition hover:shadow-soft">
+                        <button class="flex min-h-11 items-center gap-3 rounded-full border border-brand-border bg-white px-3 py-2 text-sm font-semibold text-brand-text shadow-sm transition hover:border-brand-primary/40 hover:shadow-soft" aria-label="{{ __('Open account menu') }}">
                             <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-primary text-white">{{ Str::of(Auth::user()->name)->substr(0, 1) }}</span>
                             <span>{{ Auth::user()->name }}</span>
                             <svg class="h-4 w-4 text-brand-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -61,7 +72,7 @@
                 </x-dropdown>
             </div>
 
-            <button @click="open = ! open" class="inline-flex items-center justify-center rounded-2xl bg-brand-light p-3 text-brand-dark transition hover:bg-brand-primary hover:text-white lg:hidden">
+            <button @click="open = ! open" :aria-expanded="open.toString()" aria-controls="mobile-navigation" aria-label="{{ __('Toggle navigation') }}" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl bg-brand-light p-3 text-brand-dark transition hover:bg-brand-primary hover:text-white lg:hidden">
                 <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                     <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
@@ -70,11 +81,17 @@
         </div>
     </div>
 
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden border-t border-green-100 bg-white p-4 lg:hidden">
+    <div id="mobile-navigation" x-cloak x-show="open" x-transition class="border-t border-brand-border bg-white p-4 shadow-lift lg:hidden">
+        <div class="mb-4 flex items-center gap-3 rounded-2xl bg-brand-light p-3 sm:hidden">
+            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary font-bold text-white">{{ Str::of(Auth::user()->name)->substr(0, 1) }}</span>
+            <div class="min-w-0"><p class="truncate text-sm font-bold">{{ Auth::user()->name }}</p><p class="text-xs text-brand-muted">{{ Auth::user()->role?->name }}</p></div>
+        </div>
         <div class="mb-4">
-            <form method="GET" action="{{ Auth::user()->hasPrimaryRole('Customer') ? route('customer.products.index') : route('dashboard') }}">
-                <x-search-bar name="search" placeholder="Search DailyCart" />
-            </form>
+            @if (Auth::user()->hasPrimaryRole('Customer'))
+                <form method="GET" action="{{ route('customer.products.index') }}" role="search">
+                    <x-search-bar name="search" placeholder="Search DailyCart" />
+                </form>
+            @endif
         </div>
         <div class="space-y-2">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">{{ __('Dashboard') }}</x-responsive-nav-link>

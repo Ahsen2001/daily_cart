@@ -13,19 +13,23 @@ export default {
         extend: {
             colors: {
                 brand: {
-                    primary: '#22C55E',
-                    dark: '#15803D',
-                    light: '#F4FFF7',
-                    orange: '#F97316',
-                    text: '#2D3436',
+                    primary: '#15803D',
+                    dark: '#0B5D2A',
+                    light: '#F2FBF5',
+                    orange: '#C2410C',
+                    text: '#17221B',
+                    muted: '#5F6F65',
+                    border: '#D9EADF',
+                    surface: '#FFFFFF',
                 },
             },
             fontFamily: {
                 sans: ['Poppins', ...defaultTheme.fontFamily.sans],
             },
             boxShadow: {
-                soft: '0 18px 45px rgba(21, 128, 61, 0.10)',
-                card: '0 12px 30px rgba(45, 52, 54, 0.08)',
+                soft: '0 20px 50px rgba(11, 93, 42, 0.12)',
+                card: '0 10px 30px rgba(23, 34, 27, 0.08)',
+                lift: '0 16px 36px rgba(23, 34, 27, 0.13)',
             },
             keyframes: {
                 'fade-up': {

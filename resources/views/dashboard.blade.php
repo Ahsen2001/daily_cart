@@ -1,16 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
+        <div><p class="dc-page-eyebrow">{{ __('Your workspace') }}</p><h2 class="dc-page-title">{{ __('Dashboard') }}</h2></div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
+    <div class="dc-page-section">
+        <div class="dc-container">
+            <div class="dc-panel">
+                <p class="dc-page-eyebrow">{{ __('Welcome back') }}</p>
+                <h3 class="mt-2 text-xl font-bold text-brand-text">{{ __('Your DailyCart account is ready.') }}</h3>
+                <p class="mt-2 text-sm text-brand-muted">{{ __('Use the navigation to manage your shopping, orders, deliveries, or store operations.') }}</p>
             </div>
         </div>
     </div>

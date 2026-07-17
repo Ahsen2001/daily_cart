@@ -11,21 +11,21 @@ class SystemLogController extends Controller
 {
     public function activityLogs(): View
     {
-        $logs = ActivityLog::with('user')->latest()->paginate(25);
+        $logs = ActivityLog::query()->with('user')->latest('created_at')->paginate(25);
 
         return view('admin.management.logs.activity', compact('logs'));
     }
 
     public function apiLogs(): View
     {
-        $logs = ApiIntegrationLog::latest()->paginate(25);
+        $logs = ApiIntegrationLog::query()->latest('created_at')->paginate(25);
 
         return view('admin.management.logs.api', compact('logs'));
     }
 
     public function securityLogs(): View
     {
-        $logs = ActivityLog::with('user')
+        $logs = ActivityLog::query()->with('user')
             ->where(function ($query) {
                 $query->where('module', 'auth')
                     ->orWhere('action', 'like', '%login%')
@@ -33,7 +33,7 @@ class SystemLogController extends Controller
                     ->orWhere('action', 'like', '%password%')
                     ->orWhere('module', 'security');
             })
-            ->latest()
+            ->latest('created_at')
             ->paginate(25);
 
         return view('admin.management.logs.security', compact('logs'));

@@ -12,20 +12,20 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ __('Secure Checkout') }}</h2>
-            <a href="{{ route('customer.cart.index') }}" class="text-sm font-semibold text-green-700 underline">{{ __('Back to cart') }}</a>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div><p class="dc-page-eyebrow">{{ __('Final step') }}</p><h2 class="dc-page-title">{{ __('Secure Checkout') }}</h2></div>
+            <a href="{{ route('customer.cart.index') }}" class="dc-button-secondary">{{ __('Back to cart') }}</a>
         </div>
     </x-slot>
 
-    <div class="bg-[#F4FFF7] py-8 sm:py-12">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="dc-page-section">
+        <div class="dc-container">
             @if (session('status'))
-                <div class="mb-6 rounded-2xl bg-white p-4 text-sm font-medium text-green-700 shadow-sm">{{ session('status') }}</div>
+                <div class="dc-flash dc-flash-success mb-6" role="status">{{ session('status') }}</div>
             @endif
 
             @if ($errors->any())
-                <div class="mb-6 rounded-2xl bg-white p-4 text-sm font-medium text-red-700 shadow-sm">{{ $errors->first() }}</div>
+                <div class="dc-flash dc-flash-error mb-6" role="alert">{{ $errors->first() }}</div>
             @endif
 
             <div class="mb-6 rounded-3xl border border-green-100 bg-white p-4 shadow-sm sm:p-5">
@@ -145,7 +145,7 @@
                                     'bank_transfer' => __('Bank Transfer'),
                                     'wallet' => __('Wallet'),
                                 ] as $value => $label)
-                                    <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 transition hover:border-green-200 hover:bg-green-50">
+                                    <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-brand-border bg-brand-light p-4 transition has-[:checked]:border-brand-primary has-[:checked]:bg-green-50 hover:border-brand-primary/40">
                                         <input type="radio" name="payment_method" value="{{ $value }}" class="text-green-600 focus:ring-green-500" @checked(old('payment_method', 'cash_on_delivery') === $value)>
                                         <span class="text-sm font-semibold text-gray-800">{{ $label }}</span>
                                     </label>
@@ -157,7 +157,7 @@
                 </div>
 
                 <aside class="space-y-5">
-                    <section class="sticky top-6 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+                    <section class="sticky top-24 rounded-3xl border border-brand-border bg-white p-5 shadow-soft sm:p-6">
                         <h2 class="text-lg font-bold text-gray-900">{{ __('Your Order') }}</h2>
 
                         <div class="mt-5 max-h-[360px] space-y-4 overflow-y-auto pr-1">
@@ -202,7 +202,7 @@
                             <div class="flex justify-between border-t border-gray-100 pt-3 text-lg font-bold text-gray-900"><dt>{{ __('Grand Total') }}</dt><dd>{{ CurrencyService::formatLkr($quote['grand_total']) }}</dd></div>
                         </dl>
 
-                        <button form="checkout-form" type="submit" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-gray-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-gray-800">
+                        <button form="checkout-form" type="submit" class="dc-button mt-6 w-full">
                             {{ __('Place Secure Order') }}
                         </button>
                         <p class="mt-3 text-center text-xs text-gray-500">{{ __('Secure checkout. LKR payments only. Delivery scheduling is validated on the server.') }}</p>

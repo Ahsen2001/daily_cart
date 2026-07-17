@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-enum CustomButtonVariant {
-  primary,
-  secondary,
-  ghost,
-}
+enum CustomButtonVariant { primary, secondary, ghost }
 
 class CustomButton extends StatelessWidget {
   const CustomButton({
@@ -26,16 +22,19 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loadingColor = variant == CustomButtonVariant.primary
+        ? AppColors.white
+        : AppColors.darkGreen;
     final child = AnimatedSwitcher(
       duration: const Duration(milliseconds: 180),
       child: isLoading
-          ? const SizedBox(
+          ? SizedBox(
               key: ValueKey('loading'),
               width: 22,
               height: 22,
               child: CircularProgressIndicator(
                 strokeWidth: 2.4,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(loadingColor),
               ),
             )
           : Row(
@@ -52,25 +51,30 @@ class CustomButton extends StatelessWidget {
             ),
     );
 
-    return switch (variant) {
-      CustomButtonVariant.primary => ElevatedButton(
+    return Semantics(
+      button: true,
+      label: label,
+      enabled: !isLoading && onPressed != null,
+      child: switch (variant) {
+        CustomButtonVariant.primary => ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           child: child,
         ),
-      CustomButtonVariant.secondary => OutlinedButton(
+        CustomButtonVariant.secondary => OutlinedButton(
           onPressed: isLoading ? null : onPressed,
           child: child,
         ),
-      CustomButtonVariant.ghost => TextButton(
+        CustomButtonVariant.ghost => TextButton(
           onPressed: isLoading ? null : onPressed,
           style: TextButton.styleFrom(
             foregroundColor: AppColors.darkGreen,
-            textStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+            textStyle: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
           child: child,
         ),
-    };
+      },
+    );
   }
 }

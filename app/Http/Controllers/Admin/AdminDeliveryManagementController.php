@@ -15,9 +15,9 @@ class AdminDeliveryManagementController extends Controller
     // DELIVERY FEES CRUD
     // ==========================================
 
-    public function feesIndex(Request $request): View
+    public function feesIndex(): View
     {
-        $fees = DeliveryFee::latest()->paginate(15);
+        $fees = DeliveryFee::query()->latest('created_at')->paginate(15);
 
         return view('admin.deliveries.fees.index', compact('fees'));
     }
@@ -29,7 +29,7 @@ class AdminDeliveryManagementController extends Controller
 
     public function feesStore(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'district' => ['required', 'string', 'unique:delivery_fees'],
             'base_fee' => ['required', 'numeric', 'min:0'],
             'per_km_fee' => ['required', 'numeric', 'min:0'],
@@ -38,7 +38,7 @@ class AdminDeliveryManagementController extends Controller
             'status' => ['required', 'in:active,inactive'],
         ]);
 
-        DeliveryFee::create($request->all());
+        DeliveryFee::query()->create($validated);
 
         return redirect()->route('admin.delivery-fees.index')->with('status', 'Delivery fee configuration added.');
     }
@@ -50,7 +50,7 @@ class AdminDeliveryManagementController extends Controller
 
     public function feesUpdate(Request $request, DeliveryFee $fee): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'district' => ['required', 'string', 'unique:delivery_fees,district,'.$fee->id],
             'base_fee' => ['required', 'numeric', 'min:0'],
             'per_km_fee' => ['required', 'numeric', 'min:0'],
@@ -59,14 +59,14 @@ class AdminDeliveryManagementController extends Controller
             'status' => ['required', 'in:active,inactive'],
         ]);
 
-        $fee->update($request->all());
+        $fee->update($validated);
 
         return redirect()->route('admin.delivery-fees.index')->with('status', 'Delivery fee configuration updated.');
     }
 
     public function feesDestroy(DeliveryFee $fee): RedirectResponse
     {
-        $fee->delete();
+        DeliveryFee::query()->whereKey($fee->getKey())->delete();
 
         return redirect()->route('admin.delivery-fees.index')->with('status', 'Delivery fee configuration deleted.');
     }

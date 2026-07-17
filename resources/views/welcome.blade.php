@@ -27,8 +27,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-brand-light font-sans text-brand-text">
-        <header class="sticky top-0 z-40 border-b border-green-100 bg-white/90 backdrop-blur-xl">
-            <div class="dc-container flex h-20 items-center justify-between">
+        <header x-data="{ open: false }" @keydown.escape.window="open = false" class="sticky top-0 z-40 border-b border-brand-border bg-white/95 backdrop-blur-xl">
+            <div class="dc-container flex h-20 items-center justify-between gap-4">
                 <a href="/" class="transition hover:scale-[1.02]"><x-application-logo /></a>
                 <nav class="hidden items-center gap-3 md:flex">
                     <a class="text-sm font-semibold text-brand-text/70 transition hover:text-brand-dark" href="{{ route('pages.about') }}">{{ __('About') }}</a>
@@ -37,14 +37,31 @@
                     <a class="dc-button-secondary" href="{{ route('login') }}">{{ __('Login') }}</a>
                     <a class="dc-button" href="{{ route('register') }}">{{ __('Start Shopping') }}</a>
                 </nav>
+                <button @click="open = ! open" :aria-expanded="open.toString()" aria-controls="public-mobile-navigation" aria-label="{{ __('Toggle navigation') }}" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl bg-brand-light text-brand-dark md:hidden">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path x-show="!open" stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16" />
+                        <path x-cloak x-show="open" stroke-linecap="round" d="m6 6 12 12M18 6 6 18" />
+                    </svg>
+                </button>
             </div>
+            <nav id="public-mobile-navigation" x-cloak x-show="open" x-transition class="border-t border-brand-border bg-white p-4 shadow-lift md:hidden" aria-label="{{ __('Mobile navigation') }}">
+                <div class="grid gap-2">
+                    <a class="dc-sidebar-link" href="{{ route('pages.about') }}">{{ __('About') }}</a>
+                    <a class="dc-sidebar-link" href="{{ route('pages.offers') }}">{{ __('Offers') }}</a>
+                    <a class="dc-sidebar-link" href="{{ route('pages.contact') }}">{{ __('Contact') }}</a>
+                    <div class="mt-2 grid grid-cols-2 gap-2">
+                        <a class="dc-button-secondary" href="{{ route('login') }}">{{ __('Login') }}</a>
+                        <a class="dc-button" href="{{ route('register') }}">{{ __('Start Shopping') }}</a>
+                    </div>
+                </div>
+            </nav>
         </header>
 
         <main>
-            <section class="dc-container grid min-h-[72vh] items-center gap-10 py-14 lg:grid-cols-[1.05fr_.95fr]">
+            <section class="dc-container grid min-h-[72vh] items-center gap-10 py-10 sm:py-14 lg:grid-cols-[1.05fr_.95fr]">
                 <div class="animate-fade-up">
                     <x-notification-badge>{{ __('Fresh Daily Essentials') }}</x-notification-badge>
-                    <h1 class="mt-5 max-w-3xl text-4xl font-extrabold leading-tight text-brand-text sm:text-5xl lg:text-6xl">
+                    <h1 class="mt-5 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight text-brand-text sm:text-5xl lg:text-6xl">
                         Smart shopping and daily essentials delivery for your home.
                     </h1>
                     <p class="mt-5 max-w-2xl text-lg leading-8 text-brand-text/70">
@@ -56,7 +73,7 @@
                     </div>
                 </div>
                 <div class="relative animate-fade-up">
-                    <div class="rounded-[2rem] bg-white p-5 shadow-soft">
+                    <div class="rounded-[2rem] border border-brand-border bg-white p-5 shadow-soft">
                         <img src="{{ asset('images/logo.png') }}" alt="DailyCart logo" class="mx-auto h-56 w-56 rounded-3xl object-contain">
                         <div class="mt-6 grid gap-3 sm:grid-cols-3">
                             <div class="rounded-3xl bg-brand-light p-4 text-center"><p class="text-2xl font-bold text-brand-dark">30+</p><p class="text-xs text-brand-text/60">Categories</p></div>

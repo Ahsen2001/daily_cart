@@ -5,7 +5,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'DailyCart') }}</title>
+        {{-- Keep the title expression ASCII-only for consistent encoding across Windows editors. --}}
+        {{--
+        <title>{{ isset($title) ? $title.' · ' : '' }}{{ config('app.name', 'DailyCart') }}</title>
+        --}}
+        <title>{{ isset($title) ? $title.' - ' : '' }}{{ config('app.name', 'DailyCart') }}</title>
         <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
         <link rel="shortcut icon" type="image/png" href="{{ asset('images/logo.png') }}">
 
@@ -17,6 +21,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
+        <a href="#main-content" class="dc-skip-link">{{ __('Skip to main content') }}</a>
         <div class="min-h-screen bg-brand-light text-brand-text">
             @include('layouts.navigation')
 
@@ -25,14 +30,14 @@
 
                 <div class="min-w-0 flex-1">
                     @isset($header)
-                        <header class="border-b border-green-100 bg-white/70">
-                            <div class="dc-container py-6">
+                        <header class="border-b border-brand-border bg-white/80 backdrop-blur">
+                            <div class="dc-container py-5 sm:py-6">
                                 {{ $header }}
                             </div>
                         </header>
                     @endisset
 
-                    <main class="min-h-[70vh]">
+                    <main id="main-content" class="min-h-[70vh]" tabindex="-1">
                         {{ $slot }}
                     </main>
                 </div>

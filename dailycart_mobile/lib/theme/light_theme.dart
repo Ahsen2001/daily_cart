@@ -11,12 +11,14 @@ class LightTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.lightBackground,
+      visualDensity: VisualDensity.standard,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primaryGreen,
         primary: AppColors.primaryGreen,
         secondary: AppColors.accentOrange,
         surface: AppColors.white,
         error: AppColors.danger,
+        brightness: Brightness.light,
       ),
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
@@ -24,6 +26,8 @@ class LightTheme {
         foregroundColor: AppColors.textColor,
         centerTitle: false,
         elevation: 0,
+        scrolledUnderElevation: 1,
+        surfaceTintColor: AppColors.white,
         titleTextStyle: textTheme.titleLarge?.copyWith(
           color: AppColors.textColor,
           fontWeight: FontWeight.w800,
@@ -35,6 +39,7 @@ class LightTheme {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.border),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -63,6 +68,24 @@ class LightTheme {
           ),
         ),
       ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primaryGreen,
+          foregroundColor: AppColors.white,
+          minimumSize: const Size(64, 52),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: AppTextStyles.button,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.darkGreen,
+          minimumSize: const Size(48, 48),
+          textStyle: textTheme.labelLarge,
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.white,
@@ -85,6 +108,53 @@ class LightTheme {
             width: 1.4,
           ),
         ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: AppColors.danger),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: AppColors.danger, width: 1.4),
+        ),
+        labelStyle: const TextStyle(color: AppColors.mutedText),
+        floatingLabelStyle: const TextStyle(color: AppColors.darkGreen),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 72,
+        backgroundColor: AppColors.white,
+        indicatorColor: AppColors.surfaceMuted,
+        labelTextStyle: WidgetStatePropertyAll(
+          textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700),
+        ),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppColors.white,
+        selectedItemColor: AppColors.darkGreen,
+        unselectedItemColor: AppColors.mutedText,
+        type: BottomNavigationBarType.fixed,
+        showUnselectedLabels: true,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.textColor,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: AppColors.white,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.white,
+        surfaceTintColor: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+      dividerTheme: const DividerThemeData(color: AppColors.border, space: 1),
+      listTileTheme: const ListTileThemeData(
+        iconColor: AppColors.darkGreen,
+        minTileHeight: 52,
+        contentPadding: EdgeInsets.symmetric(horizontal: 18),
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppColors.primaryGreen,
       ),
     );
   }

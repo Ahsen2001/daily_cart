@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class Order extends Model
 {
@@ -66,7 +67,7 @@ class Order extends Model
             $order->statusHistories()->create([
                 'status' => 'pending',
                 'remarks' => 'Order placed successfully.',
-                'updated_by' => auth()->id(),
+                'updated_by' => Auth::id(),
             ]);
         });
 
@@ -75,7 +76,7 @@ class Order extends Model
                 $order->statusHistories()->create([
                     'status' => $order->order_status,
                     'remarks' => 'Order status updated to '.str_replace('_', ' ', $order->order_status).'.',
-                    'updated_by' => auth()->id(),
+                    'updated_by' => Auth::id(),
                 ]);
             }
         });

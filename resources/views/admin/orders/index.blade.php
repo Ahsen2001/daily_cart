@@ -1,19 +1,19 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ __('Order Management') }}</h2>
-            <a href="{{ route('admin.deliveries.index') }}" class="text-sm font-medium text-indigo-700 underline">{{ __('Deliveries') }}</a>
+            <div><p class="dc-page-eyebrow">{{ __('Operations') }}</p><h2 class="dc-page-title">{{ __('Order Management') }}</h2></div>
+            <a href="{{ route('admin.deliveries.index') }}" class="dc-button-secondary">{{ __('Delivery overview') }}</a>
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+    <div class="dc-page-section">
+        <div class="dc-container">
+            <div class="dc-panel">
                 @if (session('status'))
                     <div class="mb-4 text-sm font-medium text-green-700">{{ session('status') }}</div>
                 @endif
 
-                <form method="GET" class="mb-6 grid gap-3 md:grid-cols-5">
+                <form method="GET" class="dc-filter-bar mb-6 md:grid-cols-5">
                     <select name="status" class="rounded-md border-gray-300 shadow-sm">
                         <option value="">{{ __('All statuses') }}</option>
                         @foreach (['pending', 'confirmed', 'packed', 'assigned_to_rider', 'out_for_delivery', 'delivered', 'cancelled', 'refunded'] as $status)
@@ -58,10 +58,10 @@
                                     <td class="px-3 py-3">{{ $order->vendor?->store_name }}</td>
                                     <td class="px-3 py-3">{{ $order->scheduled_delivery_at?->format('M d, Y h:i A') }}</td>
                                     <td class="px-3 py-3">{{ $order->delivery?->rider?->user?->name ?? __('Not assigned') }}</td>
-                                    <td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($order->order_status)) }}</td>
+                                    <td class="px-3 py-3"><x-status-badge :status="$order->order_status" /></td>
                                     <td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr($order->total_amount) }}</td>
                                     <td class="px-3 py-3 text-right">
-                                        <a class="text-indigo-700 underline" href="{{ route('admin.orders.show', $order) }}">{{ __('View') }}</a>
+                                        <a class="font-bold text-brand-dark hover:underline" href="{{ route('admin.orders.show', $order) }}">{{ __('View') }}</a>
                                     </td>
                                 </tr>
                             @empty

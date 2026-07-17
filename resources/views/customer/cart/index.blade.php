@@ -1,35 +1,44 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ __('Cart') }}</h2>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div><p class="dc-page-eyebrow">{{ __('Your basket') }}</p><h2 class="dc-page-title">{{ __('Shopping Cart') }}</h2></div>
+            <a href="{{ route('customer.products.index') }}" class="dc-button-secondary">{{ __('Continue shopping') }}</a>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div class="p-6 bg-white shadow-sm sm:rounded-lg">
+    <div class="dc-page-section">
+        <div class="dc-container">
+            <div class="dc-panel">
                 @if (session('status'))
-                    <div class="mb-4 text-sm font-medium text-green-700">{{ session('status') }}</div>
+                    <div class="dc-flash dc-flash-success mb-5" role="status">{{ session('status') }}</div>
                 @endif
 
                 @if ($errors->any())
-                    <div class="mb-4 text-sm font-medium text-red-700">{{ $errors->first() }}</div>
+                    <div class="dc-flash dc-flash-error mb-5" role="alert">{{ $errors->first() }}</div>
                 @endif
 
-                <div id="cart-status" class="mb-4 hidden text-sm font-medium"></div>
+                <div id="cart-status" class="mb-4 hidden rounded-2xl border px-4 py-3 text-sm font-semibold" role="status" aria-live="polite"></div>
 
                 <div class="space-y-4">
                     @forelse ($cart->items as $item)
                         @php
                             $lineTotal = (float) $item->unit_price * $item->quantity;
                         @endphp
-                        <div class="flex flex-col gap-4 border-b border-gray-100 pb-4 md:flex-row md:items-center md:justify-between">
-                            <div class="min-w-0">
+                        <div class="flex flex-col gap-4 rounded-2xl border border-brand-border p-4 transition hover:border-brand-primary/30 md:flex-row md:items-center md:justify-between">
+                            <div class="flex min-w-0 items-center gap-4">
+                                <img src="{{ $item->product->display_image_url }}" alt="" loading="lazy" class="h-20 w-20 shrink-0 rounded-2xl bg-brand-light object-cover">
+                                <div class="min-w-0">
                                 <div class="font-semibold text-gray-900">{{ $item->product->name }}</div>
                                 <div class="mt-1 text-sm font-semibold text-gray-900">
                                     {{ __('Line Total') }}:
                                     <span data-cart-line-total="{{ $item->id }}">{{ \App\Services\CurrencyService::formatLkr($lineTotal) }}</span>
                                 </div>
-                                <div class="text-sm text-gray-600">
+                                <div class="text-sm text-brand-muted">
+                                    {{ $item->variant?->name ?? __('Default') }} <span aria-hidden="true">&middot;</span> {{ \App\Services\CurrencyService::formatLkr($item->unit_price) }}
+                                </div>
+                                <div class="hidden">
                                     {{ $item->variant?->name ?? __('Default') }} · {{ \App\Services\CurrencyService::formatLkr($item->unit_price) }}
+                                </div>
                                 </div>
                             </div>
 
@@ -41,33 +50,33 @@
                                     <x-secondary-button type="submit" class="whitespace-nowrap">{{ __('Update') }}</x-secondary-button>
                                 </form>
 
-                                <form method="POST" action="{{ route('customer.cart.items.destroy', $item) }}">
+                                <form method="POST" action="{{ route('customer.cart.items.destroy', $item) }}" data-confirm="{{ __('Remove this item from your cart?') }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="text-sm text-red-700 underline">{{ __('Remove') }}</button>
+                                    <button class="inline-flex min-h-11 items-center px-3 text-sm font-bold text-red-700 hover:text-red-900">{{ __('Remove') }}</button>
                                 </form>
                             </div>
                         </div>
                     @empty
-                        <p class="text-sm text-gray-600">{{ __('Your cart is empty.') }}</p>
+                        <x-empty-state title="{{ __('Your cart is empty') }}" message="{{ __('Browse the marketplace and add your everyday essentials.') }}" :action="route('customer.products.index')" action-label="{{ __('Start shopping') }}" />
                     @endforelse
                 </div>
 
-                <div class="flex flex-col gap-4 mt-6 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="text-lg font-semibold text-gray-900">
+                <div class="mt-6 flex flex-col gap-4 rounded-2xl bg-brand-light p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="text-lg font-bold text-gray-900">
                         {{ __('Total') }}:
                         <span id="cart-subtotal">{{ \App\Services\CurrencyService::formatLkr($totals['subtotal']) }}</span>
                     </div>
 
                     <div class="flex flex-col gap-3 sm:flex-row">
                         @if ($cart->items->isNotEmpty())
-                            <form method="POST" action="{{ route('customer.cart.clear') }}">
+                            <form method="POST" action="{{ route('customer.cart.clear') }}" data-confirm="{{ __('Clear every item from your cart?') }}">
                                 @csrf
                                 @method('DELETE')
                                 <x-secondary-button type="submit" class="w-full justify-center sm:w-auto">{{ __('Clear Cart') }}</x-secondary-button>
                             </form>
 
-                            <a href="{{ route('customer.checkout.show') }}" class="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition bg-gray-800 border border-transparent rounded-md hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            <a href="{{ route('customer.checkout.show') }}" class="dc-button">
                                 {{ __('Checkout') }}
                             </a>
                         @endif
@@ -88,8 +97,10 @@
                 if (!status) return;
 
                 status.textContent = message;
-                status.classList.remove('hidden', 'text-green-700', 'text-red-700');
-                status.classList.add(type === 'error' ? 'text-red-700' : 'text-green-700');
+                status.classList.remove('hidden', 'border-green-200', 'bg-green-50', 'text-green-900', 'border-red-200', 'bg-red-50', 'text-red-900');
+                status.classList.add(...(type === 'error'
+                    ? ['border-red-200', 'bg-red-50', 'text-red-900']
+                    : ['border-green-200', 'bg-green-50', 'text-green-900']));
             };
 
             const updateCartItem = async (form) => {

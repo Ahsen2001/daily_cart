@@ -1,12 +1,13 @@
 @auth
-    <aside class="hidden w-72 shrink-0 border-r border-green-100 bg-white/90 p-5 backdrop-blur lg:block">
-        <div class="sticky top-24 space-y-6">
-            <div class="rounded-3xl bg-brand-light p-4">
-                <p class="text-xs font-semibold uppercase text-brand-dark">{{ Auth::user()->role?->name }}</p>
+    <aside class="hidden w-72 shrink-0 border-r border-brand-border bg-white/90 p-5 backdrop-blur lg:block" aria-label="{{ __('Workspace navigation') }}">
+        <div class="dc-scrollbar sticky top-24 max-h-[calc(100vh-7rem)] space-y-5 overflow-y-auto pr-1">
+            <div class="rounded-3xl border border-brand-border bg-brand-light p-4">
+                <p class="dc-page-eyebrow">{{ Auth::user()->role?->name }}</p>
                 <p class="mt-1 font-bold text-brand-text">{{ Auth::user()->name }}</p>
+                <p class="mt-1 text-xs text-brand-muted">{{ __('Your DailyCart workspace') }}</p>
             </div>
 
-            <nav class="space-y-2">
+            <nav class="space-y-1" aria-label="{{ __('Role navigation') }}">
                 <a class="dc-sidebar-link {{ request()->routeIs('dashboard', 'super-admin.dashboard', 'admin.dashboard', 'vendor.dashboard', 'rider.dashboard', 'customer.dashboard') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
                 <a class="dc-sidebar-link {{ request()->routeIs('notifications.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('notifications.index') }}">{{ __('Notifications') }}</a>
                 <a class="dc-sidebar-link {{ request()->routeIs('support.tickets.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('support.tickets.index') }}">{{ __('Support Tickets') }}</a>

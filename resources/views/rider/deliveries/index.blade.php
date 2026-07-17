@@ -1,19 +1,19 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">{{ __('Assigned Deliveries') }}</h2>
-            <a href="{{ route('rider.deliveries.earnings') }}" class="text-sm font-medium text-indigo-700 underline">{{ __('Earnings') }}</a>
+            <div><p class="dc-page-eyebrow">{{ __('Delivery queue') }}</p><h2 class="dc-page-title">{{ __('Assigned Deliveries') }}</h2></div>
+            <a href="{{ route('rider.deliveries.earnings') }}" class="dc-button-secondary">{{ __('View earnings') }}</a>
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+    <div class="dc-page-section">
+        <div class="dc-container">
+            <div class="dc-panel">
                 @if (session('status'))
                     <div class="mb-4 text-sm font-medium text-green-700">{{ session('status') }}</div>
                 @endif
 
-                <form method="GET" class="mb-6 grid gap-3 sm:grid-cols-3">
+                <form method="GET" class="dc-filter-bar mb-6 sm:grid-cols-3">
                     <select name="status" class="rounded-md border-gray-300 shadow-sm">
                         <option value="">{{ __('All statuses') }}</option>
                         @foreach (['assigned', 'picked_up', 'on_the_way', 'delivered', 'failed', 'cancelled'] as $status)
@@ -41,8 +41,8 @@
                                     </td>
                                     <td class="px-3 py-3">{{ $delivery->order?->vendor?->store_name }}</td>
                                     <td class="px-3 py-3">{{ $delivery->scheduled_at?->format('M d, Y h:i A') }}</td>
-                                    <td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($delivery->status)) }}</td>
-                                    <td class="px-3 py-3 text-right"><a class="text-indigo-700 underline" href="{{ route('rider.deliveries.show', $delivery) }}">{{ __('Update') }}</a></td>
+                                    <td class="px-3 py-3"><x-status-badge :status="$delivery->status" /></td>
+                                    <td class="px-3 py-3 text-right"><a class="font-bold text-brand-dark hover:underline" href="{{ route('rider.deliveries.show', $delivery) }}">{{ __('Update') }}</a></td>
                                 </tr>
                             @empty
                                 <tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">{{ __('No assigned deliveries found.') }}</td></tr>

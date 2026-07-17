@@ -11,23 +11,26 @@
 
     <div class="dc-page-section">
         <div class="dc-container">
-            <div class="dc-card">
-                <form method="GET" class="grid gap-3 mb-8 lg:grid-cols-[1fr_260px_auto]">
+            <div class="dc-panel">
+                <form method="GET" class="dc-filter-bar mb-8 lg:grid-cols-[1fr_260px_auto_auto]" role="search">
                     <x-search-bar name="search" placeholder="Search products, brands, essentials..." :value="request('search')" />
-                    <select name="category_id" class="border-gray-300 rounded-md shadow-sm">
+                    <select name="category_id" aria-label="{{ __('Filter by category') }}">
                         <option value="">{{ __('All categories') }}</option>
                         @foreach ($categories as $category)
                             <option value="{{ $category->id }}" @selected((int) request('category_id') === $category->id)>{{ $category->name }}</option>
                         @endforeach
                     </select>
                     <x-primary-button>{{ __('Search') }}</x-primary-button>
+                    @if (request()->hasAny(['search', 'category_id']))
+                        <a href="{{ route('customer.products.index') }}" class="dc-button-secondary">{{ __('Reset') }}</a>
+                    @endif
                 </form>
 
                 <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
                     @forelse ($products as $product)
                         <x-product-card :product="$product" />
                     @empty
-                        <p class="text-sm text-gray-600">{{ __('No approved products found.') }}</p>
+                        <x-empty-state title="{{ __('No products found') }}" message="{{ __('Try a different search term or clear the category filter.') }}" :action="route('customer.products.index')" action-label="{{ __('Clear filters') }}" />
                     @endforelse
                 </div>
 

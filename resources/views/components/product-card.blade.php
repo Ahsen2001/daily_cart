@@ -5,10 +5,10 @@
     $rating = method_exists($product, 'averageRating') ? $product->averageRating() : 0;
 @endphp
 
-<article {{ $attributes->merge(['class' => 'group overflow-hidden rounded-3xl border border-green-100 bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft']) }}>
+<article {{ $attributes->merge(['class' => 'group overflow-hidden rounded-3xl border border-brand-border bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-lift']) }}>
     <a href="{{ route('customer.products.show', $product) }}" class="block">
         <div class="aspect-[4/3] bg-brand-light">
-            <img src="{{ $product->display_image_url }}" alt="{{ $product->name }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+            <img src="{{ $product->display_image_url }}" alt="{{ $product->name }}" loading="lazy" decoding="async" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
         </div>
         <div class="space-y-3 p-5">
             <div>
@@ -17,7 +17,7 @@
             </div>
             <div class="flex items-center justify-between">
                 <p class="font-bold text-brand-dark">{{ \App\Services\CurrencyService::formatLkr($price) }}</p>
-                <p class="text-sm text-brand-orange">{{ number_format($rating, 1) }} / 5</p>
+                <p class="inline-flex items-center gap-1 text-sm font-bold text-brand-orange" aria-label="{{ __('Rating :rating out of 5', ['rating' => number_format($rating, 1)]) }}"><span aria-hidden="true">★</span>{{ number_format($rating, 1) }}</p>
             </div>
         </div>
     </a>
