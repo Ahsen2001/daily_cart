@@ -1,66 +1,202 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# DailyCart
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+DailyCart is a Laravel 12 multi-vendor grocery delivery platform with customer, vendor, rider, administrator, REST API, and Flutter mobile experiences. Prices are stored and displayed in LKR.
 
-## About Laravel
+## Requirements
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2 or newer with `mbstring`, `openssl`, `pdo_mysql`, and `fileinfo`
+- Composer 2
+- MySQL 8
+- Node.js 22 and npm
+- Flutter stable with Dart 3.10 or newer for `dailycart_mobile`
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Local installation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+git clone <repository-url> dailycart
+cd dailycart
+composer install
+npm ci
+cp .env.example .env
+php artisan key:generate
+```
 
-## Learning Laravel
+Create a MySQL database and update `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` in `.env`, then initialize the application:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```bash
+php artisan migrate --seed
+php artisan storage:link
+npm run build
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+For day-to-day development, either run each process separately or use the bundled command:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+composer dev
+```
 
-## Laravel Sponsors
+That starts the Laravel server, queue listener, application log viewer, and Vite development server. The application is available at the `APP_URL` configured in `.env`.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Seed data
 
-### Premium Partners
+`php artisan migrate --seed` loads roles, the development super-admin, catalog categories, and sample customer/vendor/rider/admin accounts. The sample credentials are defined in `database/seeders/SuperAdminSeeder.php` and `database/seeders/UserCredentialsSeeder.php`.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Seeded accounts are for local development only. Do not run `UserCredentialsSeeder` in production, and change every seeded password in any shared environment.
 
-## Contributing
+To rebuild a disposable local database:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+php artisan migrate:fresh --seed
+```
 
-## Code of Conduct
+## Queues
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Email, OTP, push, SMS, and post-checkout notification work is queued after the database transaction commits. Local development uses the database queue configured by `QUEUE_CONNECTION=database`.
 
-## Security Vulnerabilities
+Run a worker with:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan queue:work --tries=3 --timeout=90
+```
 
-## License
+Production should keep `queue:work` alive with Supervisor or a comparable process manager. Example Supervisor program:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```ini
+[program:dailycart-worker]
+command=php /var/www/dailycart/artisan queue:work --sleep=3 --tries=3 --timeout=90
+directory=/var/www/dailycart
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/dailycart-worker.log
+```
+
+Restart workers after each deployment:
+
+```bash
+php artisan queue:restart
+```
+
+## Scheduler
+
+The scheduler processes subscriptions daily and prunes expired Sanctum tokens. Run it locally with:
+
+```bash
+php artisan schedule:work
+```
+
+Production requires one cron entry:
+
+```cron
+* * * * * cd /var/www/dailycart && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Review the active tasks with `php artisan schedule:list`.
+
+## PayHere sandbox
+
+Create a PayHere sandbox merchant and set these values in `.env`:
+
+```dotenv
+PAYHERE_MODE=sandbox
+PAYHERE_SANDBOX=true
+PAYHERE_MERCHANT_ID=
+PAYHERE_MERCHANT_SECRET=
+PAYHERE_APP_ID=
+PAYHERE_APP_SECRET=
+PAYHERE_CURRENCY=LKR
+PAYHERE_NOTIFY_URL=https://your-public-host/payment/payhere/notify
+```
+
+PayHere must reach `PAYHERE_NOTIFY_URL`, so localhost requires an HTTPS tunnel. The notification endpoint is intentionally CSRF-exempt and validates the PayHere signature. Never commit merchant credentials. Switch `PAYHERE_MODE=live` only after replacing every sandbox credential and confirming the production callback URL.
+
+Cash on delivery, card, bank transfer, and wallet are accepted checkout methods. Wallet payments settle immediately during checkout; card sandbox processing uses PayHere.
+
+## Flutter mobile configuration
+
+The mobile client is in `dailycart_mobile`:
+
+```bash
+cd dailycart_mobile
+cp .env.example .env
+flutter pub get
+flutter run
+```
+
+Configure `dailycart_mobile/.env`:
+
+```dotenv
+API_BASE_URL=http://10.0.2.2:8000/api
+TESTING_API_BASE_URL=https://your-staging-host/api
+PAYHERE_RETURN_URL=http://10.0.2.2:8000/customer/payments
+GOOGLE_MAPS_API_KEY=
+```
+
+- Android emulator: use `10.0.2.2` for the host machine.
+- iOS simulator: use `127.0.0.1` when Laravel runs locally.
+- Physical device: use the computer's LAN address and allow the port through the firewall.
+- Production builds must use HTTPS API and return URLs.
+
+If Android/iOS platform folders are missing, generate them before running the app:
+
+```bash
+flutter create --project-name dailycart_mobile --org com.dailycart --platforms=android,ios .
+```
+
+## Testing and code quality
+
+The test suite expects a MySQL database named `dailycart_test` by default, as configured in `phpunit.xml`.
+
+```bash
+composer test
+composer format:check
+npm run build
+composer audit --locked
+npm audit --audit-level=high
+```
+
+Apply PHP formatting automatically with:
+
+```bash
+composer format
+```
+
+GitHub Actions runs PHPUnit, Pint, the Vite production build, Composer audit, and npm audit for every push and pull request.
+
+## Backups
+
+Database backups are streamed, encrypted, and retention-limited. Configure a durable private disk and a separate encryption secret:
+
+```dotenv
+BACKUP_DISK=s3
+BACKUP_DIRECTORY=backups
+BACKUP_RETENTION_COUNT=10
+BACKUP_RETENTION_DAYS=30
+BACKUP_ENCRYPTION_KEY=base64:replace-with-a-dedicated-random-secret
+```
+
+Do not expose the backup disk publicly. Store `BACKUP_ENCRYPTION_KEY` in the deployment secret manager and retain it for as long as its backups must remain restorable.
+
+## Production deployment
+
+1. Provision PHP, MySQL, a web server, a queue process manager, and cron.
+2. Set `APP_ENV=production`, `APP_DEBUG=false`, the canonical HTTPS `APP_URL`, production database credentials, mail/SMS/push credentials, PayHere live credentials, and backup storage secrets.
+3. Install and build without development dependencies:
+
+```bash
+composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+npm ci
+npm run build
+php artisan migrate --force
+php artisan storage:link
+php artisan optimize
+php artisan queue:restart
+```
+
+4. Point the web server document root at `public/` and grant the web user write access only to `storage/` and `bootstrap/cache/`.
+5. Start queue workers, enable the scheduler cron entry, and verify `/up`, payment callbacks, mail delivery, and backup creation.
+
+Use a maintenance window or atomic release directory for schema changes that are not backward compatible. Roll back application code only when its database migrations remain compatible; database restoration requires the matching encrypted backup key.

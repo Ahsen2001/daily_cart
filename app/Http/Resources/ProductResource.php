@@ -23,7 +23,7 @@ class ProductResource extends JsonResource
             'weight' => $this->weight,
             'sku' => $this->sku,
             'stock_quantity' => (int) $this->stock_quantity,
-            'image' => $this->image ? url('storage/' . $this->image) : null,
+            'image' => $this->image ? url('storage/'.$this->image) : null,
             'status' => $this->status,
             'is_featured' => (bool) $this->is_featured,
             'is_subscription_eligible' => (bool) $this->is_subscription_eligible,

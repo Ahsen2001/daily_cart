@@ -18,6 +18,7 @@ class AdminDeliveryManagementController extends Controller
     public function feesIndex(Request $request): View
     {
         $fees = DeliveryFee::latest()->paginate(15);
+
         return view('admin.deliveries.fees.index', compact('fees'));
     }
 
@@ -50,7 +51,7 @@ class AdminDeliveryManagementController extends Controller
     public function feesUpdate(Request $request, DeliveryFee $fee): RedirectResponse
     {
         $request->validate([
-            'district' => ['required', 'string', 'unique:delivery_fees,district,' . $fee->id],
+            'district' => ['required', 'string', 'unique:delivery_fees,district,'.$fee->id],
             'base_fee' => ['required', 'numeric', 'min:0'],
             'per_km_fee' => ['required', 'numeric', 'min:0'],
             'minimum_order' => ['required', 'numeric', 'min:0'],
@@ -66,6 +67,7 @@ class AdminDeliveryManagementController extends Controller
     public function feesDestroy(DeliveryFee $fee): RedirectResponse
     {
         $fee->delete();
+
         return redirect()->route('admin.delivery-fees.index')->with('status', 'Delivery fee configuration deleted.');
     }
 
@@ -76,6 +78,7 @@ class AdminDeliveryManagementController extends Controller
     public function schedulesIndex(): View
     {
         $schedules = DeliverySchedule::with('order.customer.user')->latest()->paginate(20);
+
         return view('admin.deliveries.schedules.index', compact('schedules'));
     }
 

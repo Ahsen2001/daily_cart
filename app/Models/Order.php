@@ -74,7 +74,7 @@ class Order extends Model
             if ($order->isDirty('order_status')) {
                 $order->statusHistories()->create([
                     'status' => $order->order_status,
-                    'remarks' => 'Order status updated to ' . str_replace('_', ' ', $order->order_status) . '.',
+                    'remarks' => 'Order status updated to '.str_replace('_', ' ', $order->order_status).'.',
                     'updated_by' => auth()->id(),
                 ]);
             }

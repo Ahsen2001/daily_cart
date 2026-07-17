@@ -8,6 +8,7 @@ use App\Models\Refund;
 use App\Models\Vendor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class FinanceReportService
 {
@@ -61,7 +62,7 @@ class FinanceReportService
         $base = (float) $this->dateRange(Order::query()->where('vendor_id', $vendor->id), 'placed_at', $from, $to)
             ->where('order_status', 'delivered')
             ->where('payment_status', 'paid')
-            ->sum(\Illuminate\Support\Facades\DB::raw('subtotal - discount_amount'));
+            ->sum(DB::raw('subtotal - discount_amount'));
 
         $commissionRate = (float) ($vendor->commission_rate ?? 0);
 

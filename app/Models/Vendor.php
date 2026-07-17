@@ -5,8 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vendor extends Model
@@ -70,7 +72,7 @@ class Vendor extends Model
         return $this->hasMany(Subscription::class);
     }
 
-    public function wallet(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function wallet(): HasOne
     {
         return $this->hasOne(VendorWallet::class);
     }
@@ -85,7 +87,7 @@ class Vendor extends Model
         return $this->hasManyThrough(Delivery::class, Order::class);
     }
 
-    public function favoriteCustomers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function favoriteCustomers(): BelongsToMany
     {
         return $this->belongsToMany(Customer::class, 'favorite_vendors');
     }

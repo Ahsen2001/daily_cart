@@ -21,7 +21,7 @@ class AdminCouponController extends Controller
     public function create(): View
     {
         return view('admin.coupons.create', [
-            'coupon' => new Coupon(),
+            'coupon' => new Coupon,
             'vendors' => Vendor::orderBy('store_name', 'asc')->get(),
         ]);
     }

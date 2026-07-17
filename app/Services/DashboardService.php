@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Promotion;
 use App\Models\Refund;
+use App\Models\Review;
 use App\Models\Rider;
 use App\Models\SupportTicket;
 use App\Models\Vendor;
@@ -51,8 +54,8 @@ class DashboardService
             'total_refunds' => Refund::query()->where('status', 'approved')->sum('amount'),
             'total_vendor_payouts' => $financeSummary['total_vendor_payouts'] ?? 0.0,
             'total_rider_payouts' => $financeSummary['total_rider_payouts'] ?? 0.0,
-            'active_promotions' => \App\Models\Promotion::query()->active()->count('*'),
-            'active_coupons' => \App\Models\Coupon::query()->where('status', 'active')->count('*'),
+            'active_promotions' => Promotion::query()->active()->count('*'),
+            'active_coupons' => Coupon::query()->where('status', 'active')->count('*'),
         ];
     }
 
@@ -68,7 +71,7 @@ class DashboardService
             'revenue' => $this->completedRevenueForVendor($vendor),
             'earnings' => $this->financeReportService->vendorSummary($vendor)['completed'],
             'low_stock_products' => $vendor->products()->where('stock_quantity', '<=', 5)->count('*'),
-            'customer_reviews' => \App\Models\Review::query()->where('vendor_id', $vendor->id)->count('*'),
+            'customer_reviews' => Review::query()->where('vendor_id', $vendor->id)->count('*'),
         ];
     }
 
