@@ -16,6 +16,14 @@
                             <div class="flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <div class="font-semibold text-gray-900">{{ $vendor->store_name }}</div>
+                                    <x-location-display
+                                        class="mt-3 max-w-xl"
+                                        :label="__('Store location')"
+                                        :address="$vendor->formatted_address ?: collect([$vendor->address, $vendor->city, $vendor->district])->filter()->implode(', ')"
+                                        :latitude="$vendor->latitude"
+                                        :longitude="$vendor->longitude"
+                                        compact
+                                    />
                                     <div class="text-sm text-gray-600">{{ $vendor->user?->email }} · {{ ucfirst($vendor->status) }}</div>
                                 </div>
 

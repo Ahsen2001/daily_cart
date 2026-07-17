@@ -2,6 +2,13 @@
     <form method="POST" action="{{ route('rider.register.store') }}">
         @csrf
 
+        <x-registration-role-tabs active="rider" />
+
+        <div class="mb-6">
+            <h1 class="text-2xl font-extrabold tracking-tight text-brand-text">{{ __('Join the delivery team') }}</h1>
+            <p class="mt-1 text-sm text-brand-muted">{{ __('Add your vehicle and home base details for account verification and delivery assignment.') }}</p>
+        </div>
+
         <div>
             <x-input-label for="name" :value="__('Full Name')" />
             <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus />
@@ -47,6 +54,27 @@
             </div>
         </div>
 
+        <div class="mt-4">
+            <x-input-label for="address" :value="__('Home Base Address')" />
+            <x-text-input id="address" name="address" type="text" class="mt-1 block w-full" :value="old('address')" required autocomplete="street-address" />
+            <x-input-error :messages="$errors->get('address')" class="mt-2" />
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <x-input-label for="city" :value="__('City')" />
+                <x-text-input id="city" class="mt-1 block w-full" type="text" name="city" :value="old('city')" required autocomplete="address-level2" />
+                <x-input-error :messages="$errors->get('city')" class="mt-2" />
+            </div>
+            <div>
+                <x-input-label for="district" :value="__('District')" />
+                <x-text-input id="district" class="mt-1 block w-full" type="text" name="district" :value="old('district')" required autocomplete="address-level1" />
+                <x-input-error :messages="$errors->get('district')" class="mt-2" />
+            </div>
+        </div>
+
+        <x-map-location-picker address-input="address" />
+
         <div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-2">
             <div>
                 <x-input-label for="password" :value="__('Password')" />
@@ -61,10 +89,10 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="text-sm text-gray-600 underline hover:text-gray-900" href="{{ route('login') }}">{{ __('Already registered?') }}</a>
+        <div class="mt-7 flex flex-col-reverse gap-3 border-t border-brand-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <a class="text-center text-sm font-semibold text-brand-muted hover:text-brand-dark hover:underline" href="{{ route('login') }}">{{ __('Already registered?') }}</a>
 
-            <x-primary-button class="ms-4">{{ __('Register as Rider') }}</x-primary-button>
+            <x-primary-button class="w-full sm:w-auto">{{ __('Register as Rider') }}</x-primary-button>
         </div>
     </form>
 </x-guest-layout>

@@ -31,6 +31,14 @@
                                 <p class="font-semibold">{{ $address->label }}</p>
                                 <p class="text-gray-600">{{ $address->address_line_1 }}</p>
                                 <p class="text-gray-500">{{ $address->city }}, {{ $address->district }}</p>
+                                <x-location-display
+                                    class="mt-3"
+                                    :label="__('Customer map pin')"
+                                    :address="collect([$address->address_line_1, $address->city, $address->district])->filter()->implode(', ')"
+                                    :latitude="$address->latitude"
+                                    :longitude="$address->longitude"
+                                    compact
+                                />
                             </div>
                         @empty
                             <p class="text-gray-500">{{ __('No addresses saved.') }}</p>

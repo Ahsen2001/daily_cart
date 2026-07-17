@@ -17,6 +17,12 @@ class Rider extends Model
         'vehicle_type',
         'vehicle_number',
         'license_number',
+        'address',
+        'city',
+        'district',
+        'latitude',
+        'longitude',
+        'formatted_address',
         'availability_status',
         'verification_status',
     ];
@@ -24,6 +30,8 @@ class Rider extends Model
     protected function casts(): array
     {
         return [
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
             'deleted_at' => 'datetime',
         ];
     }

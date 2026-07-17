@@ -16,6 +16,14 @@
                             <div class="flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <div class="font-semibold text-gray-900">{{ $rider->user?->name }}</div>
+                                    <x-location-display
+                                        class="mt-3 max-w-xl"
+                                        :label="__('Rider home base')"
+                                        :address="$rider->formatted_address ?: collect([$rider->address, $rider->city, $rider->district])->filter()->implode(', ')"
+                                        :latitude="$rider->latitude"
+                                        :longitude="$rider->longitude"
+                                        compact
+                                    />
                                     <div class="text-sm text-gray-600">{{ $rider->user?->email }} · {{ ucfirst($rider->verification_status) }}</div>
                                 </div>
 

@@ -2,6 +2,13 @@
     <form method="POST" action="{{ route('vendor.register.store') }}">
         @csrf
 
+        <x-registration-role-tabs active="vendor" />
+
+        <div class="mb-6">
+            <h1 class="text-2xl font-extrabold tracking-tight text-brand-text">{{ __('Register your store') }}</h1>
+            <p class="mt-1 text-sm text-brand-muted">{{ __('Tell us about your business. An administrator will review the account before selling is enabled.') }}</p>
+        </div>
+
         <div>
             <x-input-label for="name" :value="__('Owner Name')" />
             <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus />
@@ -36,7 +43,7 @@
 
         <div class="mt-4">
             <x-input-label for="address" :value="__('Store Address')" />
-            <textarea id="address" name="address" rows="3" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>{{ old('address') }}</textarea>
+            <x-text-input id="address" name="address" type="text" class="mt-1 block w-full" :value="old('address')" required autocomplete="street-address" />
             <x-input-error :messages="$errors->get('address')" class="mt-2" />
         </div>
 
@@ -54,6 +61,8 @@
             </div>
         </div>
 
+        <x-map-location-picker address-input="address" />
+
         <div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-2">
             <div>
                 <x-input-label for="password" :value="__('Password')" />
@@ -68,10 +77,10 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="text-sm text-gray-600 underline hover:text-gray-900" href="{{ route('login') }}">{{ __('Already registered?') }}</a>
+        <div class="mt-7 flex flex-col-reverse gap-3 border-t border-brand-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <a class="text-center text-sm font-semibold text-brand-muted hover:text-brand-dark hover:underline" href="{{ route('login') }}">{{ __('Already registered?') }}</a>
 
-            <x-primary-button class="ms-4">{{ __('Register as Vendor') }}</x-primary-button>
+            <x-primary-button class="w-full sm:w-auto">{{ __('Register as Vendor') }}</x-primary-button>
         </div>
     </form>
 </x-guest-layout>

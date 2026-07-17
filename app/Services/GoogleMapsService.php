@@ -4,13 +4,20 @@ namespace App\Services;
 
 use App\Models\ApiIntegrationLog;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class GoogleMapsService
 {
     public function browserKey(): ?string
     {
-        return config('services.google_maps.browser_key');
+        $key = trim((string) config('services.google_maps.browser_key'));
+
+        if ($key === '' || Str::contains($key, ['${', 'YOUR_', 'your_', 'changeme'])) {
+            return null;
+        }
+
+        return $key;
     }
 
     public function geocode(string $address): array

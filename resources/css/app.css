@@ -113,6 +113,10 @@
         @apply bg-brand-primary text-white shadow-sm hover:bg-brand-dark hover:text-white;
     }
 
+    .dc-public-nav-link {
+        @apply inline-flex min-h-10 items-center rounded-full px-4 py-2 text-sm font-bold text-brand-muted transition duration-200 hover:bg-white hover:text-brand-dark hover:shadow-sm;
+    }
+
     .dc-page-section {
         @apply py-7 sm:py-10;
     }

@@ -2,6 +2,13 @@
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
+        <x-registration-role-tabs active="customer" />
+
+        <div class="mb-6">
+            <h1 class="text-2xl font-extrabold tracking-tight text-brand-text">{{ __('Create your customer account') }}</h1>
+            <p class="mt-1 text-sm text-brand-muted">{{ __('Save your delivery details and start shopping with DailyCart.') }}</p>
+        </div>
+
         <!-- Name -->
         <div>
             <x-input-label for="name" :value="__('Name')" />
@@ -68,6 +75,8 @@
             </div>
         </div>
 
+        <x-map-location-picker address-input="address_line_1" />
+
         <!-- Password -->
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />
@@ -91,22 +100,12 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <div class="me-auto space-x-3 text-sm">
-                <a class="underline text-gray-600 hover:text-gray-900" href="{{ route('vendor.register') }}">
-                    {{ __('Vendor registration') }}
-                </a>
-
-                <a class="underline text-gray-600 hover:text-gray-900" href="{{ route('rider.register') }}">
-                    {{ __('Rider registration') }}
-                </a>
-            </div>
-
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
+        <div class="mt-7 flex flex-col-reverse gap-3 border-t border-brand-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <a class="text-center text-sm font-semibold text-brand-muted hover:text-brand-dark hover:underline" href="{{ route('login') }}">
                 {{ __('Already registered?') }}
             </a>
 
-            <x-primary-button class="ms-4">
+            <x-primary-button class="w-full sm:w-auto">
                 {{ __('Register') }}
             </x-primary-button>
         </div>

@@ -30,13 +30,21 @@
         <header x-data="{ open: false }" @keydown.escape.window="open = false" class="sticky top-0 z-40 border-b border-brand-border bg-white/95 backdrop-blur-xl">
             <div class="dc-container flex h-20 items-center justify-between gap-4">
                 <a href="/" class="transition hover:scale-[1.02]"><x-application-logo /></a>
-                <nav class="hidden items-center gap-3 md:flex">
-                    <a class="text-sm font-semibold text-brand-text/70 transition hover:text-brand-dark" href="{{ route('pages.about') }}">{{ __('About') }}</a>
-                    <a class="text-sm font-semibold text-brand-text/70 transition hover:text-brand-dark" href="{{ route('pages.offers') }}">{{ __('Offers') }}</a>
-                    <a class="text-sm font-semibold text-brand-text/70 transition hover:text-brand-dark" href="{{ route('pages.contact') }}">{{ __('Contact') }}</a>
-                    <a class="dc-button-secondary" href="{{ route('login') }}">{{ __('Login') }}</a>
-                    <a class="dc-button" href="{{ route('register') }}">{{ __('Start Shopping') }}</a>
-                </nav>
+                <div class="hidden items-center gap-3 md:flex">
+                    <nav class="flex items-center rounded-full border border-brand-border bg-brand-light/70 p-1" aria-label="{{ __('Primary navigation') }}">
+                        <a class="dc-public-nav-link" href="{{ route('pages.about') }}">{{ __('About') }}</a>
+                        <a class="dc-public-nav-link" href="{{ route('pages.offers') }}">{{ __('Offers') }}</a>
+                        <a class="dc-public-nav-link" href="{{ route('pages.contact') }}">{{ __('Contact') }}</a>
+                    </nav>
+                    <a class="dc-button-secondary px-5" href="{{ route('login') }}">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm4 12a7 7 0 0 0-14 0"/></svg>
+                        {{ __('Login') }}
+                    </a>
+                    <a class="dc-button px-6" href="{{ route('register') }}">
+                        {{ __('Start Shopping') }}
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5"/></svg>
+                    </a>
+                </div>
                 <button @click="open = ! open" :aria-expanded="open.toString()" aria-controls="public-mobile-navigation" aria-label="{{ __('Toggle navigation') }}" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl bg-brand-light text-brand-dark md:hidden">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                         <path x-show="!open" stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16" />

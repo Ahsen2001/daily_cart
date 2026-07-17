@@ -32,6 +32,12 @@ class RiderRegistrationController extends Controller
             'vehicle_type' => ['required', Rule::in(['bicycle', 'motorbike', 'three_wheeler', 'van'])],
             'vehicle_number' => ['nullable', 'string', 'max:255'],
             'license_number' => ['nullable', 'string', 'max:255', 'unique:riders,license_number'],
+            'address' => ['required', 'string', 'max:1000'],
+            'city' => ['required', 'string', 'max:255'],
+            'district' => ['required', 'string', 'max:255'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90', 'required_with:longitude'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180', 'required_with:latitude'],
+            'formatted_address' => ['nullable', 'string', 'max:500'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -51,6 +57,12 @@ class RiderRegistrationController extends Controller
             'vehicle_type' => $request->vehicle_type,
             'vehicle_number' => $request->vehicle_number,
             'license_number' => $request->license_number,
+            'address' => $request->address,
+            'city' => $request->city,
+            'district' => $request->district,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'formatted_address' => $request->formatted_address,
             'availability_status' => 'unavailable',
             'verification_status' => 'pending',
         ]);

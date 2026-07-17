@@ -33,6 +33,9 @@ class VendorRegistrationController extends Controller
             'address' => ['required', 'string', 'max:1000'],
             'city' => ['required', 'string', 'max:255'],
             'district' => ['required', 'string', 'max:255'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90', 'required_with:longitude'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180', 'required_with:latitude'],
+            'formatted_address' => ['nullable', 'string', 'max:500'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -55,6 +58,9 @@ class VendorRegistrationController extends Controller
             'address' => $request->address,
             'city' => $request->city,
             'district' => $request->district,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'formatted_address' => $request->formatted_address,
             'status' => 'pending',
         ]);
 
