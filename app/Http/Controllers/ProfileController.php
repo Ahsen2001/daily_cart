@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
+use App\Services\DeliveryFeeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -14,12 +18,14 @@ class ProfileController extends Controller
     /**
      * Display the user's profile form.
      */
-    public function edit(Request $request): View
+    public function edit(Request $request, DeliveryFeeService $deliveryFees): View
     {
         $user = $request->user()->load(['customer.addresses', 'vendor', 'rider']);
 
         return view('profile.edit', [
             'user' => $user,
+            'profileLocation' => $this->profileLocation($user),
+            'deliveryFeeRules' => $deliveryFees->configuredRules(),
         ]);
     }
 
@@ -28,13 +34,19 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $validated = $request->validated();
+        $user = $request->user()->load(['customer.addresses', 'vendor', 'rider']);
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
+        DB::transaction(function () use ($user, $validated) {
+            $user->fill(Arr::only($validated, ['name', 'email', 'phone']));
 
-        $request->user()->save();
+            if ($user->isDirty('email')) {
+                $user->email_verified_at = null;
+            }
+
+            $user->save();
+            $this->updateLocation($user, $validated);
+        });
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -58,5 +70,101 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /** @return array<string, mixed>|null */
+    private function profileLocation(User $user): ?array
+    {
+        if ($user->customer) {
+            $address = $user->customer->addresses->firstWhere('is_default', true)
+                ?? $user->customer->addresses->first();
+
+            return [
+                'type' => 'customer',
+                'label' => __('Default delivery location'),
+                'address' => collect([$address?->address_line_1, $address?->address_line_2, $address?->city, $address?->district])->filter()->implode(', '),
+                'address_line_1' => $address?->address_line_1,
+                'address_line_2' => $address?->address_line_2,
+                'city' => $address?->city,
+                'district' => $address?->district,
+                'postal_code' => $address?->postal_code,
+                'latitude' => $address?->latitude,
+                'longitude' => $address?->longitude,
+                'formatted_address' => collect([$address?->address_line_1, $address?->city, $address?->district])->filter()->implode(', '),
+            ];
+        }
+
+        $roleProfile = $user->vendor ?? $user->rider;
+
+        if (! $roleProfile) {
+            return null;
+        }
+
+        return [
+            'type' => $user->vendor ? 'vendor' : 'rider',
+            'label' => $user->vendor ? __('Store location') : __('Rider home base'),
+            'address' => $roleProfile->address,
+            'city' => $roleProfile->city,
+            'district' => $roleProfile->district,
+            'latitude' => $roleProfile->latitude,
+            'longitude' => $roleProfile->longitude,
+            'formatted_address' => $roleProfile->formatted_address
+                ?: collect([$roleProfile->address, $roleProfile->city, $roleProfile->district])->filter()->implode(', '),
+        ];
+    }
+
+    /** @param array<string, mixed> $validated */
+    private function updateLocation(User $user, array $validated): void
+    {
+        if ($user->customer) {
+            $customer = $user->customer;
+            $address = $customer->addresses->firstWhere('is_default', true)
+                ?? $customer->addresses->first()
+                ?? $customer->addresses()->make();
+
+            $customer->addresses()
+                ->when($address->exists, fn ($query) => $query->whereKeyNot($address->id))
+                ->update(['is_default' => false]);
+
+            $address->fill([
+                'label' => $address->label ?: 'Home',
+                'recipient_name' => $user->name,
+                'phone' => $validated['phone'],
+                'address_line_1' => $validated['address_line_1'],
+                'address_line_2' => $validated['address_line_2'] ?? null,
+                'city' => $validated['city'],
+                'district' => $validated['district'],
+                'postal_code' => $validated['postal_code'] ?? null,
+                'latitude' => $validated['latitude'] ?? null,
+                'longitude' => $validated['longitude'] ?? null,
+                'is_default' => true,
+            ])->save();
+
+            $customer->update(['phone' => $validated['phone']]);
+
+            return;
+        }
+
+        $roleProfile = $user->vendor ?? $user->rider;
+
+        if (! $roleProfile) {
+            return;
+        }
+
+        $location = [
+            'address' => $validated['address'],
+            'city' => $validated['city'],
+            'district' => $validated['district'],
+            'latitude' => $validated['latitude'] ?? null,
+            'longitude' => $validated['longitude'] ?? null,
+            'formatted_address' => $validated['formatted_address']
+                ?? collect([$validated['address'], $validated['city'], $validated['district']])->filter()->implode(', '),
+        ];
+
+        if ($user->vendor) {
+            $location['phone'] = $validated['phone'];
+        }
+
+        $roleProfile->update($location);
     }
 }

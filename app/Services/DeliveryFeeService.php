@@ -50,11 +50,17 @@ class DeliveryFeeService
     /** @return Collection<int, string> */
     public function configuredDistricts(): Collection
     {
+        return $this->configuredRules()->pluck('district');
+    }
+
+    /** @return Collection<int, DeliveryFee> */
+    public function configuredRules(): Collection
+    {
         return DeliveryFee::query()
             ->where('status', 'active')
             ->whereNotIn('district', ['All Districts', 'Default', '*'])
             ->orderBy('district')
-            ->pluck('district');
+            ->get();
     }
 
     private function matchingRule(?string $district): ?DeliveryFee

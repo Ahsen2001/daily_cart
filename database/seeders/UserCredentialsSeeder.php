@@ -110,9 +110,9 @@ class UserCredentialsSeeder extends Seeder
             [
                 'label' => 'Home',
                 'recipient_name' => 'DailyCart Customer',
-                'phone' => '0722222222',
-                'city' => 'Colombo',
-                'district' => 'Colombo',
+                'phone' => '0754603008',
+                'city' => 'Batticaloa',
+                'district' => 'Batticaloa',
                 'is_default' => true,
             ]
         );

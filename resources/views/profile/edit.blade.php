@@ -1,32 +1,4 @@
-@php
-    $location = null;
-
-    if ($user->customer) {
-        $address = $user->customer->addresses->firstWhere('is_default', true) ?? $user->customer->addresses->first();
-        if ($address) {
-            $location = [
-                'label' => __('Default delivery location'),
-                'address' => collect([$address->address_line_1, $address->address_line_2, $address->city, $address->district])->filter()->implode(', '),
-                'latitude' => $address->latitude,
-                'longitude' => $address->longitude,
-            ];
-        }
-    } elseif ($user->vendor) {
-        $location = [
-            'label' => __('Store location'),
-            'address' => $user->vendor->formatted_address ?: collect([$user->vendor->address, $user->vendor->city, $user->vendor->district])->filter()->implode(', '),
-            'latitude' => $user->vendor->latitude,
-            'longitude' => $user->vendor->longitude,
-        ];
-    } elseif ($user->rider) {
-        $location = [
-            'label' => __('Rider home base'),
-            'address' => $user->rider->formatted_address ?: collect([$user->rider->address, $user->rider->city, $user->rider->district])->filter()->implode(', '),
-            'latitude' => $user->rider->latitude,
-            'longitude' => $user->rider->longitude,
-        ];
-    }
-@endphp
+@php($location = $profileLocation)
 
 <x-app-layout>
     <x-slot name="header">
