@@ -40,6 +40,8 @@
                 <x-dashboard-card title="Subscriptions" value="Repeat" />
                 <x-dashboard-card title="Support" value="Help" accent />
             </div>
+
+            <x-offers-today :promotions="$todayOffers" :contained="true" />
         </div>
     </div>
 </x-app-layout>

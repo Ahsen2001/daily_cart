@@ -21,9 +21,14 @@ class VendorPromotionController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('vendor.promotions.create', ['promotion' => new Promotion]);
+        $products = Product::where('vendor_id', $request->user()->vendor->id)->orderBy('name')->get();
+
+        return view('vendor.promotions.create', [
+            'promotion' => new Promotion,
+            'products' => $products,
+        ]);
     }
 
     public function store(StorePromotionRequest $request, PromotionService $promotions): RedirectResponse
@@ -34,11 +39,15 @@ class VendorPromotionController extends Controller
         return redirect()->route('vendor.promotions.edit', $promotion)->with('status', 'Promotion created.');
     }
 
-    public function edit(Promotion $promotion): View
+    public function edit(Request $request, Promotion $promotion): View
     {
         $this->authorize('update', $promotion);
+        $products = Product::where('vendor_id', $request->user()->vendor->id)->orderBy('name')->get();
 
-        return view('vendor.promotions.edit', compact('promotion'));
+        return view('vendor.promotions.edit', [
+            'promotion' => $promotion,
+            'products' => $products,
+        ]);
     }
 
     public function update(StorePromotionRequest $request, Promotion $promotion, PromotionService $promotions): RedirectResponse

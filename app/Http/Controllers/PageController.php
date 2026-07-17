@@ -5,14 +5,36 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\ContactMessage;
 use App\Models\Product;
-use App\Models\Promotion;
 use App\Models\Setting;
+use App\Services\PromotionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PageController extends Controller
 {
+    public function home(PromotionService $promotions): View
+    {
+        return view('welcome', [
+            'todayOffers' => $promotions->storefront(6),
+        ]);
+    }
+
+    public function product(Product $product, PromotionService $promotions): View
+    {
+        abort_unless(Product::visibleToCustomers()->whereKey($product->getKey())->exists(), 404);
+
+        $product->load(['category', 'vendor', 'images', 'variants']);
+
+        return view('pages.product', [
+            'product' => $product,
+            'pricing' => $promotions->pricingFor($product),
+            'variantPricing' => $product->variants->mapWithKeys(
+                fn ($variant) => [$variant->id => $promotions->pricingFor($product, $variant)]
+            ),
+        ]);
+    }
+
     public function categories(): View
     {
         return view('pages.categories', [
@@ -81,10 +103,10 @@ class PageController extends Controller
         return back()->with('contact_status', 'Your message has been sent.');
     }
 
-    public function offers(): View
+    public function offers(PromotionService $promotions): View
     {
         return $this->contentPage('offers', [
-            'promotions' => Promotion::active()->latest()->limit(6)->get(),
+            'promotions' => $promotions->storefront(6),
         ]);
     }
 

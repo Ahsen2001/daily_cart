@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -32,12 +33,10 @@ class ProductBrowseController extends Controller
         ]);
     }
 
-    public function show(Product $product): View
+    public function show(Product $product): RedirectResponse
     {
         abort_unless($product->status === 'approved' && $product->category?->status === 'active', 404);
 
-        return view('customer.products.show', [
-            'product' => $product->load(['category', 'vendor', 'images', 'variants']),
-        ]);
+        return redirect()->route('products.show', $product);
     }
 }

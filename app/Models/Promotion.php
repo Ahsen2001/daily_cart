@@ -49,10 +49,45 @@ class Promotion extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function targetProduct(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'target_id');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active')
             ->where('starts_at', '<=', now())
             ->where('ends_at', '>=', now());
+    }
+
+    public function scopeVisibleOnStorefront($query)
+    {
+        return $query->active()
+            ->where(function ($vendorQuery) {
+                $vendorQuery->whereNull('vendor_id')
+                    ->orWhereHas('vendor', fn ($vendor) => $vendor->where('status', 'approved'));
+            })
+            ->where(function ($targetQuery) {
+                $targetQuery->where('target_type', '!=', 'product')
+                    ->orWhereHas('targetProduct', function ($product) {
+                        $product->visibleToCustomers()
+                            ->whereHas('vendor', fn ($vendor) => $vendor->where('status', 'approved'));
+                    });
+            });
+    }
+
+    public function discountFor(float $price): float
+    {
+        $discount = $this->discount_type === 'percentage'
+            ? $price * ((float) $this->discount_value / 100)
+            : (float) $this->discount_value;
+
+        return round(min(max($discount, 0), $price), 2);
+    }
+
+    public function priceFor(float $price): float
+    {
+        return round(max($price - $this->discountFor($price), 0), 2);
     }
 }

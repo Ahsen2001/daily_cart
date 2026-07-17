@@ -151,6 +151,7 @@ class OrderService
      */
     private function pricingLines(Cart $cart, ?string $couponCode, ?Customer $customer, int $loyaltyPoints): array
     {
+        $this->cartService->refreshPrices($cart);
         $cart->loadMissing(['items.product.category', 'items.variant.inventory']);
 
         $lines = [];

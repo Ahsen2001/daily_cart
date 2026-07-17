@@ -101,30 +101,7 @@
                 </section>
 
                 @if ($page === 'offers')
-                    <section class="mt-8">
-                        <div class="flex items-end justify-between gap-4">
-                            <div>
-                                <p class="font-semibold text-brand-dark">{{ __('Live Promotions') }}</p>
-                                <h2 class="mt-2 text-2xl font-extrabold">{{ __('Active offers') }}</h2>
-                            </div>
-                            <a class="dc-button-secondary" href="{{ route('products.index') }}">{{ __('Browse Products') }}</a>
-                        </div>
-
-                        <div class="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                            @forelse (($promotions ?? collect()) as $promotion)
-                                <article class="rounded-3xl bg-white p-6 shadow-sm">
-                                    <p class="text-xs font-bold uppercase tracking-wide text-brand-dark">{{ $promotion->promotion_type }}</p>
-                                    <h3 class="mt-2 text-xl font-bold">{{ $promotion->title }}</h3>
-                                    <p class="mt-3 line-clamp-3 text-sm leading-7 text-brand-text/70">{{ $promotion->description }}</p>
-                                    <p class="mt-4 text-sm font-semibold text-brand-orange">{{ __('Valid until') }} {{ $promotion->ends_at?->format('M d, Y') }}</p>
-                                </article>
-                            @empty
-                                <div class="dc-card md:col-span-2 xl:col-span-3">
-                                    <p class="text-sm text-brand-text/70">{{ __('No active offers are available right now. Please check again soon.') }}</p>
-                                </div>
-                            @endforelse
-                        </div>
-                    </section>
+                    <x-offers-today class="mt-8" :promotions="$promotions ?? collect()" :contained="true" />
                 @endif
             </div>
         </main>

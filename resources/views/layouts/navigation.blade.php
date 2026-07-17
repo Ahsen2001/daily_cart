@@ -115,8 +115,10 @@
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Vendor'))
-                <x-responsive-nav-link :href="route('vendor.dashboard')" :active="request()->routeIs('vendor.*')">{{ __('Vendor Dashboard') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('vendor.dashboard')" :active="request()->routeIs('vendor.dashboard')">{{ __('Vendor Dashboard') }}</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('vendor.products.index')" :active="request()->routeIs('vendor.products.*')">{{ __('My Products') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('vendor.promotions.index')" :active="request()->routeIs('vendor.promotions.*')">{{ __('Promotions & Offers') }}</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('vendor.coupons.index')" :active="request()->routeIs('vendor.coupons.*')">{{ __('Coupons') }}</x-responsive-nav-link>
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Rider'))

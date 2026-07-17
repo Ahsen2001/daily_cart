@@ -11,6 +11,8 @@ use Illuminate\Validation\ValidationException;
 
 class CartService
 {
+    public function __construct(private readonly PromotionService $promotions) {}
+
     public function activeCart(Customer $customer): Cart
     {
         return Cart::firstOrCreate(
@@ -40,7 +42,7 @@ class CartService
             ],
             [
                 'quantity' => $newQuantity,
-                'unit_price' => $variant?->price ?? $product->discount_price ?? $product->price,
+                'unit_price' => $this->unitPrice($product, $variant),
             ]
         );
     }
@@ -51,7 +53,7 @@ class CartService
 
         $item->update([
             'quantity' => $quantity,
-            'unit_price' => $item->variant?->price ?? $item->product->discount_price ?? $item->product->price,
+            'unit_price' => $this->unitPrice($item->product, $item->variant),
         ]);
 
         return $item;
@@ -64,12 +66,33 @@ class CartService
 
     public function totals(Cart $cart): array
     {
+        $this->refreshPrices($cart);
         $subtotal = $cart->items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity);
 
         return [
             'subtotal' => round($subtotal, 2),
             'item_count' => $cart->items->sum('quantity'),
         ];
+    }
+
+    public function refreshPrices(Cart $cart): Cart
+    {
+        $cart->loadMissing(['items.product.category', 'items.product.vendor', 'items.variant']);
+
+        foreach ($cart->items as $item) {
+            $unitPrice = $this->unitPrice($item->product, $item->variant);
+
+            if (round((float) $item->unit_price, 2) !== $unitPrice) {
+                $item->update(['unit_price' => $unitPrice]);
+            }
+        }
+
+        return $cart;
+    }
+
+    public function unitPrice(Product $product, ?ProductVariant $variant = null): float
+    {
+        return $this->promotions->pricingFor($product, $variant)['final_price'];
     }
 
     public function ensureProductCanBeOrdered(Product $product, int $quantity, ?ProductVariant $variant = null): void
@@ -80,7 +103,9 @@ class CartService
             ]);
         }
 
-        if ($product->status !== 'approved' || $product->category?->status !== 'active') {
+        if ($product->status !== 'approved'
+            || $product->category?->status !== 'active'
+            || $product->vendor?->status !== 'approved') {
             throw ValidationException::withMessages([
                 'product' => 'This product is not available for ordering.',
             ]);

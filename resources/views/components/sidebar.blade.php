@@ -38,6 +38,8 @@
                 @if (Auth::user()->hasPrimaryRole('Vendor'))
                     <a class="dc-sidebar-link {{ request()->routeIs('vendor.products.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.products.index') }}">{{ __('My Products') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('vendor.orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.orders.index') }}">{{ __('Orders') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('vendor.promotions.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.promotions.index') }}">{{ __('Promotions & Offers') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('vendor.coupons.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.coupons.index') }}">{{ __('Coupons') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('vendor.subscriptions.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.subscriptions.index') }}">{{ __('Subscriptions') }}</a>
                 @endif
 

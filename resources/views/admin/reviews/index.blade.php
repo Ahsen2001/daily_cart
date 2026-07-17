@@ -27,7 +27,7 @@
                                     <td class="px-3 py-3">{{ ucfirst($review->status) }}</td>
                                     <td class="px-3 py-3">
                                         <div class="flex gap-2">
-                                            <form method="POST" action="{{ route('admin.reviews.hide', $review) }}">@csrf @method('PATCH')<x-secondary-button>{{ __('Hide') }}</x-secondary-button></form>
+                                            <form method="POST" action="{{ route('admin.reviews.hide', $review) }}">@csrf @method('PATCH')<x-secondary-button type="submit">{{ __('Hide') }}</x-secondary-button></form>
                                             <form method="POST" action="{{ route('admin.reviews.destroy', $review) }}">@csrf @method('DELETE')<x-danger-button>{{ __('Delete') }}</x-danger-button></form>
                                         </div>
                                     </td>

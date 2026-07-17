@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PromotionService;
 use App\Services\RoleRedirector;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,9 +35,11 @@ class DashboardController extends Controller
         return view('dashboards.rider');
     }
 
-    public function customer(): View
+    public function customer(PromotionService $promotions): View
     {
-        return view('dashboards.customer');
+        return view('dashboards.customer', [
+            'todayOffers' => $promotions->storefront(6),
+        ]);
     }
 
     public function vendorPending(): View

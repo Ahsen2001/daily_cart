@@ -14,15 +14,15 @@
                     @forelse ($notifications as $notification)
                         <div class="rounded-md border p-4 {{ $notification->read_at ? 'bg-white' : 'bg-indigo-50' }}">
                             <div class="flex items-start justify-between gap-4">
-                                <div>
+                                <div class="min-w-0 flex-1">
                                     <div class="font-semibold text-gray-900">{{ $notification->title }}</div>
                                     <div class="mt-1 text-sm text-gray-700">{{ $notification->message }}</div>
                                     <div class="mt-2 text-xs text-gray-500"><x-local-time :date="$notification->created_at" /></div>
                                 </div>
-                                <form method="POST" action="{{ $notification->read_at ? route('notifications.unread', $notification) : route('notifications.read', $notification) }}">
+                                <form class="flex-shrink-0" method="POST" action="{{ $notification->read_at ? route('notifications.unread', $notification) : route('notifications.read', $notification) }}">
                                     @csrf
                                     @method('PATCH')
-                                    <x-secondary-button>{{ $notification->read_at ? __('Mark unread') : __('Mark read') }}</x-secondary-button>
+                                    <x-secondary-button type="submit" class="whitespace-nowrap">{{ $notification->read_at ? __('Mark unread') : __('Mark read') }}</x-secondary-button>
                                 </form>
                             </div>
                         </div>

@@ -23,12 +23,16 @@
                 <div class="dc-panel">
                     <h3 class="text-lg font-bold">{{ __('Revenue trend') }}</h3>
                     <p class="mt-1 text-sm text-brand-muted">{{ __('Track recent store revenue in LKR.') }}</p>
-                    <canvas id="vendorRevenue" class="mt-4 h-64" role="img" aria-label="{{ __('Revenue trend chart') }}"></canvas>
+                    <div class="relative mt-4 h-64 w-full">
+                        <canvas id="vendorRevenue" role="img" aria-label="{{ __('Revenue trend chart') }}"></canvas>
+                    </div>
                 </div>
                 <div class="dc-panel">
                     <h3 class="text-lg font-bold">{{ __('Order volume') }}</h3>
                     <p class="mt-1 text-sm text-brand-muted">{{ __('Compare the number of orders over time.') }}</p>
-                    <canvas id="vendorOrders" class="mt-4 h-64" role="img" aria-label="{{ __('Order volume chart') }}"></canvas>
+                    <div class="relative mt-4 h-64 w-full">
+                        <canvas id="vendorOrders" role="img" aria-label="{{ __('Order volume chart') }}"></canvas>
+                    </div>
                 </div>
             </div>
         </div>

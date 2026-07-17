@@ -153,7 +153,9 @@ class Product extends Model
 
     public function scopeVisibleToCustomers($query)
     {
-        return $query->approved()->whereHas('category', fn ($category) => $category->where('status', 'active'));
+        return $query->approved()
+            ->whereHas('category', fn ($category) => $category->where('status', 'active'))
+            ->whereHas('vendor', fn ($vendor) => $vendor->where('status', 'approved'));
     }
 
     public function averageRating(): float

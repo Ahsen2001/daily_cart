@@ -5,9 +5,7 @@ use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [PageController::class, 'home'])->name('home');
 
 Route::get('/refund-policy', [PageController::class, 'refundPolicy'])->name('pages.refund-policy');
 Route::get('/privacy-policy', [PageController::class, 'privacyPolicy'])->name('pages.privacy-policy');
@@ -18,6 +16,7 @@ Route::post('/contact', [PageController::class, 'submitContact'])->name('pages.c
 Route::get('/offers', [PageController::class, 'offers'])->name('pages.offers');
 Route::get('/categories', [PageController::class, 'categories'])->name('categories.index');
 Route::get('/products', [PageController::class, 'products'])->name('products.index');
+Route::get('/products/{product}', [PageController::class, 'product'])->name('products.show');
 
 Route::post('/newsletter', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
 Route::post('/payment/payhere/notify', [PayHereController::class, 'notify'])->name('payhere.notify');

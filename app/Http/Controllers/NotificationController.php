@@ -13,7 +13,7 @@ class NotificationController extends Controller
     public function index(Request $request): View
     {
         return view('notifications.index', [
-            'notifications' => $request->user()->notifications()->latest()->paginate(20),
+            'notifications' => $request->user()->notifications()->whereNull('read_at')->latest()->paginate(20),
         ]);
     }
 

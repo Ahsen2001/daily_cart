@@ -6,7 +6,7 @@
 @endphp
 
 <article {{ $attributes->merge(['class' => 'group overflow-hidden rounded-3xl border border-brand-border bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-lift']) }}>
-    <a href="{{ route('customer.products.show', $product) }}" class="block">
+    <a href="{{ route('products.show', $product) }}" class="block">
         <div class="aspect-[4/3] bg-brand-light">
             <img src="{{ $product->display_image_url }}" alt="{{ $product->name }}" loading="lazy" decoding="async" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
         </div>
