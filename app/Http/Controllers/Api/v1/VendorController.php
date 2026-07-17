@@ -35,7 +35,7 @@ class VendorController extends Controller
             return response()->json(['message' => 'Vendor profile not found.'], 404);
         }
 
-        $orders = Order::where('vendor_id', $vendor->id)
+        $orders = Order::query()->where('vendor_id', $vendor->id)
             ->with(['customer.user', 'payment'])
             ->latest()
             ->paginate(15);

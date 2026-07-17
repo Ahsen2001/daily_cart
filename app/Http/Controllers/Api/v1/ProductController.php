@@ -13,7 +13,7 @@ class ProductController extends Controller
 {
     public function categories(): JsonResponse
     {
-        $categories = Category::where('status', 'active')->orderBy('name')->get();
+        $categories = Category::query()->where('status', 'active')->orderBy('name')->get();
 
         return response()->json([
             'categories' => $categories,

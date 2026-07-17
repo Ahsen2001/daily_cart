@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -26,22 +27,22 @@ class AuthController extends Controller
             'device_name' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $user = DB::transaction(function () use ($request) {
+        $user = DB::transaction(function () use ($validated) {
             $role = Role::findOrCreate('Customer', 'web');
 
             $user = User::create([
-                'name' => $request->name,
+                'name' => $validated['name'],
                 'role_id' => $role->id,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'password' => Hash::make($request->password),
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'password' => Hash::make($validated['password']),
                 'status' => 'active',
             ]);
 
             Customer::create([
                 'user_id' => $user->id,
-                'first_name' => $request->name,
-                'phone' => $request->phone,
+                'first_name' => $validated['name'],
+                'phone' => $validated['phone'],
                 'status' => 'active',
             ]);
 
@@ -67,9 +68,9 @@ class AuthController extends Controller
             'device_name' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::query()->where('email', $validated['email'])->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($validated['password'], $user->getAuthPassword())) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
@@ -89,7 +90,11 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $accessToken = $request->user()->currentAccessToken();
+
+        if ($accessToken instanceof PersonalAccessToken) {
+            PersonalAccessToken::query()->whereKey($accessToken->getKey())->delete();
+        }
 
         return response()->json(['message' => 'Logged out successfully.']);
     }

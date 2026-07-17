@@ -25,7 +25,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'Customer profile not found.'], 404);
         }
 
-        $orders = Order::where('customer_id', $customer->id)
+        $orders = Order::query()->where('customer_id', $customer->id)
             ->with('statusHistories')
             ->latest()
             ->paginate(15);

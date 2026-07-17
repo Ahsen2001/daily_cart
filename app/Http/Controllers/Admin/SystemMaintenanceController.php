@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\DatabaseBackupService;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
@@ -14,8 +15,9 @@ class SystemMaintenanceController extends Controller
 {
     public function index(): View
     {
-        $disk = Storage::disk(config('backup.disk'));
-        $directory = config('backup.directory');
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk((string) config('backup.disk'));
+        $directory = (string) config('backup.directory');
         $disk->makeDirectory($directory);
 
         $backups = collect($disk->files($directory))
@@ -43,7 +45,8 @@ class SystemMaintenanceController extends Controller
     {
         abort_unless(str_ends_with($file, '.dcbackup'), 404);
 
-        $disk = Storage::disk(config('backup.disk'));
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk((string) config('backup.disk'));
         $path = trim((string) config('backup.directory'), '/').'/'.basename($file);
         abort_unless($disk->exists($path), 404);
 

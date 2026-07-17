@@ -11,9 +11,24 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property int $id
+ * @property int|null $role_id
+ * @property string $name
+ * @property string $email
+ * @property string|null $phone
+ * @property string $status
+ * @property Carbon|null $email_verified_at
+ * @property Carbon|null $phone_verified_at
+ * @property-read Customer|null $customer
+ * @property-read Vendor|null $vendor
+ * @property-read Rider|null $rider
+ * @property-read Role|null $role
+ */
 class User extends Authenticatable implements MustVerifyEmailContract
 {
     /** @use HasFactory<UserFactory> */
@@ -109,6 +124,11 @@ class User extends Authenticatable implements MustVerifyEmailContract
     public function markPhoneAsVerified(): bool
     {
         return $this->forceFill(['phone_verified_at' => $this->freshTimestamp()])->save();
+    }
+
+    public function delete(): ?bool
+    {
+        return parent::delete();
     }
 
     public function isSuperAdmin(): bool
