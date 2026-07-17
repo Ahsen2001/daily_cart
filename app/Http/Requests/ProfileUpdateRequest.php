@@ -36,21 +36,24 @@ class ProfileUpdateRequest extends FormRequest
             return $rules;
         }
 
-        $configuredDistricts = app(DeliveryFeeService::class)->configuredDistricts()->all();
-        $districtRules = ['required', 'string', 'max:255'];
-
-        if ($configuredDistricts !== []) {
-            $districtRules[] = Rule::in($configuredDistricts);
-        }
-
         $rules['phone'] = ['required', 'string', 'max:30', Rule::unique(User::class, 'phone')->ignore($this->user()->id)];
         $rules += [
             'city' => ['required', 'string', 'max:255'],
-            'district' => $districtRules,
             'latitude' => ['nullable', 'numeric', 'between:-90,90', 'required_with:longitude'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180', 'required_with:latitude'],
             'formatted_address' => ['nullable', 'string', 'max:500'],
         ];
+
+        if (! $this->user()->vendor) {
+            $configuredDistricts = app(DeliveryFeeService::class)->configuredDistricts()->all();
+            $districtRules = ['required', 'string', 'max:255'];
+
+            if ($configuredDistricts !== []) {
+                $districtRules[] = Rule::in($configuredDistricts);
+            }
+
+            $rules['district'] = $districtRules;
+        }
 
         if ($this->user()->customer) {
             $rules += [

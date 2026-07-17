@@ -105,11 +105,15 @@ class ProfileController extends Controller
             'label' => $user->vendor ? __('Store location') : __('Rider home base'),
             'address' => $roleProfile->address,
             'city' => $roleProfile->city,
-            'district' => $roleProfile->district,
+            'district' => $user->vendor ? null : $roleProfile->district,
             'latitude' => $roleProfile->latitude,
             'longitude' => $roleProfile->longitude,
             'formatted_address' => $roleProfile->formatted_address
-                ?: collect([$roleProfile->address, $roleProfile->city, $roleProfile->district])->filter()->implode(', '),
+                ?: collect([
+                    $roleProfile->address,
+                    $roleProfile->city,
+                    $user->vendor ? null : $roleProfile->district,
+                ])->filter()->implode(', '),
         ];
     }
 
@@ -154,15 +158,20 @@ class ProfileController extends Controller
         $location = [
             'address' => $validated['address'],
             'city' => $validated['city'],
-            'district' => $validated['district'],
             'latitude' => $validated['latitude'] ?? null,
             'longitude' => $validated['longitude'] ?? null,
             'formatted_address' => $validated['formatted_address']
-                ?? collect([$validated['address'], $validated['city'], $validated['district']])->filter()->implode(', '),
+                ?? collect([
+                    $validated['address'],
+                    $validated['city'],
+                    $validated['district'] ?? null,
+                ])->filter()->implode(', '),
         ];
 
         if ($user->vendor) {
             $location['phone'] = $validated['phone'];
+        } else {
+            $location['district'] = $validated['district'];
         }
 
         $roleProfile->update($location);

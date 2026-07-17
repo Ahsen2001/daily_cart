@@ -177,20 +177,25 @@ class ProfileTest extends TestCase
         ]);
 
         $this->actingAs($vendorUser)
+            ->get('/profile')
+            ->assertOk()
+            ->assertDontSee('Delivery District')
+            ->assertDontSee('View delivery fee criteria');
+
+        $this->actingAs($vendorUser)
             ->patch('/profile', [
                 'name' => $vendorUser->name,
                 'email' => $vendorUser->email,
                 'phone' => '0773000099',
                 'address' => '22 Market Road',
                 'city' => 'Kandy',
-                'district' => 'Kandy',
                 'latitude' => '7.2906000',
                 'longitude' => '80.6337000',
                 'formatted_address' => '22 Market Road, Kandy',
             ])
             ->assertSessionHasNoErrors();
 
-        $this->assertSame('Kandy', $vendor->refresh()->district);
+        $this->assertSame('Colombo', $vendor->refresh()->district);
         $this->assertSame('0773000099', $vendor->phone);
 
         $riderRole = Role::findOrCreate('Rider', 'web');

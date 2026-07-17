@@ -55,15 +55,20 @@
 
         @if ($profileLocation)
             @php
-                $currentDistrict = old('district', $profileLocation['district']);
-                $districtIsConfigured = $deliveryFeeRules->contains(fn ($rule) => strcasecmp($rule->district, (string) $currentDistrict) === 0);
+                $currentDistrict = $user->vendor ? null : old('district', $profileLocation['district']);
+                $districtIsConfigured = ! $user->vendor
+                    && $deliveryFeeRules->contains(fn ($rule) => strcasecmp($rule->district, (string) $currentDistrict) === 0);
             @endphp
 
             <section class="rounded-3xl border border-brand-border bg-brand-light/60 p-5">
                 <div>
-                    <p class="dc-page-eyebrow">{{ __('Delivery & location') }}</p>
+                    <p class="dc-page-eyebrow">{{ $user->vendor ? __('Store location') : __('Delivery & location') }}</p>
                     <h3 class="mt-1 text-lg font-bold text-brand-text">{{ __('Edit your registered address') }}</h3>
-                    <p class="mt-1 text-sm leading-6 text-brand-muted">{{ __('Your saved district determines which active Delivery Fees Configuration is used during checkout.') }}</p>
+                    <p class="mt-1 text-sm leading-6 text-brand-muted">
+                        {{ $user->vendor
+                            ? __('Keep your store address and map pin accurate for customers and deliveries.')
+                            : __('Your saved district determines which active Delivery Fees Configuration is used during checkout.') }}
+                    </p>
                 </div>
 
                 <div class="mt-5 space-y-4">
@@ -94,25 +99,27 @@
                             <x-input-error class="mt-2" :messages="$errors->get('city')" />
                         </div>
 
-                        <div>
-                            <x-input-label for="district" :value="__('Delivery District')" />
-                            @if ($deliveryFeeRules->isNotEmpty())
-                                <select id="district" name="district" class="mt-1 block w-full rounded-2xl border-brand-border shadow-sm focus:border-brand-primary focus:ring-brand-primary" required autocomplete="address-level1">
-                                    <option value="">{{ __('Select supported district') }}</option>
-                                    @if ($currentDistrict && ! $districtIsConfigured)
-                                        <option value="{{ $currentDistrict }}" selected>{{ $currentDistrict }} — {{ __('not currently configured') }}</option>
-                                    @endif
-                                    @foreach ($deliveryFeeRules as $rule)
-                                        <option value="{{ $rule->district }}" @selected($currentDistrict === $rule->district)>
-                                            {{ $rule->district }} — {{ \App\Services\CurrencyService::formatLkr($rule->base_fee) }} + {{ \App\Services\CurrencyService::formatLkr($rule->per_km_fee) }}/km
-                                        </option>
-                                    @endforeach
-                                </select>
-                            @else
-                                <x-text-input id="district" name="district" type="text" class="mt-1 block w-full" :value="$currentDistrict" required autocomplete="address-level1" />
-                            @endif
-                            <x-input-error class="mt-2" :messages="$errors->get('district')" />
-                        </div>
+                        @unless ($user->vendor)
+                            <div>
+                                <x-input-label for="district" :value="__('Delivery District')" />
+                                @if ($deliveryFeeRules->isNotEmpty())
+                                    <select id="district" name="district" class="mt-1 block w-full rounded-2xl border-brand-border shadow-sm focus:border-brand-primary focus:ring-brand-primary" required autocomplete="address-level1">
+                                        <option value="">{{ __('Select supported district') }}</option>
+                                        @if ($currentDistrict && ! $districtIsConfigured)
+                                            <option value="{{ $currentDistrict }}" selected>{{ $currentDistrict }} — {{ __('not currently configured') }}</option>
+                                        @endif
+                                        @foreach ($deliveryFeeRules as $rule)
+                                            <option value="{{ $rule->district }}" @selected($currentDistrict === $rule->district)>
+                                                {{ $rule->district }} — {{ \App\Services\CurrencyService::formatLkr($rule->base_fee) }} + {{ \App\Services\CurrencyService::formatLkr($rule->per_km_fee) }}/km
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <x-text-input id="district" name="district" type="text" class="mt-1 block w-full" :value="$currentDistrict" required autocomplete="address-level1" />
+                                @endif
+                                <x-input-error class="mt-2" :messages="$errors->get('district')" />
+                            </div>
+                        @endunless
                     </div>
 
                     @if ($user->customer)
@@ -124,7 +131,7 @@
                     @endif
                 </div>
 
-                @if ($deliveryFeeRules->isNotEmpty())
+                @if (! $user->vendor && $deliveryFeeRules->isNotEmpty())
                     <details class="mt-5 rounded-2xl border border-emerald-100 bg-white p-4">
                         <summary class="cursor-pointer text-sm font-bold text-brand-dark">{{ __('View delivery fee criteria') }}</summary>
                         <div class="mt-3 grid gap-3 text-xs sm:grid-cols-2">
