@@ -140,7 +140,12 @@ class HomepageOffersTest extends TestCase
         ]);
 
         $this->actingAs($customerUser)
-            ->get(route('customer.dashboard'))
+            ->get(route('home'))
+            ->assertOk()
+            ->assertSee('Offers Today')
+            ->assertSee('Customer Dashboard Special');
+
+        $this->get(route('customer.dashboard'))
             ->assertOk()
             ->assertSee('Offers Today')
             ->assertSee('Customer Dashboard Special');

@@ -30,13 +30,14 @@ class AdminDeliveryManagementController extends Controller
     public function feesStore(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'district' => ['required', 'string', 'unique:delivery_fees'],
+            'district' => ['required', 'string', 'max:255', 'unique:delivery_fees'],
             'base_fee' => ['required', 'numeric', 'min:0'],
             'per_km_fee' => ['required', 'numeric', 'min:0'],
             'minimum_order' => ['required', 'numeric', 'min:0'],
             'free_delivery_limit' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', 'in:active,inactive'],
         ]);
+        $validated['district'] = trim($validated['district']);
 
         DeliveryFee::query()->create($validated);
 
@@ -51,13 +52,14 @@ class AdminDeliveryManagementController extends Controller
     public function feesUpdate(Request $request, DeliveryFee $fee): RedirectResponse
     {
         $validated = $request->validate([
-            'district' => ['required', 'string', 'unique:delivery_fees,district,'.$fee->id],
+            'district' => ['required', 'string', 'max:255', 'unique:delivery_fees,district,'.$fee->id],
             'base_fee' => ['required', 'numeric', 'min:0'],
             'per_km_fee' => ['required', 'numeric', 'min:0'],
             'minimum_order' => ['required', 'numeric', 'min:0'],
             'free_delivery_limit' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', 'in:active,inactive'],
         ]);
+        $validated['district'] = trim($validated['district']);
 
         $fee->update($validated);
 

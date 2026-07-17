@@ -14,6 +14,12 @@
                 <div class="mb-6 rounded-lg bg-green-50 p-4 text-sm text-green-700 shadow-sm">{{ session('status') }}</div>
             @endif
 
+            <div class="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50 p-5 text-sm text-indigo-950 shadow-sm">
+                <p class="font-bold">{{ __('These rules are the authoritative delivery prices for DailyCart checkout.') }}</p>
+                <p class="mt-2 leading-6">{{ __('Active district rules apply to web checkout, API quotes, order creation, payments, and recurring orders. Base Fee is always charged; Per KM Fee is added when distance is available. Minimum Order blocks smaller vendor orders, while Free Delivery Limit makes eligible delivery free.') }}</p>
+                <p class="mt-2 leading-6">{{ __('Use “All Districts”, “Default”, or “*” as an active fallback rule for locations without an exact district match. Only Admin and Super Admin accounts can manage these configurations.') }}</p>
+            </div>
+
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg border border-gray-100">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -34,7 +40,7 @@
                                 <td class="p-4 font-mono">{{ \App\Services\CurrencyService::formatLkr($fee->base_fee) }}</td>
                                 <td class="p-4 font-mono">{{ \App\Services\CurrencyService::formatLkr($fee->per_km_fee) }}</td>
                                 <td class="p-4 font-mono">{{ \App\Services\CurrencyService::formatLkr($fee->minimum_order) }}</td>
-                                <td class="p-4 font-mono">{{ $fee->free_delivery_limit ? \App\Services\CurrencyService::formatLkr($fee->free_delivery_limit) : __('N/A') }}</td>
+                                <td class="p-4 font-mono">{{ $fee->free_delivery_limit !== null ? \App\Services\CurrencyService::formatLkr($fee->free_delivery_limit) : __('N/A') }}</td>
                                 <td class="p-4">
                                     <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $fee->status === 'active' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">
                                         {{ ucfirst($fee->status) }}

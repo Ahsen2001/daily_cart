@@ -17,6 +17,7 @@ class RecurringOrderService
         private readonly NotificationService $notifications,
         private readonly PaymentService $payments,
         private readonly SubscriptionService $subscriptions,
+        private readonly DeliveryFeeService $deliveryFees,
     ) {}
 
     public function dispatchDueSubscriptions(): int
@@ -56,7 +57,13 @@ class RecurringOrderService
 
             $scheduledAt = $this->scheduledDateTime($subscription);
             $subtotal = round((float) $subscription->unit_price * $subscription->quantity, 2);
-            $deliveryFee = OrderService::deliveryChargeForQuantity((int) $subscription->quantity);
+            $deliveryFee = $this->deliveryFees->calculate(
+                $subtotal,
+                null,
+                null,
+                (int) $subscription->quantity,
+                $subscription->customer,
+            );
             $serviceCharge = OrderService::serviceChargeForSubtotal($subtotal);
             $total = round($subtotal + $deliveryFee + $serviceCharge, 2);
 

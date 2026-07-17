@@ -18,6 +18,7 @@ class CheckoutRequest extends FormRequest
     {
         return [
             'delivery_address' => ['required', 'string', 'max:1000'],
+            'delivery_district' => ['nullable', 'string', 'max:255'],
             'delivery_latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'delivery_longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'delivery_distance_meters' => ['nullable', 'integer', 'min:0'],

@@ -87,6 +87,24 @@
                             </div>
 
                             <textarea id="delivery_address" name="delivery_address" rows="4" class="block w-full rounded-2xl border-gray-200 shadow-sm focus:border-green-500 focus:ring-green-500" required placeholder="{{ __('House number, street, city, district') }}">{{ old('delivery_address', $defaultAddress) }}</textarea>
+                            @if ($deliveryDistricts->isNotEmpty())
+                                <div class="mt-4">
+                                    <x-input-label for="delivery_district" :value="__('Delivery District')" />
+                                    <select id="delivery_district" name="delivery_district" class="mt-1 block w-full rounded-2xl border-gray-200 shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                                        <option value="">{{ __('Select the district used for delivery pricing') }}</option>
+                                        @if ($selectedDeliveryDistrict && ! $deliveryDistricts->contains(fn ($district) => strcasecmp($district, $selectedDeliveryDistrict) === 0))
+                                            <option value="{{ $selectedDeliveryDistrict }}" selected>{{ $selectedDeliveryDistrict }}</option>
+                                        @endif
+                                        @foreach ($deliveryDistricts as $district)
+                                            <option value="{{ $district }}" @selected(old('delivery_district', $selectedDeliveryDistrict) === $district)>{{ $district }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="mt-2 text-xs text-gray-500">{{ __('The active Admin Delivery Fees Configuration for this district determines the base fee, per-kilometre charge, minimum order, and free-delivery threshold.') }}</p>
+                                    <x-input-error :messages="$errors->get('delivery_district')" class="mt-2" />
+                                </div>
+                            @else
+                                <input type="hidden" name="delivery_district" value="{{ old('delivery_district', $selectedDeliveryDistrict) }}">
+                            @endif
                             <input type="hidden" id="delivery_latitude" name="delivery_latitude" value="{{ old('delivery_latitude', $addressModel?->latitude) }}">
                             <input type="hidden" id="delivery_longitude" name="delivery_longitude" value="{{ old('delivery_longitude', $addressModel?->longitude) }}">
                             <input type="hidden" id="delivery_distance_meters" name="delivery_distance_meters" value="{{ old('delivery_distance_meters') }}">
@@ -353,6 +371,19 @@
         const currentTimeDisplay = document.getElementById('client-current-time-display');
         const minimumTimeDisplay = document.getElementById('minimum-delivery-time-display');
         const checkoutForm = document.getElementById('checkout-form');
+        const deliveryDistrict = document.getElementById('delivery_district');
+
+        deliveryDistrict?.addEventListener('change', () => {
+            const url = new URL(window.location.href);
+
+            if (deliveryDistrict.value) {
+                url.searchParams.set('delivery_district', deliveryDistrict.value);
+            } else {
+                url.searchParams.delete('delivery_district');
+            }
+
+            window.location.assign(url.toString());
+        });
 
         const padDatePart = (value) => String(value).padStart(2, '0');
         const toLocalInputValue = (date) => {

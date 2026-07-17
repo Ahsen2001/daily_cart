@@ -7,6 +7,7 @@ use App\Http\Requests\ApplyCouponRequest;
 use App\Http\Requests\CheckoutRequest;
 use App\Models\Order;
 use App\Services\CartService;
+use App\Services\DeliveryFeeService;
 use App\Services\DeliveryScheduleService;
 use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
@@ -15,17 +16,30 @@ use Illuminate\View\View;
 
 class CheckoutController extends Controller
 {
-    public function show(Request $request, CartService $cartService, OrderService $orderService, DeliveryScheduleService $schedule): View
-    {
-        $cart = $cartService->activeCart($request->user()->customer)->load(['items.product.category', 'items.variant']);
+    public function show(
+        Request $request,
+        CartService $cartService,
+        OrderService $orderService,
+        DeliveryScheduleService $schedule,
+        DeliveryFeeService $deliveryFees,
+    ): View {
+        $customer = $request->user()->customer;
+        $cart = $cartService->activeCart($customer)->load(['items.product.category', 'items.variant']);
         $couponCode = session('checkout_coupon_code');
         $loyaltyPoints = (int) session('checkout_loyalty_points', 0);
+        $defaultDistrict = $customer->addresses()
+            ->orderByDesc('is_default')
+            ->orderBy('id')
+            ->value('district');
+        $selectedDistrict = $request->query('delivery_district', $defaultDistrict);
 
         return view('customer.checkout.show', [
             'cart' => $cart,
-            'quote' => $orderService->quote($cart, $couponCode, $request->user()->customer, $loyaltyPoints),
+            'quote' => $orderService->quote($cart, $couponCode, $customer, $loyaltyPoints, $selectedDistrict),
             'couponCode' => $couponCode,
             'loyaltyPoints' => $loyaltyPoints,
+            'deliveryDistricts' => $deliveryFees->configuredDistricts(),
+            'selectedDeliveryDistrict' => $selectedDistrict,
             'minimumDeliveryTime' => $schedule->minimumDeliveryTime(),
             'currentDateTime' => now(),
             'googleMapsBrowserKey' => config('services.google_maps.browser_key'),

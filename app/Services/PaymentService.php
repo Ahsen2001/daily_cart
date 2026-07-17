@@ -97,7 +97,7 @@ class PaymentService
             return $payment;
         }
 
-        $deliveryFee = OrderService::deliveryChargeForQuantity((int) $order->items->sum('quantity'));
+        $deliveryFee = round((float) $order->delivery_fee, 2);
         $serviceCharge = OrderService::serviceChargeForSubtotal($order->subtotal);
         $total = round(
             (float) $order->subtotal

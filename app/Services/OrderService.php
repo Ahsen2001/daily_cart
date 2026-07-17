@@ -28,6 +28,7 @@ class OrderService
         private readonly NotificationService $notificationService,
         private readonly LoyaltyPointService $loyaltyPointService,
         private readonly ExternalEmailService $emails,
+        private readonly DeliveryFeeService $deliveryFees,
     ) {}
 
     /**
@@ -49,7 +50,9 @@ class OrderService
                 $cart,
                 $data['coupon_code'] ?? null,
                 $customer,
-                (int) ($data['loyalty_points'] ?? 0)
+                (int) ($data['loyalty_points'] ?? 0),
+                $data['delivery_district'] ?? null,
+                isset($data['delivery_distance_meters']) ? (int) $data['delivery_distance_meters'] : null,
             );
 
             foreach ($pricingLines as $pricing) {
@@ -128,9 +131,22 @@ class OrderService
         });
     }
 
-    public function quote(Cart $cart, ?string $couponCode = null, ?Customer $customer = null, int $loyaltyPoints = 0): array
-    {
-        $lines = collect($this->pricingLines($cart, $couponCode, $customer, $loyaltyPoints));
+    public function quote(
+        Cart $cart,
+        ?string $couponCode = null,
+        ?Customer $customer = null,
+        int $loyaltyPoints = 0,
+        ?string $deliveryDistrict = null,
+        ?int $deliveryDistanceMeters = null,
+    ): array {
+        $lines = collect($this->pricingLines(
+            $cart,
+            $couponCode,
+            $customer,
+            $loyaltyPoints,
+            $deliveryDistrict,
+            $deliveryDistanceMeters,
+        ));
 
         return [
             'coupon' => $lines->firstWhere('coupon', '!=', null)['coupon'] ?? null,
@@ -149,8 +165,14 @@ class OrderService
      *
      * @return array<int, array<string, mixed>>
      */
-    private function pricingLines(Cart $cart, ?string $couponCode, ?Customer $customer, int $loyaltyPoints): array
-    {
+    private function pricingLines(
+        Cart $cart,
+        ?string $couponCode,
+        ?Customer $customer,
+        int $loyaltyPoints,
+        ?string $deliveryDistrict = null,
+        ?int $deliveryDistanceMeters = null,
+    ): array {
         $this->cartService->refreshPrices($cart);
         $cart->loadMissing(['items.product.category', 'items.variant.inventory']);
 
@@ -159,7 +181,13 @@ class OrderService
 
         foreach ($cart->items->groupBy(fn (CartItem $item) => $item->product->vendor_id) as $vendorId => $items) {
             $subtotal = round((float) $items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity), 2);
-            $deliveryFee = $this->deliveryChargeForItems($items);
+            $deliveryFee = $this->deliveryFees->calculate(
+                $subtotal,
+                $deliveryDistrict,
+                $deliveryDistanceMeters,
+                (int) $items->sum('quantity'),
+                $customer,
+            );
             $coupon = $couponApplied
                 ? null
                 : $this->couponService->findValid($couponCode, $subtotal, (int) $vendorId, $customer);
@@ -254,11 +282,6 @@ class OrderService
         $value = Setting::query()->where('setting_key', $key)->value('setting_value');
 
         return is_numeric($value) ? max(0, (float) $value) : $default;
-    }
-
-    private function deliveryChargeForItems($items): float
-    {
-        return self::deliveryChargeForQuantity((int) $items->sum('quantity'));
     }
 
     private function reduceStock(int $productId, ?int $variantId, int $quantity): void

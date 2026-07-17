@@ -15,6 +15,7 @@
                     <div>
                         <x-input-label for="district" :value="__('District Name')" />
                         <x-text-input id="district" name="district" type="text" class="mt-1 block w-full" :value="old('district')" required autofocus />
+                        <p class="mt-1 text-xs text-gray-500">{{ __('Enter an exact district, or use All Districts, Default, or * as the fallback configuration.') }}</p>
                         <x-input-error class="mt-2" :messages="$errors->get('district')" />
                     </div>
 

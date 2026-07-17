@@ -6,15 +6,19 @@ use App\Models\Cart;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Customer;
+use App\Models\DeliveryFee;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Services\DeliveryFeeService;
 use App\Services\OrderService;
+use App\Services\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -132,6 +136,83 @@ class CriticalCommerceFlowsTest extends TestCase
         $this->assertSame((float) $quote['grand_total'], $createdTotal);
         $this->assertSame((float) $quote['delivery_fee'], round((float) Order::query()->sum('delivery_fee'), 2));
         $this->assertSame('converted', $cart->refresh()->status);
+    }
+
+    public function test_admin_delivery_fee_configuration_controls_quote_order_and_payment_totals(): void
+    {
+        Mail::fake();
+        [, $customer] = $this->createCustomer();
+        $product = $this->createProduct($this->createVendor(), $this->createCategory(), price: 1000);
+        $cart = $this->createCart($customer, [[$product, 2]]);
+        $rule = DeliveryFee::query()->create([
+            'district' => 'Colombo',
+            'base_fee' => 125,
+            'per_km_fee' => 10,
+            'minimum_order' => 500,
+            'free_delivery_limit' => 5000,
+            'status' => 'active',
+        ]);
+        $orders = app(OrderService::class);
+
+        $quote = $orders->quote($cart, null, $customer, 0, 'Colombo', 2000);
+
+        $this->assertSame(145.0, $quote['delivery_fee']);
+        $this->assertSame(0.0, app(DeliveryFeeService::class)->calculate(5000, 'Colombo', 2000, 2, $customer));
+
+        try {
+            app(DeliveryFeeService::class)->calculate(400, 'Colombo', 2000, 1, $customer);
+            $this->fail('Orders below the configured district minimum must be rejected.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('delivery_district', $exception->errors());
+        }
+
+        $rule->update(['base_fee' => 300, 'per_km_fee' => 20]);
+        $updatedQuote = $orders->quote($cart, null, $customer, 0, 'Colombo', 2000);
+
+        $this->assertSame(340.0, $updatedQuote['delivery_fee']);
+
+        $createdOrders = $orders->createFromCart($customer, $this->checkoutPayload([
+            'delivery_district' => 'Colombo',
+            'delivery_distance_meters' => 2000,
+        ]));
+        $order = collect($createdOrders)->first();
+        $payment = $order->payment()->firstOrFail();
+
+        $this->assertSame(340.0, (float) $order->delivery_fee);
+        $this->assertSame($updatedQuote['grand_total'], (float) $order->total_amount);
+        $this->assertSame(340.0, (float) $payment->delivery_fee);
+
+        app(PaymentService::class)->syncPendingOrderAmounts($payment);
+
+        $this->assertSame(340.0, (float) $order->refresh()->delivery_fee);
+        $this->assertSame(340.0, (float) $payment->refresh()->delivery_fee);
+    }
+
+    public function test_only_admin_and_super_admin_can_manage_delivery_fee_configuration(): void
+    {
+        $route = RouteFacade::getRoutes()->getByName('admin.delivery-fees.store');
+
+        $this->assertContains('role:Super Admin,Admin', $route->gatherMiddleware());
+
+        foreach (['Admin', 'Super Admin'] as $roleName) {
+            $role = Role::findOrCreate($roleName, 'web');
+            $user = User::factory()->create(['role_id' => $role->id]);
+            $user->assignRole($role);
+
+            $this->actingAs($user)
+                ->post(route('admin.delivery-fees.store'), [])
+                ->assertSessionHasErrors(['district', 'base_fee', 'per_km_fee', 'minimum_order', 'status']);
+        }
+
+        foreach (['Customer', 'Vendor', 'Rider'] as $roleName) {
+            $role = Role::findOrCreate($roleName, 'web');
+            $user = User::factory()->create(['role_id' => $role->id]);
+            $user->assignRole($role);
+
+            $this->actingAs($user)
+                ->post(route('admin.delivery-fees.store'), [])
+                ->assertForbidden();
+        }
     }
 
     public function test_competing_checkouts_cannot_oversell_the_last_unit(): void

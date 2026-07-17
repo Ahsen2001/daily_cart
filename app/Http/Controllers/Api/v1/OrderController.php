@@ -61,6 +61,8 @@ class OrderController extends Controller
         $validated = $request->validate([
             'coupon_code' => ['nullable', 'string', 'max:255'],
             'loyalty_points' => ['nullable', 'integer', 'min:0'],
+            'delivery_district' => ['nullable', 'string', 'max:255'],
+            'delivery_distance_meters' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $customer = $request->user()->customer;
@@ -74,7 +76,9 @@ class OrderController extends Controller
             $cart,
             $validated['coupon_code'] ?? null,
             $customer,
-            (int) ($validated['loyalty_points'] ?? 0)
+            (int) ($validated['loyalty_points'] ?? 0),
+            $validated['delivery_district'] ?? null,
+            isset($validated['delivery_distance_meters']) ? (int) $validated['delivery_distance_meters'] : null,
         );
 
         return response()->json([

@@ -123,6 +123,8 @@
                                     $discountLabel = $promotion->discount_type === 'percentage'
                                         ? rtrim(rtrim(number_format((float) $promotion->discount_value, 2), '0'), '.').'% OFF'
                                         : \App\Services\CurrencyService::formatLkr($promotion->discount_value).' OFF';
+                                    $offerBasePrice = $offerProduct ? (float) ($offerProduct->discount_price ?: $offerProduct->price) : null;
+                                    $offerPrice = $offerBasePrice !== null ? $promotion->priceFor($offerBasePrice) : null;
                                 @endphp
 
                                 <article class="group overflow-hidden rounded-[1.75rem] bg-white text-brand-text shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-lift">
@@ -157,10 +159,6 @@
                                             @if ($offerProduct)
                                                 <div class="mt-4 flex items-center justify-between border-t border-brand-border pt-4">
                                                     <p class="line-clamp-1 text-sm font-semibold text-brand-text/70">{{ $offerProduct->name }}</p>
-                                                    @php
-                                                        $offerBasePrice = (float) ($offerProduct->discount_price ?: $offerProduct->price);
-                                                        $offerPrice = $promotion->priceFor($offerBasePrice);
-                                                    @endphp
                                                     <div class="shrink-0 pl-3 text-right">
                                                         <p class="font-extrabold text-brand-dark">{{ \App\Services\CurrencyService::formatLkr($offerPrice) }}</p>
                                                         <p class="text-xs text-brand-text/45 line-through">{{ \App\Services\CurrencyService::formatLkr($offerBasePrice) }}</p>

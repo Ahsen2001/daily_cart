@@ -35,7 +35,7 @@ class ProductBrowseController extends Controller
 
     public function show(Product $product): RedirectResponse
     {
-        abort_unless($product->status === 'approved' && $product->category?->status === 'active', 404);
+        abort_unless(Product::visibleToCustomers()->whereKey($product->getKey())->exists(), 404);
 
         return redirect()->route('products.show', $product);
     }
