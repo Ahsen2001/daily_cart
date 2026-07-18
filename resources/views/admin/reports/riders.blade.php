@@ -1,4 +1,4 @@
-@php use App\Services\CurrencyService; use App\Services\FinanceReportService; @endphp
+@php use App\Services\CurrencyService; use App\Services\RiderEarningService; $riderEarnings = app(RiderEarningService::class); @endphp
 
 <x-app-layout>
     <x-slot name="header"><h2 class="text-xl font-semibold text-gray-800">{{ __('Rider Report') }}</h2></x-slot>
@@ -13,7 +13,7 @@
                 <h3 class="font-semibold">{{ __('Top-performing Riders') }}</h3>
                 <div class="mt-4 space-y-2 text-sm">
                     @foreach ($top_riders as $rider)
-                        <div class="flex justify-between border-b py-2"><span>{{ $rider->user?->name }}</span><span>{{ $rider->completed_deliveries_count }} / {{ CurrencyService::formatLkr($rider->completed_deliveries_count * FinanceReportService::RIDER_DELIVERY_EARNING) }}</span></div>
+                        <div class="flex justify-between border-b py-2"><span>{{ $rider->user?->name }}</span><span>{{ $rider->completed_deliveries_count }} / {{ CurrencyService::formatLkr($riderEarnings->total($rider)) }}</span></div>
                     @endforeach
                 </div>
             </section>
@@ -23,7 +23,7 @@
                     <thead class="bg-gray-50 text-left text-xs uppercase text-gray-500"><tr><th class="px-4 py-3">{{ __('Rider') }}</th><th>{{ __('Completed') }}</th><th>{{ __('Failed') }}</th><th>{{ __('Assignments') }}</th><th>{{ __('Earnings') }}</th></tr></thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach ($rows as $rider)
-                            <tr><td class="px-4 py-3">{{ $rider->user?->name }}</td><td>{{ $rider->completed_deliveries_count }}</td><td>{{ $rider->failed_deliveries_count }}</td><td>{{ $rider->deliveries_count }}</td><td>{{ CurrencyService::formatLkr($rider->completed_deliveries_count * FinanceReportService::RIDER_DELIVERY_EARNING) }}</td></tr>
+                            <tr><td class="px-4 py-3">{{ $rider->user?->name }}</td><td>{{ $rider->completed_deliveries_count }}</td><td>{{ $rider->failed_deliveries_count }}</td><td>{{ $rider->deliveries_count }}</td><td>{{ CurrencyService::formatLkr($riderEarnings->total($rider)) }}</td></tr>
                         @endforeach
                     </tbody>
                 </table>

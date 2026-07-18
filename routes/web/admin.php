@@ -83,6 +83,9 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::get('/delivery-fees/create', [AdminDeliveryManagementController::class, 'feesCreate'])->name('delivery-fees.create');
     Route::post('/delivery-fees', [AdminDeliveryManagementController::class, 'feesStore'])->name('delivery-fees.store');
     Route::put('/delivery-fees/service-charge', [AdminDeliveryManagementController::class, 'updateServiceCharge'])->name('delivery-fees.service-charge.update');
+    Route::put('/delivery-fees/delivery-promotion', [AdminDeliveryManagementController::class, 'updateDeliveryPromotion'])->name('delivery-fees.delivery-promotion.update');
+    Route::put('/delivery-fees/rider-payout', [AdminDeliveryManagementController::class, 'updateRiderPayout'])->name('delivery-fees.rider-payout.update');
+    Route::put('/delivery-fees/vendor-commission', [AdminDeliveryManagementController::class, 'updateDefaultVendorCommission'])->name('delivery-fees.vendor-commission.update');
     Route::get('/delivery-fees/{fee}/edit', [AdminDeliveryManagementController::class, 'feesEdit'])->name('delivery-fees.edit');
     Route::put('/delivery-fees/{fee}', [AdminDeliveryManagementController::class, 'feesUpdate'])->name('delivery-fees.update');
     Route::delete('/delivery-fees/{fee}', [AdminDeliveryManagementController::class, 'feesDestroy'])->name('delivery-fees.destroy');

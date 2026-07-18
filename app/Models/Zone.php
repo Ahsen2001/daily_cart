@@ -10,12 +10,15 @@ class Zone extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['city_id', 'name', 'delivery_fee', 'status'];
+    protected $fillable = ['city_id', 'name', 'district', 'province', 'latitude', 'longitude', 'radius_km', 'estimated_delivery_minutes', 'delivery_fee', 'status'];
 
     protected function casts(): array
     {
         return [
             'delivery_fee' => 'decimal:2',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+            'radius_km' => 'decimal:2',
         ];
     }
 

@@ -213,7 +213,7 @@ class ReportService
                 ->paginate(15)
                 ->withQueryString(),
             'earnings' => [
-                'per_delivery' => FinanceReportService::RIDER_DELIVERY_EARNING,
+                'per_delivery' => app(FinancialPolicyService::class)->settings()['rider_payout_base'],
                 'completed_count' => $rider->deliveries()->where('status', 'delivered')->count(),
             ],
         ];

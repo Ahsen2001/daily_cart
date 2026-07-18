@@ -153,16 +153,26 @@ class OrderService
             $deliveryDistrict,
             $deliveryDistanceMeters,
         ));
+        $subtotal = round((float) $lines->sum('subtotal'), 2);
+        $deliveryEstimate = $this->deliveryFees->estimate(
+            $subtotal,
+            $deliveryDistrict,
+            $deliveryDistanceMeters,
+            $customer,
+        );
 
         return [
             'coupon' => $lines->firstWhere('coupon', '!=', null)['coupon'] ?? null,
-            'subtotal' => round((float) $lines->sum('subtotal'), 2),
+            'subtotal' => $subtotal,
             'discount' => round((float) $lines->sum('discount'), 2),
             'loyalty_points' => (int) $lines->sum('loyalty_points'),
             'loyalty_discount' => round((float) $lines->sum('loyalty_discount'), 2),
             'delivery_fee' => round((float) $lines->sum('delivery_fee'), 2),
             'service_charge' => round((float) $lines->sum('service_charge'), 2),
             'grand_total' => round((float) $lines->sum('total'), 2),
+            'estimated_delivery_minutes' => $deliveryEstimate['estimated_delivery_minutes'],
+            'free_delivery_eligible' => $deliveryEstimate['free_delivery_eligible'],
+            'delivery_rule_scope' => $deliveryEstimate['rule_scope'],
         ];
     }
 
@@ -187,7 +197,6 @@ class OrderService
 
         $lines = [];
         $couponApplied = false;
-        $serviceChargeRate = self::serviceChargeRate();
 
         foreach ($cart->items->groupBy(fn (CartItem $item) => $item->product->vendor_id) as $vendorId => $items) {
             $subtotal = round((float) $items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity), 2);
@@ -214,7 +223,7 @@ class OrderService
             1,
             $customer,
         );
-        $checkoutServiceCharge = self::serviceChargeForSubtotal($checkoutSubtotal, $serviceChargeRate);
+        $checkoutServiceCharge = self::serviceChargeForSubtotal($checkoutSubtotal);
 
         foreach ($lines as &$line) {
             $line['discount'] = $this->couponService->discount(
@@ -326,7 +335,11 @@ class OrderService
 
     public static function serviceChargeForSubtotal(float|int|string $subtotal, ?float $rate = null): float
     {
-        return round((float) $subtotal * ($rate ?? self::serviceChargeRate()), 2);
+        if ($rate !== null) {
+            return round((float) $subtotal * $rate, 2);
+        }
+
+        return app(FinancialPolicyService::class)->serviceCharge($subtotal);
     }
 
     private static function settingFloat(string $key, float $default): float

@@ -7,6 +7,8 @@ use Illuminate\Support\Carbon;
 
 class RiderEarningService
 {
+    public function __construct(private readonly FinancialPolicyService $financialPolicy) {}
+
     public function summary(Rider $rider, ?Carbon $at = null): array
     {
         $at ??= now();
@@ -18,11 +20,26 @@ class RiderEarningService
         ];
     }
 
+    public function total(Rider $rider): float
+    {
+        return round((float) $rider->deliveries()
+            ->where('status', 'delivered')
+            ->with('order')
+            ->get()
+            ->sum(fn ($delivery) => $delivery->rider_payout !== null
+                ? (float) $delivery->rider_payout
+                : $this->financialPolicy->riderPayout($delivery)), 2);
+    }
+
     private function earnedBetween(Rider $rider, Carbon $from, Carbon $to): float
     {
-        return (float) $rider->deliveries()
+        return round((float) $rider->deliveries()
             ->where('status', 'delivered')
             ->whereBetween('delivered_at', [$from, $to])
-            ->count() * FinanceReportService::RIDER_DELIVERY_EARNING;
+            ->with('order')
+            ->get()
+            ->sum(fn ($delivery) => $delivery->rider_payout !== null
+                ? (float) $delivery->rider_payout
+                : $this->financialPolicy->riderPayout($delivery)), 2);
     }
 }

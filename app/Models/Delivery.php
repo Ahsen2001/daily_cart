@@ -21,6 +21,7 @@ class Delivery extends Model
         'accepted_at',
         'picked_up_at',
         'delivered_at',
+        'rider_payout',
         'failed_reason',
         'status',
     ];
@@ -32,6 +33,7 @@ class Delivery extends Model
             'accepted_at' => 'datetime',
             'picked_up_at' => 'datetime',
             'delivered_at' => 'datetime',
+            'rider_payout' => 'decimal:2',
             'deleted_at' => 'datetime',
         ];
     }

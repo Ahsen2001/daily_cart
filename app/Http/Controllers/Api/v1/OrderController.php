@@ -90,6 +90,9 @@ class OrderController extends Controller
                 'delivery_fee' => (float) $quote['delivery_fee'],
                 'service_charge' => (float) $quote['service_charge'],
                 'grand_total' => (float) $quote['grand_total'],
+                'estimated_delivery_minutes' => $quote['estimated_delivery_minutes'],
+                'free_delivery_eligible' => (bool) $quote['free_delivery_eligible'],
+                'delivery_rule_scope' => $quote['delivery_rule_scope'],
             ],
         ]);
     }

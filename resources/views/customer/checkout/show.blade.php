@@ -216,6 +216,12 @@
                             <div class="flex justify-between text-green-700"><dt>{{ __('Discount') }}</dt><dd>{{ CurrencyService::formatLkr($quote['discount']) }}</dd></div>
                             <div class="flex justify-between text-green-700"><dt>{{ __('Loyalty Discount') }}</dt><dd>{{ CurrencyService::formatLkr($quote['loyalty_discount']) }}</dd></div>
                             <div class="flex justify-between"><dt>{{ __('Delivery Charge') }}</dt><dd>{{ CurrencyService::formatLkr($quote['delivery_fee']) }}</dd></div>
+                            @if ($quote['estimated_delivery_minutes'])
+                                <div class="flex justify-between text-brand-muted"><dt>{{ __('Estimated delivery') }}</dt><dd>{{ $quote['estimated_delivery_minutes'] }} {{ __('minutes') }}</dd></div>
+                            @endif
+                            @if ($quote['free_delivery_eligible'])
+                                <div class="rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{{ __('You qualify for free delivery.') }}</div>
+                            @endif
                             <div class="flex justify-between"><dt>{{ __('Service Charge') }}</dt><dd>{{ CurrencyService::formatLkr($quote['service_charge']) }}</dd></div>
                             <div class="flex justify-between border-t border-gray-100 pt-3 text-lg font-bold text-gray-900"><dt>{{ __('Grand Total') }}</dt><dd>{{ CurrencyService::formatLkr($quote['grand_total']) }}</dd></div>
                         </dl>

@@ -17,6 +17,12 @@
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.admins.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.admins.index') }}">{{ __('Admin Accounts') }}</a>
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.roles.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.roles.index') }}">{{ __('Roles & Permissions') }}</a>
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.settings.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.settings.index') }}">{{ __('Platform Settings') }}</a>
+                        <p class="px-3 pt-3 text-xs font-bold uppercase tracking-wider text-brand-muted">{{ __('Delivery Management') }}</p>
+                        <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.zones.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.zones.index') }}">{{ __('Delivery Zones') }}</a>
+                        <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.rules.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.rules.index') }}">{{ __('Delivery Fee Rules') }}</a>
+                        <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.simulator') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.simulator') }}">{{ __('Delivery Simulator') }}</a>
+                        <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.analytics') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.analytics') }}">{{ __('Delivery Analytics') }}</a>
+                        <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.history') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.history') }}">{{ __('Rule History') }}</a>
                     @endif
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.customers.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.customers.index') }}">{{ __('Customers') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.vendors.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.vendors.index') }}">{{ __('Vendors') }}</a>

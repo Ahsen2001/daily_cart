@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\SuperAdminDashboardController;
 use App\Http\Controllers\Admin\SystemLogController;
 use App\Http\Controllers\Admin\SystemMaintenanceController;
+use App\Http\Controllers\Admin\DeliveryEngineController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:Super Admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
@@ -21,6 +22,16 @@ Route::middleware(['auth', 'verified', 'role:Super Admin'])->prefix('super-admin
 
     Route::get('/settings', [PlatformSettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [PlatformSettingsController::class, 'update'])->name('settings.update');
+
+    Route::get('/delivery-management/zones', [DeliveryEngineController::class, 'zones'])->name('delivery.zones.index');
+    Route::post('/delivery-management/zones', [DeliveryEngineController::class, 'storeZone'])->name('delivery.zones.store');
+    Route::put('/delivery-management/zones/{zone}', [DeliveryEngineController::class, 'updateZone'])->name('delivery.zones.update');
+    Route::get('/delivery-management/rules', [DeliveryEngineController::class, 'rules'])->name('delivery.rules.index');
+    Route::post('/delivery-management/rules', [DeliveryEngineController::class, 'storeRule'])->name('delivery.rules.store');
+    Route::put('/delivery-management/rules/{rule}', [DeliveryEngineController::class, 'updateRule'])->name('delivery.rules.update');
+    Route::get('/delivery-management/simulator', [DeliveryEngineController::class, 'simulator'])->name('delivery.simulator');
+    Route::get('/delivery-management/analytics', [DeliveryEngineController::class, 'analytics'])->name('delivery.analytics');
+    Route::get('/delivery-management/rule-history', [DeliveryEngineController::class, 'history'])->name('delivery.history');
 
     Route::get('/logs/activity', [SystemLogController::class, 'activityLogs'])->name('logs.activity');
     Route::get('/logs/api', [SystemLogController::class, 'apiLogs'])->name('logs.api');

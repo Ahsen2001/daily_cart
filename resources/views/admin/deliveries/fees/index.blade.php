@@ -26,17 +26,64 @@
                         <p class="text-sm font-bold text-gray-900">{{ __('Service Charge Configuration') }}</p>
                         <p class="mt-1 text-sm text-gray-500">{{ __('Calculated once from the checkout subtotal, then retained across the created orders and payments.') }}</p>
                     </div>
-                    <form method="POST" action="{{ route('admin.delivery-fees.service-charge.update') }}" class="flex w-full max-w-sm items-end gap-3 sm:w-auto">
+                    <form method="POST" action="{{ route('admin.delivery-fees.service-charge.update') }}" class="grid w-full max-w-3xl gap-3 sm:grid-cols-4">
                         @csrf
                         @method('PUT')
-                        <div class="min-w-0 flex-1">
+                        <div>
                             <x-input-label for="service_charge_rate_percent" :value="__('Service Charge (%)')" />
                             <x-text-input id="service_charge_rate_percent" name="service_charge_rate_percent" type="number" min="0" max="100" step="0.01" class="mt-1 block w-full" :value="old('service_charge_rate_percent', number_format($serviceChargeRatePercent, 2, '.', ''))" required />
                             <x-input-error :messages="$errors->get('service_charge_rate_percent')" class="mt-2" />
                         </div>
+                        <div><x-input-label for="service_charge_flat_amount" :value="__('Fixed (LKR)')" /><x-text-input id="service_charge_flat_amount" name="service_charge_flat_amount" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="old('service_charge_flat_amount', $financialPolicy['service_charge_flat_amount'])" required /></div>
+                        <div><x-input-label for="service_charge_minimum" :value="__('Minimum (LKR)')" /><x-text-input id="service_charge_minimum" name="service_charge_minimum" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="old('service_charge_minimum', $financialPolicy['service_charge_minimum'])" required /></div>
+                        <div><x-input-label for="service_charge_maximum" :value="__('Maximum (0 = none)')" /><x-text-input id="service_charge_maximum" name="service_charge_maximum" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="old('service_charge_maximum', $financialPolicy['service_charge_maximum'])" required /></div>
                         <x-primary-button>{{ __('Save') }}</x-primary-button>
                     </form>
                 </div>
+            </section>
+
+            <section class="mb-6 rounded-2xl border border-sky-100 bg-white p-5 shadow-sm">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div><p class="text-sm font-bold text-gray-900">{{ __('Delivery Promotion') }}</p><p class="mt-1 text-sm text-gray-500">{{ __('Apply one checkout-wide delivery discount after the district rule is calculated. Set the percentage to 0 to disable it.') }}</p></div>
+                    <form method="POST" action="{{ route('admin.delivery-fees.delivery-promotion.update') }}" class="grid w-full max-w-xl gap-3 sm:grid-cols-3">@csrf @method('PUT')
+                        <div><x-input-label for="delivery_promotion_discount_percent" :value="__('Discount (%)')" /><x-text-input id="delivery_promotion_discount_percent" name="delivery_promotion_discount_percent" type="number" min="0" max="100" step="0.01" class="mt-1 block w-full" :value="$financialPolicy['delivery_promotion_discount_percent']" required /></div>
+                        <div><x-input-label for="delivery_promotion_minimum_subtotal" :value="__('Minimum cart (LKR)')" /><x-text-input id="delivery_promotion_minimum_subtotal" name="delivery_promotion_minimum_subtotal" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="$financialPolicy['delivery_promotion_minimum_subtotal']" required /></div>
+                        <x-primary-button class="self-end">{{ __('Save promotion') }}</x-primary-button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="mb-6 rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+                <div class="mb-4"><p class="text-sm font-bold text-gray-900">{{ __('Financial Policies') }}</p><p class="mt-1 text-sm text-gray-500">{{ __('Rider payouts and the default vendor commission are controlled by Super Admin. Each delivered order retains its calculated rider payout.') }}</p></div>
+                @if (Auth::user()->isSuperAdmin() || Auth::user()->can('delivery.rider_payouts.manage') || Auth::user()->can('finance.commissions.manage'))
+                    <div class="grid gap-6 lg:grid-cols-2">
+                        @if (Auth::user()->isSuperAdmin() || Auth::user()->can('delivery.rider_payouts.manage'))
+                        <form method="POST" action="{{ route('admin.delivery-fees.rider-payout.update') }}" class="grid gap-3 sm:grid-cols-2">@csrf @method('PUT')
+                            <div class="sm:col-span-2 font-semibold">{{ __('Rider payout rule') }}</div>
+                            <div><x-input-label for="rider_payout_base" :value="__('Base per delivery (LKR)')" /><x-text-input id="rider_payout_base" name="rider_payout_base" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="$financialPolicy['rider_payout_base']" required /></div>
+                            <div><x-input-label for="rider_payout_per_km" :value="__('Per KM (LKR)')" /><x-text-input id="rider_payout_per_km" name="rider_payout_per_km" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="$financialPolicy['rider_payout_per_km']" required /></div>
+                            <div><x-input-label for="rider_peak_bonus" :value="__('Peak bonus (LKR)')" /><x-text-input id="rider_peak_bonus" name="rider_peak_bonus" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="$financialPolicy['rider_peak_bonus']" required /></div>
+                            <div class="grid grid-cols-2 gap-2"><div><x-input-label for="rider_peak_start_hour" :value="__('Peak starts')" /><x-text-input id="rider_peak_start_hour" name="rider_peak_start_hour" type="number" min="0" max="23" class="mt-1 block w-full" :value="$financialPolicy['rider_peak_start_hour']" required /></div><div><x-input-label for="rider_peak_end_hour" :value="__('Peak ends')" /><x-text-input id="rider_peak_end_hour" name="rider_peak_end_hour" type="number" min="0" max="23" class="mt-1 block w-full" :value="$financialPolicy['rider_peak_end_hour']" required /></div></div>
+                            <x-primary-button class="w-fit">{{ __('Save rider rule') }}</x-primary-button>
+                        </form>
+                        @endif
+                        @if (Auth::user()->isSuperAdmin())
+                        <form method="POST" action="{{ route('admin.delivery-fees.vendor-commission.update') }}" class="space-y-3">@csrf @method('PUT')
+                            <p class="font-semibold">{{ __('Default vendor commission') }}</p>
+                            <div><x-input-label for="default_vendor_commission_rate" :value="__('Commission (%)')" /><x-text-input id="default_vendor_commission_rate" name="default_vendor_commission_rate" type="number" min="0" max="100" step="0.01" class="mt-1 block w-full" :value="$financialPolicy['default_vendor_commission_rate']" required /></div>
+                            <x-primary-button>{{ __('Save commission') }}</x-primary-button>
+                        </form>
+                        @elseif (Auth::user()->can('finance.commissions.manage'))
+                        <form method="POST" action="{{ route('admin.delivery-fees.vendor-commission.update') }}" class="space-y-3">@csrf @method('PUT')
+                            <p class="font-semibold">{{ __('Default vendor commission') }}</p>
+                            <div><x-input-label for="default_vendor_commission_rate" :value="__('Commission (%)')" /><x-text-input id="default_vendor_commission_rate" name="default_vendor_commission_rate" type="number" min="0" max="100" step="0.01" class="mt-1 block w-full" :value="$financialPolicy['default_vendor_commission_rate']" required /></div>
+                            <x-primary-button>{{ __('Save commission') }}</x-primary-button>
+                        </form>
+                        @endif
+                    </div>
+                @else
+                    <p class="text-sm text-amber-800">{{ __('Only Super Admin can change rider payout and default commission rules.') }}</p>
+                @endif
             </section>
 
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg border border-gray-100">

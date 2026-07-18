@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Refund;
+use App\Models\Delivery;
 use App\Models\Vendor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 class FinanceReportService
 {
     public const RIDER_DELIVERY_EARNING = 350.00;
+
+    public function __construct(private readonly FinancialPolicyService $financialPolicy) {}
 
     public function adminSummary(?string $from = null, ?string $to = null): array
     {
@@ -26,9 +29,7 @@ class FinanceReportService
             'total_delivery_charges' => (float) (clone $orders)->sum('delivery_fee'),
             'total_service_charges' => (float) (clone $orders)->sum('service_charge'),
             'total_vendor_payouts' => (float) $vendorPayouts,
-            'total_rider_payouts' => (float) $this->dateRange(Order::query(), 'placed_at', $from, $to)
-                ->where('order_status', 'delivered')
-                ->count() * self::RIDER_DELIVERY_EARNING,
+            'total_rider_payouts' => $this->riderPayouts($from, $to),
             'total_refunds' => (float) $this->dateRange(Refund::query(), 'processed_at', $from, $to)
                 ->where('status', 'approved')
                 ->sum('amount'),
@@ -64,9 +65,7 @@ class FinanceReportService
             ->where('payment_status', 'paid')
             ->sum(DB::raw('subtotal - discount_amount'));
 
-        $commissionRate = (float) ($vendor->commission_rate ?? 0);
-
-        return round($base - ($base * ($commissionRate / 100)), 2);
+        return $this->financialPolicy->vendorPayoutForBase($vendor, $base);
     }
 
     public function vendorEarning(Order $order): float
@@ -75,10 +74,7 @@ class FinanceReportService
             return 0.0;
         }
 
-        $commissionRate = (float) ($order->vendor?->commission_rate ?? 0);
-        $base = (float) $order->subtotal - (float) $order->discount_amount;
-
-        return round($base - ($base * ($commissionRate / 100)), 2);
+        return $this->financialPolicy->vendorPayout($order);
     }
 
     private function dateRange(Builder $query, string $column, ?string $from, ?string $to): Builder
@@ -86,5 +82,18 @@ class FinanceReportService
         return $query
             ->when($from, fn (Builder $query) => $query->whereDate($column, '>=', Carbon::parse($from)->toDateString()))
             ->when($to, fn (Builder $query) => $query->whereDate($column, '<=', Carbon::parse($to)->toDateString()));
+    }
+
+    private function riderPayouts(?string $from, ?string $to): float
+    {
+        return round((float) Delivery::query()
+            ->where('status', 'delivered')
+            ->when($from, fn ($query) => $query->whereDate('delivered_at', '>=', Carbon::parse($from)->toDateString()))
+            ->when($to, fn ($query) => $query->whereDate('delivered_at', '<=', Carbon::parse($to)->toDateString()))
+            ->with('order')
+            ->get()
+            ->sum(fn (Delivery $delivery) => $delivery->rider_payout !== null
+                ? (float) $delivery->rider_payout
+                : $this->financialPolicy->riderPayout($delivery)), 2);
     }
 }

@@ -18,6 +18,7 @@ class DeliveryService
         private readonly OrderStatusService $orderStatusService,
         private readonly LoyaltyPointService $loyaltyPointService,
         private readonly ExternalEmailService $emails,
+        private readonly FinancialPolicyService $financialPolicy,
     ) {}
 
     public function assignRider(Order $order, Rider $rider): Delivery
@@ -98,6 +99,8 @@ class DeliveryService
                 'status' => 'delivered',
                 'delivered_at' => now(),
             ]);
+            $delivery->loadMissing('order');
+            $delivery->update(['rider_payout' => $this->financialPolicy->riderPayout($delivery)]);
 
             $delivery->proofs()->create([
                 'proof_image' => $photo->store('delivery-proofs', 'public'),
