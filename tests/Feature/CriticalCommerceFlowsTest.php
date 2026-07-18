@@ -26,6 +26,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route as RouteFacade;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -181,9 +183,10 @@ class CriticalCommerceFlowsTest extends TestCase
         );
     }
 
-    public function test_rider_marking_an_order_out_for_delivery_queues_the_customer_invoice(): void
+    public function test_rider_marking_an_order_delivered_queues_the_customer_invoice(): void
     {
         Mail::fake();
+        Storage::fake('public');
 
         [, $customer] = $this->createCustomer();
         $vendor = $this->createVendor();
@@ -209,6 +212,14 @@ class CriticalCommerceFlowsTest extends TestCase
         app(DeliveryService::class)->markOnTheWay($delivery->refresh());
 
         $this->assertSame('out_for_delivery', $order->refresh()->order_status);
+        Mail::assertNotQueued(OrderInvoiceMail::class);
+
+        app(DeliveryService::class)->markDelivered(
+            $delivery->refresh(),
+            UploadedFile::fake()->create('delivery-proof.jpg', 100, 'image/jpeg'),
+        );
+
+        $this->assertSame('delivered', $order->refresh()->order_status);
         Mail::assertQueued(
             OrderInvoiceMail::class,
             fn (OrderInvoiceMail $mail) => $mail->order->is($order)

@@ -12,7 +12,6 @@ use App\Models\Review;
 use App\Models\Rider;
 use App\Models\SupportTicket;
 use App\Models\Vendor;
-use Illuminate\Support\Carbon;
 
 class DashboardService
 {
@@ -78,15 +77,16 @@ class DashboardService
     public function riderOverview(Rider $rider): array
     {
         $today = now()->toDateString();
+        $earnings = app(RiderEarningService::class)->summary($rider);
 
         return [
             'assigned_deliveries' => $rider->deliveries()->whereIn('status', ['assigned', 'picked_up', 'on_the_way'])->count('*'),
             'completed_deliveries' => $rider->deliveries()->where('status', 'delivered')->count('*'),
             'failed_deliveries' => $rider->deliveries()->where('status', 'failed')->count('*'),
             'todays_deliveries' => $rider->deliveries()->whereDate('created_at', '=', $today, 'and')->count('*'),
-            'daily_earnings' => $this->riderEarnings($rider, now()->startOfDay(), now()->endOfDay()),
-            'weekly_earnings' => $this->riderEarnings($rider, now()->startOfWeek(), now()->endOfWeek()),
-            'monthly_earnings' => $this->riderEarnings($rider, now()->startOfMonth(), now()->endOfMonth()),
+            'daily_earnings' => $earnings['daily'],
+            'weekly_earnings' => $earnings['weekly'],
+            'monthly_earnings' => $earnings['monthly'],
         ];
     }
 
@@ -108,11 +108,4 @@ class DashboardService
             ->sum('total_amount');
     }
 
-    private function riderEarnings(Rider $rider, Carbon $from, Carbon $to): float
-    {
-        return $rider->deliveries()
-            ->where('status', 'delivered')
-            ->whereBetween('delivered_at', [$from, $to])
-            ->count('*') * FinanceReportService::RIDER_DELIVERY_EARNING;
-    }
 }

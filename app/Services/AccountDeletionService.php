@@ -17,8 +17,10 @@ class AccountDeletionService
             $user->loadMissing(['customer', 'vendor', 'rider', 'admin']);
 
             $user->tokens()->delete();
+            $this->releaseUserIdentifiers($user);
 
             $this->deleteVendorResources($user->vendor);
+            $user->rider?->forceFill(['license_number' => null])->saveQuietly();
 
             foreach ([$user->customer, $user->vendor, $user->rider, $user->admin] as $profile) {
                 $profile?->delete();
@@ -43,10 +45,22 @@ class AccountDeletionService
             return;
         }
 
+        $vendor->forceFill(['business_registration_no' => null])->saveQuietly();
         $vendor->products()->delete();
         $vendor->coupons()->delete();
         $vendor->promotions()->delete();
         $vendor->advertisements()->delete();
         $vendor->subscriptions()->delete();
+    }
+
+    private function releaseUserIdentifiers(User $user): void
+    {
+        $user->forceFill([
+            'email' => 'deleted+'.$user->id.'@deleted.dailycart.invalid',
+            'phone' => null,
+            'email_verified_at' => null,
+            'phone_verified_at' => null,
+            'remember_token' => null,
+        ])->saveQuietly();
     }
 }

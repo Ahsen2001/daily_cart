@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -27,9 +28,9 @@ class VendorRegistrationController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'store_name' => ['required', 'string', 'max:255'],
-            'business_registration_no' => ['nullable', 'string', 'max:255', 'unique:vendors,business_registration_no'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['required', 'string', 'max:30', 'unique:users,phone'],
+            'business_registration_no' => ['nullable', 'string', 'max:255', Rule::unique(Vendor::class, 'business_registration_no')->withoutTrashed()],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class, 'email')->withoutTrashed()],
+            'phone' => ['required', 'string', 'max:30', Rule::unique(User::class, 'phone')->withoutTrashed()],
             'address' => ['required', 'string', 'max:1000'],
             'city' => ['required', 'string', 'max:255'],
             'district' => ['required', 'string', 'max:255'],

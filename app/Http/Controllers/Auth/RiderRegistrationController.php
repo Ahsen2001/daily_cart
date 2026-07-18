@@ -27,11 +27,11 @@ class RiderRegistrationController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['required', 'string', 'max:30', 'unique:users,phone'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class, 'email')->withoutTrashed()],
+            'phone' => ['required', 'string', 'max:30', Rule::unique(User::class, 'phone')->withoutTrashed()],
             'vehicle_type' => ['required', Rule::in(['bicycle', 'motorbike', 'three_wheeler', 'van'])],
             'vehicle_number' => ['nullable', 'string', 'max:255'],
-            'license_number' => ['nullable', 'string', 'max:255', 'unique:riders,license_number'],
+            'license_number' => ['nullable', 'string', 'max:255', Rule::unique(Rider::class, 'license_number')->withoutTrashed()],
             'address' => ['required', 'string', 'max:1000'],
             'city' => ['required', 'string', 'max:255'],
             'district' => ['required', 'string', 'max:255'],

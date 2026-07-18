@@ -4,7 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\Address;
 use App\Models\Rider;
+use App\Models\Role;
+use App\Models\User;
 use App\Models\Vendor;
+use App\Services\AccountDeletionService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -90,5 +93,45 @@ class RegistrationLocationTest extends TestCase
         $this->assertSame('7.2906000', $rider->latitude);
         $this->assertSame('80.6337000', $rider->longitude);
         $this->assertSame('Lake Road, Kandy, Sri Lanka', $rider->formatted_address);
+    }
+
+    public function test_vendor_can_register_again_after_the_previous_account_is_deleted(): void
+    {
+        $this->seed(RoleSeeder::class);
+        $role = Role::findByName('Vendor', 'web');
+        $user = User::factory()->create([
+            'role_id' => $role->id,
+            'email' => 'rejoin.vendor@example.com',
+            'phone' => '0771000004',
+        ]);
+        $user->assignRole($role);
+        Vendor::query()->create([
+            'user_id' => $user->id,
+            'store_name' => 'Previous Store',
+            'business_registration_no' => 'BR-REJOIN-1',
+            'phone' => $user->phone,
+            'address' => 'Market Road',
+            'city' => 'Colombo',
+            'district' => 'Colombo',
+            'status' => 'approved',
+        ]);
+
+        app(AccountDeletionService::class)->delete($user);
+
+        $this->post('/vendor/register', [
+            'name' => 'Returning Vendor',
+            'store_name' => 'Returning Store',
+            'business_registration_no' => 'BR-REJOIN-1',
+            'email' => 'rejoin.vendor@example.com',
+            'phone' => '0771000004',
+            'address' => 'New Market Road',
+            'city' => 'Colombo',
+            'district' => 'Colombo',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame(1, User::query()->where('email', 'rejoin.vendor@example.com')->count());
+        $this->assertSame(1, Vendor::query()->where('business_registration_no', 'BR-REJOIN-1')->count());
     }
 }
