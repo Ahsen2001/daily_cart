@@ -8,16 +8,22 @@ use App\Models\Promotion;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 
 class PromotionService
 {
+    private const STOREFRONT_CACHE_PREFIX = 'storefront:promotions:';
+
     public function create(array $data, User $user, ?int $vendorId = null, ?UploadedFile $banner = null): Promotion
     {
         $data['vendor_id'] = $vendorId;
         $data['created_by'] = $user->id;
         $data['banner_image'] = $banner?->store('promotions', 'public');
 
-        return Promotion::create($data);
+        $promotion = Promotion::create($data);
+        $this->forgetStorefrontCache();
+
+        return $promotion;
     }
 
     public function update(Promotion $promotion, array $data, ?UploadedFile $banner = null): Promotion
@@ -27,6 +33,7 @@ class PromotionService
         }
 
         $promotion->update($data);
+        $this->forgetStorefrontCache();
 
         return $promotion->refresh();
     }
@@ -38,16 +45,26 @@ class PromotionService
 
     public function storefront(?int $limit = null): Collection
     {
-        $query = Promotion::query()
-            ->visibleOnStorefront()
-            ->with(['vendor', 'targetProduct.category', 'targetProduct.images'])
-            ->latest();
+        $cacheKey = self::STOREFRONT_CACHE_PREFIX.($limit ?? 'all');
 
-        if ($limit !== null) {
-            $query->limit($limit);
-        }
+        return Cache::remember($cacheKey, now()->addMinute(), function () use ($limit) {
+            $query = Promotion::query()
+                ->visibleOnStorefront()
+                ->with(['vendor', 'targetProduct.category', 'targetProduct.images'])
+                ->latest();
 
-        return $query->get();
+            if ($limit !== null) {
+                $query->limit($limit);
+            }
+
+            return $query->get();
+        });
+    }
+
+    private function forgetStorefrontCache(): void
+    {
+        Cache::forget(self::STOREFRONT_CACHE_PREFIX.'all');
+        Cache::forget(self::STOREFRONT_CACHE_PREFIX.'6');
     }
 
     public function applicableTo(Product $product): Collection

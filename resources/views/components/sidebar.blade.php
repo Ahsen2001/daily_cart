@@ -9,7 +9,7 @@
 
             <nav class="space-y-1" aria-label="{{ __('Role navigation') }}">
                 <a class="dc-sidebar-link {{ request()->routeIs('dashboard', 'super-admin.dashboard', 'admin.dashboard', 'vendor.dashboard', 'rider.dashboard', 'customer.dashboard') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
-                <a class="dc-sidebar-link {{ request()->routeIs('notifications.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('notifications.index') }}">{{ __('Notifications') }}</a>
+                <a class="dc-sidebar-link {{ request()->routeIs('notifications.*', 'admin.notifications.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ Auth::user()->isAdminUser() ? route('admin.notifications.index') : route('notifications.index') }}">{{ __('Notifications') }}</a>
                 <a class="dc-sidebar-link {{ request()->routeIs('support.tickets.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('support.tickets.index') }}">{{ __('Support Tickets') }}</a>
 
                 @if (Auth::user()->hasPrimaryRole('Admin', 'Super Admin'))
@@ -19,6 +19,7 @@
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.settings.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.settings.index') }}">{{ __('Platform Settings') }}</a>
                     @endif
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.customers.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.customers.index') }}">{{ __('Customers') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.vendors.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.vendors.index') }}">{{ __('Vendors') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.reports.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.reports.sales') }}">{{ __('Reports') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.subscriptions.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.subscriptions.index') }}">{{ __('Subscriptions') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.scheduled-orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.scheduled-orders.index') }}">{{ __('Scheduled Orders') }}</a>

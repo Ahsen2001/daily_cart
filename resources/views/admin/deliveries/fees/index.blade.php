@@ -20,6 +20,25 @@
                 <p class="mt-2 leading-6">{{ __('Use “All Districts”, “Default”, or “*” as an active fallback rule for locations without an exact district match. Only Admin and Super Admin accounts can manage these configurations.') }}</p>
             </div>
 
+            <section class="mb-6 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p class="text-sm font-bold text-gray-900">{{ __('Service Charge Configuration') }}</p>
+                        <p class="mt-1 text-sm text-gray-500">{{ __('Applied to each vendor subtotal at checkout and retained with the created order and payment.') }}</p>
+                    </div>
+                    <form method="POST" action="{{ route('admin.delivery-fees.service-charge.update') }}" class="flex w-full max-w-sm items-end gap-3 sm:w-auto">
+                        @csrf
+                        @method('PUT')
+                        <div class="min-w-0 flex-1">
+                            <x-input-label for="service_charge_rate_percent" :value="__('Service Charge (%)')" />
+                            <x-text-input id="service_charge_rate_percent" name="service_charge_rate_percent" type="number" min="0" max="100" step="0.01" class="mt-1 block w-full" :value="old('service_charge_rate_percent', number_format($serviceChargeRatePercent, 2, '.', ''))" required />
+                            <x-input-error :messages="$errors->get('service_charge_rate_percent')" class="mt-2" />
+                        </div>
+                        <x-primary-button>{{ __('Save') }}</x-primary-button>
+                    </form>
+                </div>
+            </section>
+
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg border border-gray-100">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>

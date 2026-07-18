@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendNotificationChannelJob;
+use App\Mail\GenericNotificationMail;
+use App\Mail\OrderInvoiceMail;
 use App\Models\Cart;
 use App\Models\Category;
 use App\Models\Coupon;
@@ -10,13 +13,16 @@ use App\Models\DeliveryFee;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Rider;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Services\DeliveryFeeService;
+use App\Services\DeliveryService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Validation\ValidationException;
@@ -138,6 +144,63 @@ class CriticalCommerceFlowsTest extends TestCase
         $this->assertSame('converted', $cart->refresh()->status);
     }
 
+    public function test_placing_an_order_queues_email_and_sms_notifications_for_the_vendor(): void
+    {
+        Mail::fake();
+        Bus::fake();
+
+        [, $customer] = $this->createCustomer();
+        $vendor = $this->createVendor();
+        $product = $this->createProduct($vendor, $this->createCategory(), price: 250);
+        $this->createCart($customer, [[$product, 1]]);
+
+        app(OrderService::class)->createFromCart($customer, $this->checkoutPayload());
+
+        Mail::assertQueued(GenericNotificationMail::class, fn (GenericNotificationMail $mail) => $mail->title === 'New order received'
+            && $mail->hasTo($vendor->user->email));
+        Bus::assertDispatched(
+            SendNotificationChannelJob::class,
+            fn (SendNotificationChannelJob $job) => $job->userId === $vendor->user->id
+                && $job->channel === 'sms'
+                && $job->title === 'New order received',
+        );
+    }
+
+    public function test_rider_marking_an_order_out_for_delivery_queues_the_customer_invoice(): void
+    {
+        Mail::fake();
+
+        [, $customer] = $this->createCustomer();
+        $vendor = $this->createVendor();
+        $product = $this->createProduct($vendor, $this->createCategory(), price: 250);
+        $this->createCart($customer, [[$product, 1]]);
+        $order = collect(app(OrderService::class)->createFromCart($customer, $this->checkoutPayload()))->firstOrFail();
+        $rider = Rider::query()->create([
+            'user_id' => User::factory()->create()->id,
+            'vehicle_type' => 'motorbike',
+            'address' => '1 Rider Street',
+            'city' => 'Colombo',
+            'district' => 'Colombo',
+            'availability_status' => 'delivering',
+            'verification_status' => 'verified',
+        ]);
+        $delivery = $order->delivery;
+        $delivery->update([
+            'rider_id' => $rider->id,
+            'status' => 'picked_up',
+            'picked_up_at' => now(),
+        ]);
+
+        app(DeliveryService::class)->markOnTheWay($delivery->refresh());
+
+        $this->assertSame('out_for_delivery', $order->refresh()->order_status);
+        Mail::assertQueued(
+            OrderInvoiceMail::class,
+            fn (OrderInvoiceMail $mail) => $mail->order->is($order)
+                && $mail->hasTo($customer->user->email),
+        );
+    }
+
     public function test_admin_delivery_fee_configuration_controls_quote_order_and_payment_totals(): void
     {
         Mail::fake();
@@ -186,6 +249,37 @@ class CriticalCommerceFlowsTest extends TestCase
 
         $this->assertSame(340.0, (float) $order->refresh()->delivery_fee);
         $this->assertSame(340.0, (float) $payment->refresh()->delivery_fee);
+    }
+
+    public function test_admin_service_charge_configuration_is_used_at_checkout_and_preserved_for_payment(): void
+    {
+        Mail::fake();
+
+        $adminRole = Role::findOrCreate('Admin', 'web');
+        $admin = User::factory()->create(['role_id' => $adminRole->id]);
+        $admin->assignRole($adminRole);
+
+        $this->actingAs($admin)
+            ->put(route('admin.delivery-fees.service-charge.update'), ['service_charge_rate_percent' => 7.5])
+            ->assertSessionHasNoErrors();
+
+        [, $customer] = $this->createCustomer();
+        $product = $this->createProduct($this->createVendor(), $this->createCategory(), price: 1000);
+        $this->createCart($customer, [[$product, 1]]);
+        $order = collect(app(OrderService::class)->createFromCart($customer, $this->checkoutPayload()))->firstOrFail();
+        $payment = $order->payment()->firstOrFail();
+
+        $this->assertSame(75.0, (float) $order->service_charge);
+        $this->assertSame(75.0, (float) $payment->service_charge);
+
+        $this->actingAs($admin)
+            ->put(route('admin.delivery-fees.service-charge.update'), ['service_charge_rate_percent' => 10])
+            ->assertSessionHasNoErrors();
+
+        app(PaymentService::class)->syncPendingOrderAmounts($payment);
+
+        $this->assertSame(75.0, (float) $order->refresh()->service_charge);
+        $this->assertSame(75.0, (float) $payment->refresh()->service_charge);
     }
 
     public function test_only_admin_and_super_admin_can_manage_delivery_fee_configuration(): void

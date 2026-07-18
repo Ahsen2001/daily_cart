@@ -8,11 +8,13 @@ class RoleRedirector
 {
     public function dashboardRouteName(User $user): string
     {
-        return match (true) {
-            $user->hasRole('Super Admin') => 'super-admin.dashboard',
-            $user->hasRole('Admin') => 'admin.dashboard',
-            $user->hasRole('Vendor') => 'vendor.dashboard',
-            $user->hasRole('Rider') => 'rider.dashboard',
+        $roleName = $user->role?->name;
+
+        return match ($roleName) {
+            'Super Admin' => 'super-admin.dashboard',
+            'Admin' => 'admin.dashboard',
+            'Vendor' => 'vendor.dashboard',
+            'Rider' => 'rider.dashboard',
             default => 'customer.dashboard',
         };
     }

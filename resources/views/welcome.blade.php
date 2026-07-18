@@ -1,11 +1,4 @@
 @php
-    $featuredProducts = \App\Models\Product::query()
-        ->visibleToCustomers()
-        ->with(['category', 'vendor', 'images'])
-        ->latest()
-        ->limit(4)
-        ->get();
-
     $homepageCategories = [
         ['name' => 'Grocery', 'slug' => 'grocery', 'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80'],
         ['name' => 'Vegetables', 'slug' => 'vegetables', 'image' => 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80'],

@@ -51,7 +51,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function store(StoreProductRequest $request): RedirectResponse
+    public function store(StoreProductRequest $request, NotificationService $notifications): RedirectResponse
     {
         $vendor = $request->user()->vendor;
 
@@ -73,6 +73,8 @@ class ProductController extends Controller
 
             return $product;
         });
+
+        $this->notifyAdminsOfSubmission($product, $vendor->store_name ?: $request->user()->name, $notifications);
 
         return redirect()->route('vendor.products.show', $product)->with('status', 'Product submitted for approval.');
     }
@@ -97,7 +99,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(UpdateProductRequest $request, Product $product): RedirectResponse
+    public function update(UpdateProductRequest $request, Product $product, NotificationService $notifications): RedirectResponse
     {
         DB::transaction(function () use ($request, $product) {
             $data = $this->productData($request->validated());
@@ -118,6 +120,12 @@ class ProductController extends Controller
             $this->storeImages($product, $request);
             $this->storeVariants($product, $request->input('variants', []));
         });
+
+        $this->notifyAdminsOfSubmission(
+            $product->refresh(),
+            $request->user()->vendor->store_name ?: $request->user()->name,
+            $notifications,
+        );
 
         return redirect()->route('vendor.products.show', $product)->with('status', 'Product updated and sent for approval.');
     }
@@ -221,5 +229,19 @@ class ProductController extends Controller
                 ['name' => $variant],
                 ['price' => $product->discount_price ?? $product->price, 'status' => 'active']
             ));
+    }
+
+    private function notifyAdminsOfSubmission(Product $product, string $vendorName, NotificationService $notifications): void
+    {
+        if ($product->status !== 'pending') {
+            return;
+        }
+
+        $notifications->notifyAdmins(
+            'Product approval required',
+            $vendorName.' submitted "'.$product->name.'" for approval.',
+            'product_submitted_for_approval',
+            ['database', 'mail'],
+        );
     }
 }

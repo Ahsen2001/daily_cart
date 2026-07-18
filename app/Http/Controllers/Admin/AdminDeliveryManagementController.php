@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryFee;
 use App\Models\DeliverySchedule;
+use App\Models\Setting;
+use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,7 +21,24 @@ class AdminDeliveryManagementController extends Controller
     {
         $fees = DeliveryFee::query()->latest('created_at')->paginate(15);
 
-        return view('admin.deliveries.fees.index', compact('fees'));
+        return view('admin.deliveries.fees.index', [
+            'fees' => $fees,
+            'serviceChargeRatePercent' => OrderService::serviceChargeRate() * 100,
+        ]);
+    }
+
+    public function updateServiceCharge(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'service_charge_rate_percent' => ['required', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        Setting::updateOrCreate(
+            ['setting_key' => 'service_charge_rate_percent'],
+            ['setting_value' => number_format((float) $validated['service_charge_rate_percent'], 2, '.', '')],
+        );
+
+        return redirect()->route('admin.delivery-fees.index')->with('status', 'Service charge configuration updated.');
     }
 
     public function feesCreate(): View

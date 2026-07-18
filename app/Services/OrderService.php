@@ -109,7 +109,13 @@ class OrderService
 
                 $this->paymentService->createPlaceholder($order, $data['payment_method']);
                 $this->notificationService->send($order->customer->user, 'Order placed', 'Order '.$order->order_number.' has been placed.', 'order_placed');
-                $this->notificationService->send($order->vendor->user, 'New order received', 'New order '.$order->order_number.' is waiting for action.', 'new_order');
+                $this->notificationService->send(
+                    $order->vendor->user,
+                    'New order received',
+                    'New order '.$order->order_number.' is waiting for action.',
+                    'new_order',
+                    ['database', 'mail', 'sms'],
+                );
                 $this->emails->orderPlaced($order->loadMissing('customer.user'));
                 $order->delivery()->create([
                     'pickup_address' => $order->vendor->address,
@@ -178,6 +184,7 @@ class OrderService
 
         $lines = [];
         $couponApplied = false;
+        $serviceChargeRate = self::serviceChargeRate();
 
         foreach ($cart->items->groupBy(fn (CartItem $item) => $item->product->vendor_id) as $vendorId => $items) {
             $subtotal = round((float) $items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity), 2);
@@ -192,7 +199,7 @@ class OrderService
                 ? null
                 : $this->couponService->findValid($couponCode, $subtotal, (int) $vendorId, $customer);
             $discount = $this->couponService->discount($coupon, $subtotal, $deliveryFee);
-            $serviceCharge = self::serviceChargeForSubtotal($subtotal);
+            $serviceCharge = self::serviceChargeForSubtotal($subtotal, $serviceChargeRate);
             $beforeLoyaltyTotal = round($subtotal - $discount + $deliveryFee + $serviceCharge, 2);
 
             $lines[] = [
@@ -272,9 +279,9 @@ class OrderService
         return self::settingFloat('service_charge_rate_percent', self::SERVICE_CHARGE_RATE * 100) / 100;
     }
 
-    public static function serviceChargeForSubtotal(float|int|string $subtotal): float
+    public static function serviceChargeForSubtotal(float|int|string $subtotal, ?float $rate = null): float
     {
-        return round((float) $subtotal * self::serviceChargeRate(), 2);
+        return round((float) $subtotal * ($rate ?? self::serviceChargeRate()), 2);
     }
 
     private static function settingFloat(string $key, float $default): float

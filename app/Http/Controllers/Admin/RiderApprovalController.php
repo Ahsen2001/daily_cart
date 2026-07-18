@@ -26,7 +26,11 @@ class RiderApprovalController extends Controller
         ]);
 
         $rider->user()->update(['status' => 'active']);
-        $emails->approval($rider->user, 'Rider approved', 'Your DailyCart rider account has been approved.');
+        $emails->approval(
+            $rider->user,
+            'Congratulations — your rider account is verified',
+            'Congratulations! Your DailyCart rider account has been verified and approved. You can now sign in and accept delivery assignments.',
+        );
 
         return back()->with('status', 'Rider approved successfully.');
     }

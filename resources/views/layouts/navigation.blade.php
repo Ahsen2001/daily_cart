@@ -1,5 +1,7 @@
 @php
     $unreadNotifications = Auth::user()->notifications()->whereNull('read_at')->count();
+    $notificationRoute = Auth::user()->isAdminUser() ? 'admin.notifications.index' : 'notifications.index';
+    $notificationActive = request()->routeIs('notifications.*', 'admin.notifications.*');
 @endphp
 
 <nav x-data="{ open: false }" @keydown.escape.window="open = false" class="sticky top-0 z-40 border-b border-brand-border bg-white/95 backdrop-blur-xl" aria-label="{{ __('Primary navigation') }}">
@@ -41,7 +43,7 @@
                     <x-nav-link :href="route('rider.dashboard')" :active="request()->routeIs('rider.*')">{{ __('Rider') }}</x-nav-link>
                 @endif
 
-                <a href="{{ route('notifications.index') }}" class="relative inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-light px-4 py-2 text-sm font-bold text-brand-dark transition hover:bg-brand-primary hover:text-white" aria-label="{{ trans_choice(':count unread notification|:count unread notifications', $unreadNotifications, ['count' => $unreadNotifications]) }}">
+                <a href="{{ route($notificationRoute) }}" class="relative inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-light px-4 py-2 text-sm font-bold text-brand-dark transition hover:bg-brand-primary hover:text-white" aria-label="{{ trans_choice(':count unread notification|:count unread notifications', $unreadNotifications, ['count' => $unreadNotifications]) }}">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14.9 18a3 3 0 0 1-5.8 0m9.4-3H5.6c1.3-1.5 2-3.5 2-5.5a4.4 4.4 0 1 1 8.8 0c0 2 .7 4 2.1 5.5Z" /></svg>
                     <span class="hidden xl:inline">{{ __('Alerts') }}</span>
                     @if ($unreadNotifications > 0)
@@ -95,7 +97,7 @@
         </div>
         <div class="space-y-2">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">{{ __('Dashboard') }}</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">{{ __('Notifications') }}</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route($notificationRoute)" :active="$notificationActive">{{ __('Notifications') }}</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('support.tickets.index')" :active="request()->routeIs('support.tickets.*')">{{ __('Support') }}</x-responsive-nav-link>
 
             @if (Auth::user()->hasPrimaryRole('Customer'))

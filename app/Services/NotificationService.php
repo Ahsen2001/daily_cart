@@ -42,9 +42,9 @@ class NotificationService
         return $notification;
     }
 
-    public function notifyAdmins(string $title, string $message, string $type): void
+    public function notifyAdmins(string $title, string $message, string $type, array $channels = ['database']): void
     {
-        $this->adminUsers()->each(fn (User $user) => $this->send($user, $title, $message, $type));
+        $this->adminUsers()->each(fn (User $user) => $this->send($user, $title, $message, $type, $channels));
     }
 
     public function lowStockAlert(Product $product, int $threshold = 5): ?Notification

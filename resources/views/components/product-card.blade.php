@@ -2,7 +2,8 @@
 
 @php
     $price = $product->discount_price ?: $product->price;
-    $rating = method_exists($product, 'averageRating') ? $product->averageRating() : 0;
+    $rating = $product->visible_reviews_avg_rating
+        ?? (method_exists($product, 'averageRating') ? $product->averageRating() : 0);
 @endphp
 
 <article {{ $attributes->merge(['class' => 'group overflow-hidden rounded-3xl border border-brand-border bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-lift']) }}>

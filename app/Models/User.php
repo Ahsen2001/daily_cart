@@ -93,6 +93,14 @@ class User extends Authenticatable
 
     public function hasPrimaryRole(string ...$roles): bool
     {
+        if ($this->role_id) {
+            $primaryRole = $this->relationLoaded('role') ? $this->role : $this->role()->first();
+
+            return $primaryRole
+                ? in_array($primaryRole->name, $roles, true)
+                : false;
+        }
+
         return $this->hasAnyRole($roles);
     }
 

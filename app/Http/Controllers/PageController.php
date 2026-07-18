@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Services\PromotionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class PageController extends Controller
@@ -17,6 +18,13 @@ class PageController extends Controller
     {
         return view('welcome', [
             'todayOffers' => $promotions->storefront(6),
+            'featuredProducts' => Cache::remember('storefront:featured-products', now()->addSeconds(30), fn () => Product::query()
+                ->visibleToCustomers()
+                ->with(['category', 'vendor', 'images'])
+                ->withAvg(['reviews as visible_reviews_avg_rating' => fn ($query) => $query->where('status', 'visible')], 'rating')
+                ->latest()
+                ->limit(4)
+                ->get()),
         ]);
     }
 
@@ -54,6 +62,7 @@ class PageController extends Controller
         $products = Product::query()
             ->visibleToCustomers()
             ->with(['category', 'vendor', 'images'])
+            ->withAvg(['reviews as visible_reviews_avg_rating' => fn ($query) => $query->where('status', 'visible')], 'rating')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where(function ($inner) use ($request) {
                     $inner->where('name', 'like', '%'.$request->search.'%')

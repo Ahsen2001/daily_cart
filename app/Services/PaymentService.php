@@ -98,7 +98,7 @@ class PaymentService
         }
 
         $deliveryFee = round((float) $order->delivery_fee, 2);
-        $serviceCharge = OrderService::serviceChargeForSubtotal($order->subtotal);
+        $serviceCharge = round((float) $order->service_charge, 2);
         $total = round(
             (float) $order->subtotal
             - (float) $order->discount_amount

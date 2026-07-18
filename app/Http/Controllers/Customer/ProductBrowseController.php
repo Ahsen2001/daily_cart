@@ -16,6 +16,7 @@ class ProductBrowseController extends Controller
         $products = Product::query()
             ->visibleToCustomers()
             ->with(['category', 'vendor', 'images'])
+            ->withAvg(['reviews as visible_reviews_avg_rating' => fn ($query) => $query->where('status', 'visible')], 'rating')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where(function ($inner) use ($request) {
                     $inner->where('name', 'like', '%'.$request->search.'%')

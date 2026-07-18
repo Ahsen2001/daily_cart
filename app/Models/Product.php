@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
@@ -57,6 +58,9 @@ class Product extends Model
 
     protected static function booted(): void
     {
+        static::saved(fn () => Cache::forget('storefront:featured-products'));
+        static::deleted(fn () => Cache::forget('storefront:featured-products'));
+
         static::deleting(function (Product $product) {
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);

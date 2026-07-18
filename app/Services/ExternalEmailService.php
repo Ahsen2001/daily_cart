@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Mail\DailyCartStatusMail;
+use App\Mail\OrderInvoiceMail;
 use App\Mail\OtpMail;
 use App\Models\Order;
 use App\Models\Payment;
@@ -25,6 +26,22 @@ class ExternalEmailService
     public function orderStatus(Order $order, string $message): void
     {
         $this->send($order->customer->user, 'Order update: '.$order->order_number, $message);
+    }
+
+    /** Send the itemized invoice when the rider starts the final delivery leg. */
+    public function outForDeliveryInvoice(Order $order): void
+    {
+        $order->loadMissing(['customer.user', 'vendor', 'items', 'payment', 'delivery.rider.user']);
+
+        $customer = $order->customer?->user;
+
+        if (! $customer) {
+            return;
+        }
+
+        Mail::to($customer->email)->queue(
+            (new OrderInvoiceMail($order))->afterCommit()
+        );
     }
 
     public function paymentStatus(Payment $payment, string $message): void

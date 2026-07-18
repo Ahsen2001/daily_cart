@@ -26,7 +26,11 @@ class VendorApprovalController extends Controller
         ]);
 
         $vendor->user()->update(['status' => 'active']);
-        $emails->approval($vendor->user, 'Vendor approved', 'Your DailyCart vendor account has been approved.');
+        $emails->approval(
+            $vendor->user,
+            'Congratulations — your vendor account is verified',
+            'Congratulations! Your DailyCart vendor account has been verified and approved. You can now sign in and start managing your store.',
+        );
 
         return back()->with('status', 'Vendor approved successfully.');
     }

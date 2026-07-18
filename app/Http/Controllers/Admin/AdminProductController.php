@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -42,22 +43,24 @@ class AdminProductController extends Controller
         ]);
     }
 
-    public function approve(Product $product): RedirectResponse
+    public function approve(Product $product, NotificationService $notifications): RedirectResponse
     {
         $product->update([
             'status' => $product->stock_quantity > 0 ? 'approved' : 'out_of_stock',
             'is_subscription_eligible' => $product->stock_quantity > 0,
         ]);
+        $this->notifyVendorOfReview($product, $notifications, 'Product approved', 'Your product "'.$product->name.'" has been approved and is now visible to customers.');
 
         return back()->with('status', 'Product approved.');
     }
 
-    public function reject(Product $product): RedirectResponse
+    public function reject(Product $product, NotificationService $notifications): RedirectResponse
     {
         $product->update([
             'status' => 'rejected',
             'is_featured' => false,
         ]);
+        $this->notifyVendorOfReview($product, $notifications, 'Product rejected', 'Your product "'.$product->name.'" was not approved. Please review and resubmit it.');
 
         return back()->with('status', 'Product rejected.');
     }
@@ -75,7 +78,7 @@ class AdminProductController extends Controller
         return back()->with('status', 'Featured status updated.');
     }
 
-    public function status(Request $request, Product $product): RedirectResponse
+    public function status(Request $request, Product $product, NotificationService $notifications): RedirectResponse
     {
         $validated = $request->validate([
             'status' => ['required', 'in:pending,approved,rejected,inactive,out_of_stock'],
@@ -85,7 +88,22 @@ class AdminProductController extends Controller
             'status' => $validated['status'],
             'is_featured' => $validated['status'] === 'approved' ? $product->is_featured : false,
         ]);
+        $this->notifyVendorOfReview(
+            $product,
+            $notifications,
+            'Product status updated',
+            'Your product "'.$product->name.'" status is now '.str_replace('_', ' ', $validated['status']).'.',
+        );
 
         return back()->with('status', 'Product status updated.');
+    }
+
+    private function notifyVendorOfReview(Product $product, NotificationService $notifications, string $title, string $message): void
+    {
+        $product->loadMissing('vendor.user');
+
+        if ($product->vendor?->user) {
+            $notifications->send($product->vendor->user, $title, $message, 'product_review', ['database', 'mail']);
+        }
     }
 }
