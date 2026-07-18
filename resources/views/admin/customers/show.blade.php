@@ -68,6 +68,11 @@
                         </select>
                         <x-primary-button>{{ __('Update Status') }}</x-primary-button>
                     </form>
+                    <form method="POST" action="{{ route('admin.customers.destroy', $customer) }}" class="mt-3" onsubmit="return confirm('{{ __('Delete this customer account permanently from active DailyCart access?') }}');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-sm font-semibold text-red-700 underline">{{ __('Delete customer account') }}</button>
+                    </form>
                 </div>
             </aside>
         </div>

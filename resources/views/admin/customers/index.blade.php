@@ -46,6 +46,11 @@
                                     <td class="px-3 py-3">{{ ucfirst($customer->status) }}</td>
                                     <td class="px-3 py-3 text-right">
                                         <a class="text-indigo-700 underline" href="{{ route('admin.customers.show', $customer) }}">{{ __('View') }}</a>
+                                        <form method="POST" action="{{ route('admin.customers.destroy', $customer) }}" class="ml-3 inline" onsubmit="return confirm('{{ __('Delete this customer account permanently from active DailyCart access?') }}');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-700 underline">{{ __('Delete') }}</button>
+                                        </form>
                                     </td>
                                 </tr>
                             @empty

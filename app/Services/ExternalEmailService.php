@@ -9,7 +9,10 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\User;
+use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ExternalEmailService
 {
@@ -39,8 +42,10 @@ class ExternalEmailService
             return;
         }
 
-        Mail::to($customer->email)->queue(
-            (new OrderInvoiceMail($order))->afterCommit()
+        $this->queue(
+            $customer->email,
+            (new OrderInvoiceMail($order))->afterCommit(),
+            'out-for-delivery invoice',
         );
     }
 
@@ -61,13 +66,31 @@ class ExternalEmailService
 
     public function otp(string $email, string $code, string $purpose): void
     {
-        Mail::to($email)->queue((new OtpMail($code, $purpose))->afterCommit());
+        $this->queue($email, (new OtpMail($code, $purpose))->afterCommit(), 'OTP');
     }
 
     private function send(User $user, string $subject, string $message): void
     {
-        Mail::to($user->email)->queue(
-            (new DailyCartStatusMail($subject, $user->name, $message))->afterCommit()
+        $this->queue(
+            $user->email,
+            (new DailyCartStatusMail($subject, $user->name, $message))->afterCommit(),
+            $subject,
         );
+    }
+
+    /**
+     * Mail transport failures must never roll back a registration, payment, or order action.
+     */
+    private function queue(string $email, Mailable $mailable, string $context): void
+    {
+        try {
+            Mail::to($email)->queue($mailable);
+        } catch (Throwable $exception) {
+            Log::error('Unable to queue DailyCart email.', [
+                'context' => $context,
+                'recipient' => $email,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
     }
 }

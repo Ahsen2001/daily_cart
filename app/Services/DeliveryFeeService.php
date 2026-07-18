@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 class DeliveryFeeService
 {
     /**
-     * Calculate one vendor delivery charge from the active admin configuration.
+     * Calculate the one delivery charge for an entire checkout from the active admin configuration.
      */
     public function calculate(
         float $subtotal,
@@ -29,7 +29,7 @@ class DeliveryFeeService
                 ]);
             }
 
-            return OrderService::deliveryChargeForQuantity($quantity);
+            return OrderService::singleItemDeliveryCharge();
         }
 
         if ($subtotal < (float) $rule->minimum_order) {

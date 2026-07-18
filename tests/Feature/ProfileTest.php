@@ -247,6 +247,99 @@ class ProfileTest extends TestCase
         $this->assertSoftDeleted($user);
     }
 
+    public function test_vendor_self_deletion_removes_the_vendor_profile_and_store_from_active_lists(): void
+    {
+        $role = Role::findOrCreate('Vendor', 'web');
+        $user = User::factory()->create(['role_id' => $role->id]);
+        $user->assignRole($role);
+        $vendor = Vendor::query()->create([
+            'user_id' => $user->id,
+            'store_name' => 'Deleted Store',
+            'phone' => '0775000001',
+            'address' => '1 Market Road',
+            'city' => 'Colombo',
+            'district' => 'Colombo',
+            'status' => 'approved',
+        ]);
+
+        $this->actingAs($user)
+            ->delete('/profile', ['password' => 'password'])
+            ->assertRedirect('/');
+
+        $this->assertSoftDeleted($user);
+        $this->assertSoftDeleted($vendor);
+        $this->assertSame(0, Vendor::query()->whereKey($vendor)->count());
+    }
+
+    public function test_admin_can_delete_customer_and_vendor_accounts(): void
+    {
+        $adminRole = Role::findOrCreate('Admin', 'web');
+        $admin = User::factory()->create(['role_id' => $adminRole->id]);
+        $admin->assignRole($adminRole);
+
+        $customerRole = Role::findOrCreate('Customer', 'web');
+        $customerUser = User::factory()->create(['role_id' => $customerRole->id]);
+        $customerUser->assignRole($customerRole);
+        $customer = Customer::query()->create([
+            'user_id' => $customerUser->id,
+            'first_name' => 'Delete',
+            'phone' => '0775000002',
+            'status' => 'active',
+        ]);
+
+        $vendorRole = Role::findOrCreate('Vendor', 'web');
+        $vendorUser = User::factory()->create(['role_id' => $vendorRole->id]);
+        $vendorUser->assignRole($vendorRole);
+        $vendor = Vendor::query()->create([
+            'user_id' => $vendorUser->id,
+            'store_name' => 'Remove Me',
+            'phone' => '0775000003',
+            'address' => '2 Market Road',
+            'city' => 'Colombo',
+            'district' => 'Colombo',
+            'status' => 'approved',
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.customers.destroy', $customer))
+            ->assertRedirect(route('admin.customers.index'));
+        $this->actingAs($admin)
+            ->delete(route('admin.vendors.destroy', $vendor))
+            ->assertRedirect(route('admin.vendors.index'));
+
+        $this->assertSoftDeleted($customerUser);
+        $this->assertSoftDeleted($customer);
+        $this->assertSoftDeleted($vendorUser);
+        $this->assertSoftDeleted($vendor);
+    }
+
+    public function test_admin_can_remove_a_legacy_vendor_whose_user_was_already_deleted(): void
+    {
+        $adminRole = Role::findOrCreate('Admin', 'web');
+        $admin = User::factory()->create(['role_id' => $adminRole->id]);
+        $admin->assignRole($adminRole);
+
+        $vendorRole = Role::findOrCreate('Vendor', 'web');
+        $vendorUser = User::factory()->create(['role_id' => $vendorRole->id]);
+        $vendorUser->assignRole($vendorRole);
+        $vendor = Vendor::query()->create([
+            'user_id' => $vendorUser->id,
+            'store_name' => 'Legacy Store',
+            'phone' => '0775000004',
+            'address' => '3 Market Road',
+            'city' => 'Colombo',
+            'district' => 'Colombo',
+            'status' => 'approved',
+        ]);
+        $vendorUser->delete();
+
+        $this->actingAs($admin)
+            ->delete(route('admin.vendors.destroy', $vendor))
+            ->assertRedirect(route('admin.vendors.index'));
+
+        $this->assertSoftDeleted($vendor);
+    }
+
     public function test_correct_password_must_be_provided_to_delete_account(): void
     {
         $user = User::factory()->create();

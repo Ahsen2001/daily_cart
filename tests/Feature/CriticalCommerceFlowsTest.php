@@ -15,6 +15,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Rider;
 use App\Models\Role;
+use App\Models\Setting;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Services\DeliveryFeeService;
@@ -126,6 +127,17 @@ class CriticalCommerceFlowsTest extends TestCase
             [$firstProduct, 1],
             [$secondProduct, 2],
         ]);
+        DeliveryFee::query()->create([
+            'district' => 'Default',
+            'base_fee' => 80,
+            'per_km_fee' => 0,
+            'minimum_order' => 0,
+            'status' => 'active',
+        ]);
+        Setting::query()->create([
+            'setting_key' => 'service_charge_rate_percent',
+            'setting_value' => 7.5,
+        ]);
 
         Sanctum::actingAs($user, ['customer']);
 
@@ -139,8 +151,11 @@ class CriticalCommerceFlowsTest extends TestCase
         $createdTotal = round((float) collect($response->json('orders'))->sum('total_amount'), 2);
 
         $this->assertSame(2, Order::query()->count());
+        $this->assertSame(80.0, (float) $quote['delivery_fee']);
+        $this->assertSame(30.0, (float) $quote['service_charge']);
         $this->assertSame((float) $quote['grand_total'], $createdTotal);
         $this->assertSame((float) $quote['delivery_fee'], round((float) Order::query()->sum('delivery_fee'), 2));
+        $this->assertSame((float) $quote['service_charge'], round((float) Order::query()->sum('service_charge'), 2));
         $this->assertSame('converted', $cart->refresh()->status);
     }
 

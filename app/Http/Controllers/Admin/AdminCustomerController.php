@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Services\AccountDeletionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -53,5 +54,18 @@ class AdminCustomerController extends Controller
         $customer->user?->update(['status' => $validated['status']]);
 
         return back()->with('status', 'Customer status updated.');
+    }
+
+    public function destroy(Customer $customer, AccountDeletionService $accounts): RedirectResponse
+    {
+        $user = $customer->user()->withTrashed()->first();
+
+        if ($user) {
+            $accounts->delete($user);
+        } else {
+            $customer->delete();
+        }
+
+        return redirect()->route('admin.customers.index')->with('status', 'Customer account deleted from DailyCart.');
     }
 }

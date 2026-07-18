@@ -1,6 +1,6 @@
 @auth
-    <aside class="hidden w-72 shrink-0 border-r border-brand-border bg-white/90 p-5 backdrop-blur lg:block" aria-label="{{ __('Workspace navigation') }}">
-        <div class="dc-scrollbar sticky top-24 max-h-[calc(100vh-7rem)] space-y-5 overflow-y-auto pr-1">
+    <aside class="hidden w-72 shrink-0 border-r border-brand-border bg-white/90 p-5 backdrop-blur lg:sticky lg:top-[5.25rem] lg:block lg:h-[calc(100vh-5.25rem)] lg:overflow-hidden" aria-label="{{ __('Workspace navigation') }}">
+        <div class="dc-scrollbar h-full space-y-5 overflow-y-auto pr-2">
             <div class="rounded-3xl border border-brand-border bg-brand-light p-4">
                 <p class="dc-page-eyebrow">{{ Auth::user()->role?->name }}</p>
                 <p class="mt-1 font-bold text-brand-text">{{ Auth::user()->name }}</p>

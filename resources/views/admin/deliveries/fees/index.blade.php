@@ -16,7 +16,7 @@
 
             <div class="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50 p-5 text-sm text-indigo-950 shadow-sm">
                 <p class="font-bold">{{ __('These rules are the authoritative delivery prices for DailyCart checkout.') }}</p>
-                <p class="mt-2 leading-6">{{ __('Active district rules apply to web checkout, API quotes, order creation, payments, and recurring orders. Base Fee is always charged; Per KM Fee is added when distance is available. Minimum Order blocks smaller vendor orders, while Free Delivery Limit makes eligible delivery free.') }}</p>
+                <p class="mt-2 leading-6">{{ __('Active district rules apply to web checkout, API quotes, order creation, payments, and recurring orders. The delivery fee is calculated once for the entire checkout, not per product or vendor order. Base Fee is always charged; Per KM Fee is added when distance is available. Minimum Order and Free Delivery Limit are evaluated against the checkout subtotal.') }}</p>
                 <p class="mt-2 leading-6">{{ __('Use “All Districts”, “Default”, or “*” as an active fallback rule for locations without an exact district match. Only Admin and Super Admin accounts can manage these configurations.') }}</p>
             </div>
 
@@ -24,7 +24,7 @@
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                         <p class="text-sm font-bold text-gray-900">{{ __('Service Charge Configuration') }}</p>
-                        <p class="mt-1 text-sm text-gray-500">{{ __('Applied to each vendor subtotal at checkout and retained with the created order and payment.') }}</p>
+                        <p class="mt-1 text-sm text-gray-500">{{ __('Calculated once from the checkout subtotal, then retained across the created orders and payments.') }}</p>
                     </div>
                     <form method="POST" action="{{ route('admin.delivery-fees.service-charge.update') }}" class="flex w-full max-w-sm items-end gap-3 sm:w-auto">
                         @csrf

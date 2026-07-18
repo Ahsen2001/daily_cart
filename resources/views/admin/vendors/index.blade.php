@@ -39,6 +39,12 @@
                                         @method('PATCH')
                                         <x-secondary-button>{{ __('Reject') }}</x-secondary-button>
                                     </form>
+
+                                    <form method="POST" action="{{ route('admin.vendors.destroy', $vendor) }}" onsubmit="return confirm('{{ __('Delete this vendor account permanently from active DailyCart access?') }}');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex min-h-10 items-center rounded-lg border border-red-200 px-3 text-sm font-semibold text-red-700 transition hover:bg-red-50">{{ __('Delete') }}</button>
+                                    </form>
                                 </div>
                             </div>
                         @empty

@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/{customer}', [AdminCustomerController::class, 'show'])->name('customers.show');
     Route::patch('/customers/{customer}/status', [AdminCustomerController::class, 'updateStatus'])->name('customers.status');
+    Route::delete('/customers/{customer}', [AdminCustomerController::class, 'destroy'])->name('customers.destroy');
     Route::get('/reports/sales', [AdminReportController::class, 'sales'])->name('reports.sales');
     Route::get('/reports/products', [AdminReportController::class, 'products'])->name('reports.products');
     Route::get('/reports/vendors', [AdminReportController::class, 'vendors'])->name('reports.vendors');
@@ -46,6 +47,7 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::get('/vendors', [VendorApprovalController::class, 'index'])->name('vendors.index');
     Route::patch('/vendors/{vendor}/approve', [VendorApprovalController::class, 'approve'])->name('vendors.approve');
     Route::patch('/vendors/{vendor}/reject', [VendorApprovalController::class, 'reject'])->name('vendors.reject');
+    Route::delete('/vendors/{vendor}', [VendorApprovalController::class, 'destroy'])->name('vendors.destroy');
 
     Route::get('/riders', [RiderApprovalController::class, 'index'])->name('riders.index');
     Route::patch('/riders/{rider}/approve', [RiderApprovalController::class, 'approve'])->name('riders.approve');

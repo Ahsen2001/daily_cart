@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Vendor;
+use App\Services\AccountDeletionService;
 use App\Services\ExternalEmailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,5 +43,18 @@ class VendorApprovalController extends Controller
         $emails->approval($vendor->user, 'Vendor rejected', 'Your DailyCart vendor registration was rejected.');
 
         return back()->with('status', 'Vendor rejected.');
+    }
+
+    public function destroy(Vendor $vendor, AccountDeletionService $accounts): RedirectResponse
+    {
+        $user = $vendor->user()->withTrashed()->first();
+
+        if ($user) {
+            $accounts->delete($user);
+        } else {
+            $accounts->deleteVendorProfile($vendor);
+        }
+
+        return redirect()->route('admin.vendors.index')->with('status', 'Vendor account deleted from DailyCart.');
     }
 }

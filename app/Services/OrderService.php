@@ -169,6 +169,9 @@ class OrderService
     /**
      * Calculate the per-vendor totals used by both checkout quotes and order creation.
      *
+     * Delivery and service charges are calculated once for the whole checkout, then
+     * apportioned to the vendor orders so their stored totals still reconcile.
+     *
      * @return array<int, array<string, mixed>>
      */
     private function pricingLines(
@@ -188,33 +191,50 @@ class OrderService
 
         foreach ($cart->items->groupBy(fn (CartItem $item) => $item->product->vendor_id) as $vendorId => $items) {
             $subtotal = round((float) $items->sum(fn (CartItem $item) => (float) $item->unit_price * $item->quantity), 2);
-            $deliveryFee = $this->deliveryFees->calculate(
-                $subtotal,
-                $deliveryDistrict,
-                $deliveryDistanceMeters,
-                (int) $items->sum('quantity'),
-                $customer,
-            );
             $coupon = $couponApplied
                 ? null
                 : $this->couponService->findValid($couponCode, $subtotal, (int) $vendorId, $customer);
-            $discount = $this->couponService->discount($coupon, $subtotal, $deliveryFee);
-            $serviceCharge = self::serviceChargeForSubtotal($subtotal, $serviceChargeRate);
-            $beforeLoyaltyTotal = round($subtotal - $discount + $deliveryFee + $serviceCharge, 2);
 
             $lines[] = [
                 'vendor_id' => (int) $vendorId,
                 'items' => $items,
                 'coupon' => $coupon,
                 'subtotal' => $subtotal,
-                'discount' => $discount,
-                'delivery_fee' => $deliveryFee,
-                'service_charge' => $serviceCharge,
-                'before_loyalty_total' => $beforeLoyaltyTotal,
+                'discount' => 0.0,
             ];
 
             $couponApplied = $coupon !== null || $couponApplied;
         }
+
+        $checkoutSubtotal = round((float) collect($lines)->sum('subtotal'), 2);
+        $checkoutDeliveryFee = $this->deliveryFees->calculate(
+            $checkoutSubtotal,
+            $deliveryDistrict,
+            $deliveryDistanceMeters,
+            1,
+            $customer,
+        );
+        $checkoutServiceCharge = self::serviceChargeForSubtotal($checkoutSubtotal, $serviceChargeRate);
+
+        foreach ($lines as &$line) {
+            $line['discount'] = $this->couponService->discount(
+                $line['coupon'],
+                $line['subtotal'],
+                $line['coupon'] ? $checkoutDeliveryFee : 0,
+            );
+        }
+        unset($line);
+
+        $this->allocateCheckoutCharge($lines, 'delivery_fee', $checkoutDeliveryFee);
+        $this->allocateCheckoutCharge($lines, 'service_charge', $checkoutServiceCharge);
+
+        foreach ($lines as &$line) {
+            $line['before_loyalty_total'] = round(
+                $line['subtotal'] - $line['discount'] + $line['delivery_fee'] + $line['service_charge'],
+                2,
+            );
+        }
+        unset($line);
 
         $beforeLoyaltyTotal = round((float) collect($lines)->sum('before_loyalty_total'), 2);
         $redemptionValuePerPoint = (float) $this->loyaltyPointService->setting()->redemption_value_per_point;
@@ -251,6 +271,31 @@ class OrderService
         unset($line);
 
         return $lines;
+    }
+
+    /**
+     * Apportion a checkout-wide charge across the orders created for each vendor.
+     *
+     * @param array<int, array<string, mixed>> $lines
+     */
+    private function allocateCheckoutCharge(array &$lines, string $field, float $amount): void
+    {
+        $amount = round($amount, 2);
+        $checkoutSubtotal = round((float) collect($lines)->sum('subtotal'), 2);
+        $remaining = $amount;
+        $lastIndex = array_key_last($lines);
+
+        foreach ($lines as $index => &$line) {
+            $allocation = $index === $lastIndex
+                ? $remaining
+                : ($checkoutSubtotal > 0
+                    ? round($amount * ((float) $line['subtotal'] / $checkoutSubtotal), 2)
+                    : 0.0);
+
+            $line[$field] = $allocation;
+            $remaining = round($remaining - $allocation, 2);
+        }
+        unset($line);
     }
 
     public static function deliveryChargeForQuantity(int $quantity): float
