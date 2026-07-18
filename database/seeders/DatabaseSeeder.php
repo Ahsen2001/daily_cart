@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             UserCredentialsSeeder::class,
             DemoCatalogSeeder::class,
+            VendorGroceryCatalogSeeder::class,
         ]);
     }
 }

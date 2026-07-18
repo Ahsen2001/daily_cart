@@ -67,7 +67,7 @@
                     <p class="mt-1 text-sm leading-6 text-brand-muted">
                         {{ $user->vendor
                             ? __('Keep your store address and map pin accurate for customers and deliveries.')
-                            : __('Your saved district determines which active Delivery Fees Configuration is used during checkout.') }}
+                            : __('Your saved district determines which active Delivery Management rule is used during checkout.') }}
                     </p>
                 </div>
 

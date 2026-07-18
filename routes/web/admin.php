@@ -79,16 +79,13 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
 
     Route::get('/deliveries', [DeliveryController::class, 'index'])->name('deliveries.index');
 
-    Route::get('/delivery-fees', [AdminDeliveryManagementController::class, 'feesIndex'])->name('delivery-fees.index');
-    Route::get('/delivery-fees/create', [AdminDeliveryManagementController::class, 'feesCreate'])->name('delivery-fees.create');
-    Route::post('/delivery-fees', [AdminDeliveryManagementController::class, 'feesStore'])->name('delivery-fees.store');
-    Route::put('/delivery-fees/service-charge', [AdminDeliveryManagementController::class, 'updateServiceCharge'])->name('delivery-fees.service-charge.update');
-    Route::put('/delivery-fees/delivery-promotion', [AdminDeliveryManagementController::class, 'updateDeliveryPromotion'])->name('delivery-fees.delivery-promotion.update');
-    Route::put('/delivery-fees/rider-payout', [AdminDeliveryManagementController::class, 'updateRiderPayout'])->name('delivery-fees.rider-payout.update');
-    Route::put('/delivery-fees/vendor-commission', [AdminDeliveryManagementController::class, 'updateDefaultVendorCommission'])->name('delivery-fees.vendor-commission.update');
-    Route::get('/delivery-fees/{fee}/edit', [AdminDeliveryManagementController::class, 'feesEdit'])->name('delivery-fees.edit');
-    Route::put('/delivery-fees/{fee}', [AdminDeliveryManagementController::class, 'feesUpdate'])->name('delivery-fees.update');
-    Route::delete('/delivery-fees/{fee}', [AdminDeliveryManagementController::class, 'feesDestroy'])->name('delivery-fees.destroy');
+    Route::get('/delivery-management/rules', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'adminRules'])->name('delivery.rules.index');
+    Route::post('/delivery-management/rules', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'storeRule'])->name('delivery.rules.store');
+    Route::get('/delivery-management/policies', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'adminPolicies'])->name('delivery.policies');
+    Route::post('/delivery-management/promotions', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'storePromotion'])->name('delivery.promotions.store');
+    Route::post('/delivery-management/free-delivery-rules', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'storeFreeRule'])->name('delivery.free-rules.store');
+    Route::post('/delivery-management/holidays', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'storeHoliday'])->name('delivery.holidays.store');
+    Route::put('/delivery-management/service-charge', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'updateServiceCharge'])->name('delivery.service-charge.update');
 
     Route::get('/delivery-schedules', [AdminDeliveryManagementController::class, 'schedulesIndex'])->name('delivery-schedules.index');
     Route::patch('/delivery-schedules/{schedule}', [AdminDeliveryManagementController::class, 'schedulesUpdate'])->name('delivery-schedules.update');

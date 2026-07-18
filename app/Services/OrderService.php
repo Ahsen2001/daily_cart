@@ -159,6 +159,8 @@ class OrderService
             $deliveryDistrict,
             $deliveryDistanceMeters,
             $customer,
+            null,
+            $couponCode,
         );
 
         return [
@@ -222,6 +224,7 @@ class OrderService
             $deliveryDistanceMeters,
             1,
             $customer,
+            $couponCode,
         );
         $checkoutServiceCharge = self::serviceChargeForSubtotal($checkoutSubtotal);
 

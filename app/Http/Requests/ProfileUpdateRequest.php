@@ -71,7 +71,7 @@ class ProfileUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'district.in' => 'Select a district supported by the active Delivery Fees Configuration.',
+            'district.in' => 'Select a district supported by the active Delivery Management rules.',
         ];
     }
 }

@@ -2,7 +2,7 @@
     <x-slot name="header"><h2 class="text-xl font-semibold text-gray-800">{{ __('Delivery Fee Rules') }}</h2></x-slot>
     <div class="py-8"><div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
         @if(session('status'))<div class="rounded bg-green-50 p-4 text-green-700">{{ session('status') }}</div>@endif
-        <form method="POST" action="{{ route('super-admin.delivery.rules.store') }}" class="grid gap-3 rounded-lg bg-white p-5 shadow sm:grid-cols-4">@csrf
+        <form method="POST" action="{{ route($storeRoute ?? 'super-admin.delivery.rules.store') }}" class="grid gap-3 rounded-lg bg-white p-5 shadow sm:grid-cols-4">@csrf
             <select name="scope" class="rounded border-gray-300"><option value="zone">Zone</option><option value="district">District</option><option value="province">Province</option><option value="default">Default</option></select>
             <select name="zone_id" class="rounded border-gray-300"><option value="">No zone</option>@foreach($zones as $zone)<option value="{{ $zone->id }}">{{ $zone->name }}</option>@endforeach</select>
             <x-text-input name="district" placeholder="District" /><x-text-input name="province" placeholder="Province" />

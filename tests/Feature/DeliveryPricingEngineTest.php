@@ -3,6 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\DeliveryPricingRule;
+use App\Models\DeliveryHoliday;
+use App\Models\DeliveryPromotion;
+use App\Models\FreeDeliveryRule;
 use App\Services\DeliveryFeeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -34,6 +37,32 @@ class DeliveryPricingEngineTest extends TestCase
         $this->assertSame(45, $standard['estimated_delivery_minutes']);
         $this->assertFalse($standard['free_delivery_eligible']);
         $this->assertSame('district', $standard['rule_scope']);
+        $this->assertSame(0.0, $free['delivery_fee']);
+        $this->assertTrue($free['free_delivery_eligible']);
+    }
+
+    public function test_active_delivery_policies_are_applied_to_the_same_checkout_estimate(): void
+    {
+        DeliveryPricingRule::query()->create([
+            'scope' => 'default', 'base_fee' => 200, 'per_km_fee' => 0, 'minimum_order' => 0,
+            'priority' => 100, 'status' => 'active',
+        ]);
+        DeliveryPromotion::query()->create([
+            'name' => 'New Year', 'type' => 'percentage_discount', 'discount_percent' => 50,
+            'minimum_order' => 500, 'priority' => 1, 'status' => 'active',
+        ]);
+        DeliveryHoliday::query()->create([
+            'name' => 'Festival', 'extra_charge' => 20, 'starts_on' => today(), 'ends_on' => today(), 'status' => 'active',
+        ]);
+
+        $discounted = app(DeliveryFeeService::class)->estimate(600);
+        $this->assertSame(120.0, $discounted['delivery_fee']);
+
+        FreeDeliveryRule::query()->create([
+            'name' => 'Coupon Free Delivery', 'condition_type' => 'coupon', 'coupon_code' => 'FREESHIP',
+            'minimum_order' => 0, 'priority' => 1, 'status' => 'active',
+        ]);
+        $free = app(DeliveryFeeService::class)->estimate(600, null, null, null, null, 'FREESHIP');
         $this->assertSame(0.0, $free['delivery_fee']);
         $this->assertTrue($free['free_delivery_eligible']);
     }

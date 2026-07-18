@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Delivery;
 use App\Models\Order;
+use App\Models\RiderPaymentRule;
 use App\Models\Setting;
 use App\Models\Vendor;
 
@@ -51,16 +52,46 @@ class FinancialPolicyService
 
     public function riderPayout(Delivery $delivery): float
     {
-        $settings = $this->settings();
         $distanceInKilometres = max(0, (int) ($delivery->order?->delivery_distance_meters ?? 0)) / 1000;
-        $payout = $settings['rider_payout_base'] + ($distanceInKilometres * $settings['rider_payout_per_km']);
-        $hour = (int) ($delivery->delivered_at ?? now())->format('G');
+        return $this->riderPayoutForDistance($distanceInKilometres, $delivery->delivered_at ?? now());
+    }
 
-        if ($this->isPeakHour($hour, $settings)) {
+    public function riderPayoutForDistance(float $distanceInKilometres, \DateTimeInterface $at): float
+    {
+        $rule = $this->activeRiderRule();
+        $settings = $this->settings();
+        $payout = $rule ? (float) $rule->base_pay : $settings['rider_payout_base'];
+        $payout += $distanceInKilometres * ($rule ? (float) $rule->per_km_bonus : $settings['rider_payout_per_km']);
+        $hour = (int) $at->format('G');
+
+        if ($rule && $this->isHourInRange($hour, $rule->peak_start_hour, $rule->peak_end_hour)) {
+            $payout += (float) $rule->peak_hour_bonus;
+        } elseif (! $rule && $this->isPeakHour($hour, $settings)) {
             $payout += $settings['rider_peak_bonus'];
         }
 
+        if ($rule && $this->isHourInRange($hour, $rule->night_start_hour, $rule->night_end_hour)) {
+            $payout += (float) $rule->night_bonus;
+        }
+
         return round($payout, 2);
+    }
+
+    private function activeRiderRule(): ?RiderPaymentRule
+    {
+        return RiderPaymentRule::query()->where('status', 'active')
+            ->where(fn ($query) => $query->whereNull('starts_on')->orWhereDate('starts_on', '<=', today()))
+            ->where(fn ($query) => $query->whereNull('ends_on')->orWhereDate('ends_on', '>=', today()))
+            ->orderBy('priority')->orderBy('id')->first();
+    }
+
+    private function isHourInRange(int $hour, ?int $start, ?int $end): bool
+    {
+        if ($start === null || $end === null) {
+            return false;
+        }
+
+        return $start <= $end ? $hour >= $start && $hour < $end : $hour >= $start || $hour < $end;
     }
 
     public function discountedDeliveryFee(float $fee, float $subtotal): float

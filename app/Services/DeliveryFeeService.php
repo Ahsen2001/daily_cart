@@ -4,7 +4,10 @@ namespace App\Services;
 
 use App\Models\Customer;
 use App\Models\DeliveryFee;
+use App\Models\DeliveryHoliday;
+use App\Models\DeliveryPromotion;
 use App\Models\DeliveryPricingRule;
+use App\Models\FreeDeliveryRule;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -21,8 +24,10 @@ class DeliveryFeeService
         ?int $distanceMeters = null,
         int $quantity = 1,
         ?Customer $customer = null,
+        ?string $couponCode = null,
+        ?string $province = null,
     ): float {
-        return $this->estimate($subtotal, $district, $distanceMeters, $customer)['delivery_fee'];
+        return $this->estimate($subtotal, $district, $distanceMeters, $customer, $province, $couponCode)['delivery_fee'];
     }
 
     /**
@@ -36,12 +41,13 @@ class DeliveryFeeService
         ?int $distanceMeters = null,
         ?Customer $customer = null,
         ?string $province = null,
+        ?string $couponCode = null,
     ): array {
         $district = $this->resolveDistrict($district, $customer);
         $pricingRule = $this->matchingPricingRule($district, $province);
 
         if ($pricingRule) {
-            return $this->estimateFromPricingRule($pricingRule, $subtotal, $distanceMeters);
+            return $this->estimateFromPricingRule($pricingRule, $subtotal, $distanceMeters, $customer, $couponCode);
         }
 
         $rule = $this->matchingRule($district);
@@ -54,13 +60,7 @@ class DeliveryFeeService
                 ]);
             }
 
-            return [
-                'delivery_fee' => $this->financialPolicy->discountedDeliveryFee(OrderService::singleItemDeliveryCharge(), $subtotal),
-                'estimated_delivery_minutes' => null,
-                'free_delivery_eligible' => false,
-                'rule_scope' => 'legacy_default',
-                'rule_id' => null,
-            ];
+            return $this->finalizeEstimate(OrderService::singleItemDeliveryCharge(), $subtotal, null, 'legacy_default', null, $customer, $couponCode);
         }
 
         if ($subtotal < (float) $rule->minimum_order) {
@@ -70,26 +70,14 @@ class DeliveryFeeService
         }
 
         if ($rule->free_delivery_limit !== null && $subtotal >= (float) $rule->free_delivery_limit) {
-            return [
-                'delivery_fee' => 0.0,
-                'estimated_delivery_minutes' => null,
-                'free_delivery_eligible' => true,
-                'rule_scope' => 'legacy_district',
-                'rule_id' => null,
-            ];
+            return $this->finalizeEstimate(0, $subtotal, null, 'legacy_district', null, $customer, $couponCode, true);
         }
 
         $distanceInKilometres = max(0, (int) $distanceMeters) / 1000;
 
         $fee = (float) $rule->base_fee + ((float) $rule->per_km_fee * $distanceInKilometres);
 
-        return [
-            'delivery_fee' => $this->financialPolicy->discountedDeliveryFee($fee, $subtotal),
-            'estimated_delivery_minutes' => null,
-            'free_delivery_eligible' => false,
-            'rule_scope' => 'legacy_district',
-            'rule_id' => null,
-        ];
+        return $this->finalizeEstimate($fee, $subtotal, null, 'legacy_district', null, $customer, $couponCode);
     }
 
     /** @return Collection<int, string> */
@@ -157,7 +145,7 @@ class DeliveryFeeService
     }
 
     /** @return array{delivery_fee: float, estimated_delivery_minutes: int|null, free_delivery_eligible: bool, rule_scope: string, rule_id: int|null} */
-    private function estimateFromPricingRule(DeliveryPricingRule $rule, float $subtotal, ?int $distanceMeters): array
+    private function estimateFromPricingRule(DeliveryPricingRule $rule, float $subtotal, ?int $distanceMeters, ?Customer $customer, ?string $couponCode): array
     {
         if ($subtotal < (float) $rule->minimum_order) {
             throw ValidationException::withMessages([
@@ -175,20 +163,73 @@ class DeliveryFeeService
 
         $freeDelivery = $rule->free_delivery_threshold !== null
             && $subtotal >= (float) $rule->free_delivery_threshold;
-        $fee = $freeDelivery
-            ? 0.0
-            : $this->financialPolicy->discountedDeliveryFee(
-                (float) $rule->base_fee + ((float) $rule->per_km_fee * $distanceInKilometres),
-                $subtotal,
-            );
+        return $this->finalizeEstimate(
+            (float) $rule->base_fee + ((float) $rule->per_km_fee * $distanceInKilometres),
+            $subtotal,
+            $rule->estimated_delivery_minutes ?? $rule->zone?->estimated_delivery_minutes,
+            $rule->scope,
+            $rule->id,
+            $customer,
+            $couponCode,
+            $freeDelivery,
+        );
+    }
+
+    /** @return array{delivery_fee: float, estimated_delivery_minutes: int|null, free_delivery_eligible: bool, rule_scope: string, rule_id: int|null} */
+    private function finalizeEstimate(float $baseFee, float $subtotal, ?int $estimatedMinutes, string $scope, ?int $ruleId, ?Customer $customer, ?string $couponCode, bool $ruleFree = false): array
+    {
+        $freeRule = $this->matchingFreeDeliveryRule($subtotal, $customer, $couponCode);
+        $promotion = $this->matchingPromotion($subtotal);
+        $free = $ruleFree || $freeRule !== null || in_array($promotion?->type, ['free_delivery', 'vendor_sponsored'], true);
+        $fee = $free ? 0.0 : $baseFee;
+
+        if (! $free && $promotion?->type === 'percentage_discount') {
+            $fee *= 1 - min(100, (float) $promotion->discount_percent) / 100;
+        } elseif (! $free) {
+            $fee = $this->financialPolicy->discountedDeliveryFee($fee, $subtotal);
+        }
+
+        if (! $free) {
+            $fee += (float) (DeliveryHoliday::query()->where('status', 'active')
+                ->whereDate('starts_on', '<=', today())->whereDate('ends_on', '>=', today())
+                ->sum('extra_charge'));
+        }
 
         return [
             'delivery_fee' => round($fee, 2),
-            'estimated_delivery_minutes' => $rule->estimated_delivery_minutes ?? $rule->zone?->estimated_delivery_minutes,
-            'free_delivery_eligible' => $freeDelivery,
-            'rule_scope' => $rule->scope,
-            'rule_id' => $rule->id,
+            'estimated_delivery_minutes' => $estimatedMinutes,
+            'free_delivery_eligible' => $free,
+            'rule_scope' => $scope,
+            'rule_id' => $ruleId,
         ];
+    }
+
+    private function matchingPromotion(float $subtotal): ?DeliveryPromotion
+    {
+        return DeliveryPromotion::query()->where('status', 'active')
+            ->where('minimum_order', '<=', $subtotal)
+            ->where(fn ($query) => $query->whereNull('starts_on')->orWhereDate('starts_on', '<=', today()))
+            ->where(fn ($query) => $query->whereNull('ends_on')->orWhereDate('ends_on', '>=', today()))
+            ->orderBy('priority')->orderBy('id')->first();
+    }
+
+    private function matchingFreeDeliveryRule(float $subtotal, ?Customer $customer, ?string $couponCode): ?FreeDeliveryRule
+    {
+        return FreeDeliveryRule::query()->where('status', 'active')
+            ->where('minimum_order', '<=', $subtotal)
+            ->where(fn ($query) => $query->whereNull('starts_on')->orWhereDate('starts_on', '<=', today()))
+            ->where(fn ($query) => $query->whereNull('ends_on')->orWhereDate('ends_on', '>=', today()))
+            ->orderBy('priority')->orderBy('id')->get()
+            ->first(function (FreeDeliveryRule $rule) use ($customer, $couponCode) {
+                return match ($rule->condition_type) {
+                    'subtotal' => true,
+                    'first_order' => $customer && ! $customer->orders()->exists(),
+                    'weekend' => now()->isWeekend(),
+                    'coupon' => $couponCode && strcasecmp(trim($rule->coupon_code ?? ''), trim($couponCode)) === 0,
+                    'premium_membership' => $customer && $customer->subscriptions()->where('status', 'active')->exists(),
+                    default => false,
+                };
+            });
     }
 
     private function scopeRank(string $scope): int

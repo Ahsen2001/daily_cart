@@ -32,6 +32,12 @@ Route::middleware(['auth', 'verified', 'role:Super Admin'])->prefix('super-admin
     Route::get('/delivery-management/simulator', [DeliveryEngineController::class, 'simulator'])->name('delivery.simulator');
     Route::get('/delivery-management/analytics', [DeliveryEngineController::class, 'analytics'])->name('delivery.analytics');
     Route::get('/delivery-management/rule-history', [DeliveryEngineController::class, 'history'])->name('delivery.history');
+    Route::get('/delivery-management/policies', [DeliveryEngineController::class, 'policies'])->name('delivery.policies');
+    Route::post('/delivery-management/promotions', [DeliveryEngineController::class, 'storePromotion'])->name('delivery.promotions.store');
+    Route::post('/delivery-management/free-delivery-rules', [DeliveryEngineController::class, 'storeFreeRule'])->name('delivery.free-rules.store');
+    Route::post('/delivery-management/holidays', [DeliveryEngineController::class, 'storeHoliday'])->name('delivery.holidays.store');
+    Route::post('/delivery-management/rider-payment-rules', [DeliveryEngineController::class, 'storeRiderRule'])->name('delivery.rider-rules.store');
+    Route::put('/delivery-management/service-charge', [DeliveryEngineController::class, 'updateServiceCharge'])->name('delivery.service-charge.update');
 
     Route::get('/logs/activity', [SystemLogController::class, 'activityLogs'])->name('logs.activity');
     Route::get('/logs/api', [SystemLogController::class, 'apiLogs'])->name('logs.api');

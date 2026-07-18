@@ -281,12 +281,12 @@ class CriticalCommerceFlowsTest extends TestCase
     {
         Mail::fake();
 
-        $adminRole = Role::findOrCreate('Admin', 'web');
+        $adminRole = Role::findOrCreate('Super Admin', 'web');
         $admin = User::factory()->create(['role_id' => $adminRole->id]);
         $admin->assignRole($adminRole);
 
         $this->actingAs($admin)
-            ->put(route('admin.delivery-fees.service-charge.update'), ['service_charge_rate_percent' => 7.5])
+            ->put(route('super-admin.delivery.service-charge.update'), ['service_charge_rate_percent' => 7.5])
             ->assertSessionHasNoErrors();
 
         [, $customer] = $this->createCustomer();
@@ -299,7 +299,7 @@ class CriticalCommerceFlowsTest extends TestCase
         $this->assertSame(75.0, (float) $payment->service_charge);
 
         $this->actingAs($admin)
-            ->put(route('admin.delivery-fees.service-charge.update'), ['service_charge_rate_percent' => 10])
+            ->put(route('super-admin.delivery.service-charge.update'), ['service_charge_rate_percent' => 10])
             ->assertSessionHasNoErrors();
 
         app(PaymentService::class)->syncPendingOrderAmounts($payment);
@@ -308,29 +308,27 @@ class CriticalCommerceFlowsTest extends TestCase
         $this->assertSame(75.0, (float) $payment->refresh()->service_charge);
     }
 
-    public function test_only_admin_and_super_admin_can_manage_delivery_fee_configuration(): void
+    public function test_only_super_admin_can_manage_delivery_pricing_rules(): void
     {
-        $route = RouteFacade::getRoutes()->getByName('admin.delivery-fees.store');
+        $route = RouteFacade::getRoutes()->getByName('super-admin.delivery.rules.store');
 
-        $this->assertContains('role:Super Admin,Admin', $route->gatherMiddleware());
+        $this->assertContains('role:Super Admin', $route->gatherMiddleware());
 
-        foreach (['Admin', 'Super Admin'] as $roleName) {
+        $role = Role::findOrCreate('Super Admin', 'web');
+        $user = User::factory()->create(['role_id' => $role->id]);
+        $user->assignRole($role);
+
+        $this->actingAs($user)
+            ->post(route('super-admin.delivery.rules.store'), [])
+            ->assertSessionHasErrors(['scope', 'base_fee', 'per_km_fee', 'minimum_order', 'priority', 'status']);
+
+        foreach (['Admin', 'Customer', 'Vendor', 'Rider'] as $roleName) {
             $role = Role::findOrCreate($roleName, 'web');
             $user = User::factory()->create(['role_id' => $role->id]);
             $user->assignRole($role);
 
             $this->actingAs($user)
-                ->post(route('admin.delivery-fees.store'), [])
-                ->assertSessionHasErrors(['district', 'base_fee', 'per_km_fee', 'minimum_order', 'status']);
-        }
-
-        foreach (['Customer', 'Vendor', 'Rider'] as $roleName) {
-            $role = Role::findOrCreate($roleName, 'web');
-            $user = User::factory()->create(['role_id' => $role->id]);
-            $user->assignRole($role);
-
-            $this->actingAs($user)
-                ->post(route('admin.delivery-fees.store'), [])
+                ->post(route('super-admin.delivery.rules.store'), [])
                 ->assertForbidden();
         }
     }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\v1\RiderController;
 use App\Http\Controllers\Api\v1\VendorController;
 use App\Http\Controllers\Api\v1\VerificationController;
+use App\Http\Controllers\Api\v1\DeliveryPricingController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -17,6 +18,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/categories', [ProductController::class, 'categories']);
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{product}', [ProductController::class, 'show']);
+    Route::get('/delivery/zones', [DeliveryPricingController::class, 'zones']);
+    Route::get('/delivery/promotions', [DeliveryPricingController::class, 'promotions']);
+    Route::post('/delivery/estimate', [DeliveryPricingController::class, 'estimate']);
 
     // Authenticated routes
     Route::middleware('auth:sanctum')->group(function () {

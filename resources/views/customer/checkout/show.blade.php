@@ -99,7 +99,7 @@
                                             <option value="{{ $district }}" @selected(old('delivery_district', $selectedDeliveryDistrict) === $district)>{{ $district }}</option>
                                         @endforeach
                                     </select>
-                                    <p class="mt-2 text-xs text-gray-500">{{ __('The active Admin Delivery Fees Configuration for this district determines the base fee, per-kilometre charge, minimum order, and free-delivery threshold.') }}</p>
+                                    <p class="mt-2 text-xs text-gray-500">{{ __('The active Delivery Management rule for this district determines the base fee, per-kilometre charge, minimum order, and free-delivery eligibility.') }}</p>
                                     <x-input-error :messages="$errors->get('delivery_district')" class="mt-2" />
                                 </div>
                             @else

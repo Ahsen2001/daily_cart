@@ -20,6 +20,7 @@
                         <p class="px-3 pt-3 text-xs font-bold uppercase tracking-wider text-brand-muted">{{ __('Delivery Management') }}</p>
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.zones.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.zones.index') }}">{{ __('Delivery Zones') }}</a>
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.rules.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.rules.index') }}">{{ __('Delivery Fee Rules') }}</a>
+                        <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.policies') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.policies') }}">{{ __('Pricing Policies') }}</a>
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.simulator') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.simulator') }}">{{ __('Delivery Simulator') }}</a>
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.analytics') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.analytics') }}">{{ __('Delivery Analytics') }}</a>
                         <a class="dc-sidebar-link {{ request()->routeIs('super-admin.delivery.history') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('super-admin.delivery.history') }}">{{ __('Rule History') }}</a>
@@ -33,7 +34,9 @@
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.brands.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.brands.index') }}">{{ __('Brands') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.products.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.products.index') }}">{{ __('Products') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.orders.index') }}">{{ __('Orders') }}</a>
-                    <a class="dc-sidebar-link {{ request()->routeIs('admin.delivery-fees.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.delivery-fees.index') }}">{{ __('Delivery Fees') }}</a>
+                    @if (! Auth::user()->isSuperAdmin())
+                        <a class="dc-sidebar-link {{ request()->routeIs('admin.delivery.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.delivery.rules.index') }}">{{ __('Delivery Management') }}</a>
+                    @endif
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.delivery-schedules.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.delivery-schedules.index') }}">{{ __('Delivery Schedules') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.contact-messages.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.contact-messages.index') }}">{{ __('Contact Messages') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.newsletter.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.newsletter.index') }}">{{ __('Newsletter') }}</a>

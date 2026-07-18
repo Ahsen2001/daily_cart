@@ -1,0 +1,61 @@
+<x-app-layout>
+    <x-slot name="header"><div><p class="dc-page-eyebrow">{{ __('Delivery Management') }}</p><h2 class="text-xl font-bold text-brand-text">{{ __('Pricing Policies') }}</h2></div></x-slot>
+
+    <div class="py-8"><div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
+        <div class="rounded-2xl border border-brand-border bg-brand-light p-5 text-sm text-brand-muted">{{ __('Rules are evaluated by active date and priority. The winning free-delivery or promotional rule is saved into the checkout amount; changing it later never rewrites previous orders.') }}</div>
+
+        <div class="grid gap-6 xl:grid-cols-2">
+            <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 xl:col-span-2"><div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"><div><h3 class="text-lg font-bold text-brand-text">{{ __('Service Charge') }}</h3><p class="mt-1 text-sm text-brand-muted">{{ __('Applied once per checkout, independently of the delivery fee.') }}</p></div><span class="rounded-full bg-brand-light px-3 py-1 text-xs font-bold text-brand-primary">{{ __('Current policy') }}</span></div>
+                <form method="POST" action="{{ route($routePrefix.'.service-charge.update') }}" class="mt-5 grid gap-3 sm:grid-cols-4">@csrf @method('PUT')
+                    <label class="text-sm font-semibold text-brand-text"><span class="mb-1 block">{{ __('Percentage') }}</span><x-text-input name="service_charge_rate_percent" type="number" min="0" max="100" step="0.01" :value="$financialPolicy['service_charge_rate_percent']" required class="w-full" /></label>
+                    <label class="text-sm font-semibold text-brand-text"><span class="mb-1 block">{{ __('Fixed amount') }}</span><x-text-input name="service_charge_flat_amount" type="number" min="0" step="0.01" :value="$financialPolicy['service_charge_flat_amount']" class="w-full" /></label>
+                    <label class="text-sm font-semibold text-brand-text"><span class="mb-1 block">{{ __('Minimum') }}</span><x-text-input name="service_charge_minimum" type="number" min="0" step="0.01" :value="$financialPolicy['service_charge_minimum']" class="w-full" /></label>
+                    <label class="text-sm font-semibold text-brand-text"><span class="mb-1 block">{{ __('Maximum (0 = none)') }}</span><x-text-input name="service_charge_maximum" type="number" min="0" step="0.01" :value="$financialPolicy['service_charge_maximum']" class="w-full" /></label>
+                    <div class="sm:col-span-4"><x-primary-button>{{ __('Save service charge') }}</x-primary-button></div>
+                </form>
+            </section>
+            <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5"><h3 class="text-lg font-bold text-brand-text">{{ __('Promotional Delivery') }}</h3><p class="mt-1 text-sm text-brand-muted">{{ __('Free delivery, percentage-off delivery, or vendor-sponsored delivery.') }}</p>
+                <form method="POST" action="{{ route($routePrefix.'.promotions.store') }}" class="mt-5 grid gap-3 sm:grid-cols-2">@csrf
+                    <x-text-input name="name" required placeholder="Campaign name" /><select name="type" class="rounded-xl border-brand-border"><option value="free_delivery">Free delivery</option><option value="percentage_discount">Percentage delivery discount</option><option value="vendor_sponsored">Vendor sponsored delivery</option></select>
+                    <x-text-input name="discount_percent" type="number" min="0" max="100" step="0.01" value="0" placeholder="Discount %" /><x-text-input name="minimum_order" type="number" min="0" step="0.01" value="0" placeholder="Minimum order" />
+                    <x-text-input name="starts_on" type="date" /><x-text-input name="ends_on" type="date" /><x-text-input name="priority" type="number" min="0" value="100" required placeholder="Priority" /><select name="status" class="rounded-xl border-brand-border"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+                    <div class="sm:col-span-2"><x-primary-button>{{ __('Save promotion') }}</x-primary-button></div>
+                </form>
+                <div class="mt-5 divide-y divide-brand-border text-sm">@forelse($promotions as $promotion)<div class="flex items-center justify-between py-3"><div><p class="font-semibold text-brand-text">{{ $promotion->name }}</p><p class="text-brand-muted">{{ str($promotion->type)->replace('_', ' ')->title() }} · {{ $promotion->discount_percent }}% · Min Rs. {{ number_format($promotion->minimum_order, 2) }}</p></div><span class="rounded-full px-2 py-1 text-xs {{ $promotion->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">{{ $promotion->status }}</span></div>@empty<p class="py-3 text-brand-muted">{{ __('No promotional delivery rules yet.') }}</p>@endforelse</div>
+            </section>
+
+            <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5"><h3 class="text-lg font-bold text-brand-text">{{ __('Free Delivery Rules') }}</h3><p class="mt-1 text-sm text-brand-muted">{{ __('Examples: cart threshold, first order, weekend, coupon, or premium membership.') }}</p>
+                <form method="POST" action="{{ route($routePrefix.'.free-rules.store') }}" class="mt-5 grid gap-3 sm:grid-cols-2">@csrf
+                    <x-text-input name="name" required placeholder="Rule name" /><select name="condition_type" class="rounded-xl border-brand-border"><option value="subtotal">Order threshold</option><option value="first_order">First order</option><option value="weekend">Weekend</option><option value="coupon">Coupon based</option><option value="premium_membership">Premium membership</option></select>
+                    <x-text-input name="minimum_order" type="number" min="0" step="0.01" value="0" placeholder="Minimum order" /><x-text-input name="coupon_code" placeholder="Coupon code (if applicable)" />
+                    <x-text-input name="starts_on" type="date" /><x-text-input name="ends_on" type="date" /><x-text-input name="priority" type="number" min="0" value="100" required placeholder="Priority" /><select name="status" class="rounded-xl border-brand-border"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+                    <div class="sm:col-span-2"><x-primary-button>{{ __('Save free-delivery rule') }}</x-primary-button></div>
+                </form>
+                <div class="mt-5 divide-y divide-brand-border text-sm">@forelse($freeRules as $rule)<div class="flex items-center justify-between py-3"><div><p class="font-semibold text-brand-text">{{ $rule->name }}</p><p class="text-brand-muted">{{ str($rule->condition_type)->replace('_', ' ')->title() }} · Min Rs. {{ number_format($rule->minimum_order, 2) }}</p></div><span class="rounded-full px-2 py-1 text-xs {{ $rule->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">{{ $rule->status }}</span></div>@empty<p class="py-3 text-brand-muted">{{ __('No free-delivery rules yet.') }}</p>@endforelse</div>
+            </section>
+
+            <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5"><h3 class="text-lg font-bold text-brand-text">{{ __('Holiday Pricing') }}</h3><p class="mt-1 text-sm text-brand-muted">{{ __('Add a flat surcharge during a defined seasonal or public-holiday period.') }}</p>
+                <form method="POST" action="{{ route($routePrefix.'.holidays.store') }}" class="mt-5 grid gap-3 sm:grid-cols-2">@csrf
+                    <x-text-input name="name" required placeholder="Holiday name" /><x-text-input name="extra_charge" required type="number" min="0" step="0.01" placeholder="Extra charge" />
+                    <x-text-input name="starts_on" required type="date" /><x-text-input name="ends_on" required type="date" /><x-text-input name="reason" placeholder="Reason" /><select name="status" class="rounded-xl border-brand-border"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+                    <div class="sm:col-span-2"><x-primary-button>{{ __('Save holiday pricing') }}</x-primary-button></div>
+                </form>
+                <div class="mt-5 divide-y divide-brand-border text-sm">@forelse($holidays as $holiday)<div class="flex items-center justify-between py-3"><div><p class="font-semibold text-brand-text">{{ $holiday->name }}</p><p class="text-brand-muted">Rs. {{ number_format($holiday->extra_charge, 2) }} · {{ $holiday->starts_on?->format('d M Y') }} – {{ $holiday->ends_on?->format('d M Y') }}</p></div><span class="rounded-full px-2 py-1 text-xs {{ $holiday->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">{{ $holiday->status }}</span></div>@empty<p class="py-3 text-brand-muted">{{ __('No holiday pricing configured.') }}</p>@endforelse</div>
+            </section>
+
+            @if ($financialControls)<section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5"><h3 class="text-lg font-bold text-brand-text">{{ __('Rider Payment Rules') }}</h3><p class="mt-1 text-sm text-brand-muted">{{ __('Base pay and distance, peak, rain, holiday, and night bonuses. Tips remain customer-funded.') }}</p>
+                <form method="POST" action="{{ route($routePrefix.'.rider-rules.store') }}" class="mt-5 grid gap-3 sm:grid-cols-2">@csrf
+                    <x-text-input name="name" required placeholder="Rule name" /><x-text-input name="base_pay" required type="number" min="0" step="0.01" placeholder="Base pay" />
+                    <x-text-input name="per_km_bonus" required type="number" min="0" step="0.01" value="0" placeholder="Per KM bonus" /><x-text-input name="peak_hour_bonus" required type="number" min="0" step="0.01" value="0" placeholder="Peak bonus" />
+                    <x-text-input name="rain_bonus" required type="number" min="0" step="0.01" value="0" placeholder="Rain bonus" /><x-text-input name="holiday_bonus" required type="number" min="0" step="0.01" value="0" placeholder="Holiday bonus" />
+                    <x-text-input name="night_bonus" required type="number" min="0" step="0.01" value="0" placeholder="Night bonus" /><x-text-input name="priority" required type="number" min="0" value="100" placeholder="Priority" />
+                    <x-text-input name="peak_start_hour" type="number" min="0" max="23" placeholder="Peak start hour" /><x-text-input name="peak_end_hour" type="number" min="0" max="23" placeholder="Peak end hour" />
+                    <x-text-input name="night_start_hour" type="number" min="0" max="23" placeholder="Night start hour" /><x-text-input name="night_end_hour" type="number" min="0" max="23" placeholder="Night end hour" />
+                    <x-text-input name="starts_on" type="date" /><x-text-input name="ends_on" type="date" /><select name="status" class="rounded-xl border-brand-border"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+                    <div class="sm:col-span-2"><x-primary-button>{{ __('Save rider rule') }}</x-primary-button></div>
+                </form>
+                <div class="mt-5 divide-y divide-brand-border text-sm">@forelse($riderRules as $rule)<div class="flex items-center justify-between py-3"><div><p class="font-semibold text-brand-text">{{ $rule->name }}</p><p class="text-brand-muted">Base Rs. {{ number_format($rule->base_pay, 2) }} · Rs. {{ number_format($rule->per_km_bonus, 2) }}/km · Peak Rs. {{ number_format($rule->peak_hour_bonus, 2) }}</p></div><span class="rounded-full px-2 py-1 text-xs {{ $rule->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">{{ $rule->status }}</span></div>@empty<p class="py-3 text-brand-muted">{{ __('No rider payment rule configured. The legacy financial policy remains in effect.') }}</p>@endforelse</div>
+            </section>@endif
+        </div>
+    </div></div>
+</x-app-layout>
