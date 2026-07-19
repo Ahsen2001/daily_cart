@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminManagementController;
+use App\Http\Controllers\Admin\DeliveryEngineController;
 use App\Http\Controllers\Admin\PlatformSettingsController;
 use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\SuperAdminDashboardController;
 use App\Http\Controllers\Admin\SystemLogController;
 use App\Http\Controllers\Admin\SystemMaintenanceController;
-use App\Http\Controllers\Admin\DeliveryEngineController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:Super Admin'])->prefix('super-admin')->name('super-admin.')->group(function () {

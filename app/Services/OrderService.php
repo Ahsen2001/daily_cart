@@ -288,7 +288,7 @@ class OrderService
     /**
      * Apportion a checkout-wide charge across the orders created for each vendor.
      *
-     * @param array<int, array<string, mixed>> $lines
+     * @param  array<int, array<string, mixed>>  $lines
      */
     private function allocateCheckoutCharge(array &$lines, string $field, float $amount): void
     {

@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\DeliveryPricingRule;
 use App\Models\DeliveryHoliday;
+use App\Models\DeliveryPricingRule;
 use App\Models\DeliveryPromotion;
 use App\Models\FreeDeliveryRule;
 use App\Services\DeliveryFeeService;

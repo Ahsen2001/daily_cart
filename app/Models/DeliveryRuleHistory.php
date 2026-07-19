@@ -17,6 +17,13 @@ class DeliveryRuleHistory extends Model
         return ['changes' => 'array'];
     }
 
-    public function rule(): BelongsTo { return $this->belongsTo(DeliveryPricingRule::class, 'delivery_pricing_rule_id'); }
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function rule(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryPricingRule::class, 'delivery_pricing_rule_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

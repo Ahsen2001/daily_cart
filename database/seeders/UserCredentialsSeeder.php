@@ -17,11 +17,11 @@ class UserCredentialsSeeder extends Seeder
         // 1. Admin
         $adminRole = Role::query()->where('name', 'Admin')->firstOrFail();
         $adminUser = User::firstOrCreate(
-            ['email' => 'admin@dailycart.lk'],
+            ['email' => 'uahsens2@gmail.com'],
             [
-                'name' => 'DailyCart Admin',
+                'name' => 'Uahsens Admin',
                 'role_id' => $adminRole->id,
-                'phone' => '0700000001',
+                'phone' => '0701000002',
                 'password' => Hash::make('Password@123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
@@ -41,11 +41,11 @@ class UserCredentialsSeeder extends Seeder
         // 2. Vendor
         $vendorRole = Role::query()->where('name', 'Vendor')->firstOrFail();
         $vendorUser = User::firstOrCreate(
-            ['email' => 'afrijhaque@gmail.com'],
+            ['email' => 'uahsens2001@gmail.com'],
             [
-                'name' => 'DailyCart Vendor',
+                'name' => 'Uahsens Vendor',
                 'role_id' => $vendorRole->id,
-                'phone' => '0711111111',
+                'phone' => '0701000003',
                 'password' => Hash::make('Password@123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
@@ -59,12 +59,12 @@ class UserCredentialsSeeder extends Seeder
         ])->save();
         $vendorUser->assignRole($vendorRole->name);
 
-        Vendor::firstOrCreate(
+        Vendor::updateOrCreate(
             ['user_id' => $vendorUser->id],
             [
                 'store_name' => 'DailyCart Vendor Store',
                 'business_registration_no' => 'BR-12345',
-                'phone' => '0711111111',
+                'phone' => '0701000003',
                 'address' => '123 Store Street, Colombo',
                 'city' => 'Batticaloa',
                 'district' => 'Colombo',
@@ -77,11 +77,11 @@ class UserCredentialsSeeder extends Seeder
         // 3. Customer
         $customerRole = Role::query()->where('name', 'Customer')->firstOrFail();
         $customerUser = User::firstOrCreate(
-            ['email' => 'uahsens1@gmail.com'],
+            ['email' => 'rifkabanu870@gmail.com'],
             [
-                'name' => 'DailyCart Customer',
+                'name' => 'Rifkabanu Customer',
                 'role_id' => $customerRole->id,
-                'phone' => '0722222222',
+                'phone' => '0701000004',
                 'password' => Hash::make('Password@123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
@@ -95,12 +95,12 @@ class UserCredentialsSeeder extends Seeder
         ])->save();
         $customerUser->assignRole($customerRole->name);
 
-        $customer = Customer::firstOrCreate(
+        $customer = Customer::updateOrCreate(
             ['user_id' => $customerUser->id],
             [
-                'first_name' => 'DailyCart',
+                'first_name' => 'Rifkabanu',
                 'last_name' => 'Customer',
-                'phone' => '0722222222',
+                'phone' => '0701000004',
                 'status' => 'active',
             ]
         );
@@ -109,7 +109,7 @@ class UserCredentialsSeeder extends Seeder
             ['address_line_1' => '456 customer Road'],
             [
                 'label' => 'Home',
-                'recipient_name' => 'DailyCart Customer',
+                'recipient_name' => 'Rifkabanu Customer',
                 'phone' => '0754603008',
                 'city' => 'Batticaloa',
                 'district' => 'Batticaloa',
@@ -120,11 +120,11 @@ class UserCredentialsSeeder extends Seeder
         // 4. Rider
         $riderRole = Role::query()->where('name', 'Rider')->firstOrFail();
         $riderUser = User::firstOrCreate(
-            ['email' => 'uahsens2001@gmail.com'],
+            ['email' => 'ofnaaa@gmai.com'],
             [
-                'name' => 'DailyCart Rider',
+                'name' => 'Ofnaaa Rider',
                 'role_id' => $riderRole->id,
-                'phone' => '0733333333',
+                'phone' => '0701000005',
                 'password' => Hash::make('Password@123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
@@ -138,7 +138,7 @@ class UserCredentialsSeeder extends Seeder
         ])->save();
         $riderUser->assignRole($riderRole->name);
 
-        Rider::firstOrCreate(
+        Rider::updateOrCreate(
             ['user_id' => $riderUser->id],
             [
                 'vehicle_type' => 'motorbike',

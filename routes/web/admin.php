@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\ContentPageController;
 use App\Http\Controllers\Admin\DeliveryController;
+use App\Http\Controllers\Admin\DeliveryEngineController;
 use App\Http\Controllers\Admin\NewsletterManagementController;
 use App\Http\Controllers\Admin\RefundController as AdminRefundController;
 use App\Http\Controllers\Admin\RiderApprovalController;
@@ -79,16 +80,16 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
 
     Route::get('/deliveries', [DeliveryController::class, 'index'])->name('deliveries.index');
 
-    Route::get('/delivery-management/rules', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'adminRules'])->name('delivery.rules.index');
-    Route::post('/delivery-management/rules', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'storeRule'])->name('delivery.rules.store');
-    Route::put('/delivery-management/rules/{rule}', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'updateRule'])->name('delivery.rules.update');
-    Route::delete('/delivery-management/rules/{rule}', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'destroyRule'])->name('delivery.rules.destroy');
-    Route::get('/delivery-management/policies', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'adminPolicies'])->name('delivery.policies');
-    Route::post('/delivery-management/promotions', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'storePromotion'])->name('delivery.promotions.store');
-    Route::post('/delivery-management/free-delivery-rules', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'storeFreeRule'])->name('delivery.free-rules.store');
-    Route::post('/delivery-management/holidays', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'storeHoliday'])->name('delivery.holidays.store');
-    Route::put('/delivery-management/service-charge', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'updateServiceCharge'])->name('delivery.service-charge.update');
-    Route::delete('/delivery-management/policies/{type}/{id}', [\App\Http\Controllers\Admin\DeliveryEngineController::class, 'destroyPolicy'])->name('delivery.policies.destroy');
+    Route::get('/delivery-management/rules', [DeliveryEngineController::class, 'adminRules'])->name('delivery.rules.index');
+    Route::post('/delivery-management/rules', [DeliveryEngineController::class, 'storeRule'])->name('delivery.rules.store');
+    Route::put('/delivery-management/rules/{rule}', [DeliveryEngineController::class, 'updateRule'])->name('delivery.rules.update');
+    Route::delete('/delivery-management/rules/{rule}', [DeliveryEngineController::class, 'destroyRule'])->name('delivery.rules.destroy');
+    Route::get('/delivery-management/policies', [DeliveryEngineController::class, 'adminPolicies'])->name('delivery.policies');
+    Route::post('/delivery-management/promotions', [DeliveryEngineController::class, 'storePromotion'])->name('delivery.promotions.store');
+    Route::post('/delivery-management/free-delivery-rules', [DeliveryEngineController::class, 'storeFreeRule'])->name('delivery.free-rules.store');
+    Route::post('/delivery-management/holidays', [DeliveryEngineController::class, 'storeHoliday'])->name('delivery.holidays.store');
+    Route::put('/delivery-management/service-charge', [DeliveryEngineController::class, 'updateServiceCharge'])->name('delivery.service-charge.update');
+    Route::delete('/delivery-management/policies/{type}/{id}', [DeliveryEngineController::class, 'destroyPolicy'])->name('delivery.policies.destroy');
 
     Route::get('/delivery-schedules', [AdminDeliveryManagementController::class, 'schedulesIndex'])->name('delivery-schedules.index');
     Route::patch('/delivery-schedules/{schedule}', [AdminDeliveryManagementController::class, 'schedulesUpdate'])->name('delivery-schedules.update');

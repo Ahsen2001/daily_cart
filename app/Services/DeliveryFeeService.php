@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\Customer;
 use App\Models\DeliveryFee;
 use App\Models\DeliveryHoliday;
-use App\Models\DeliveryPromotion;
 use App\Models\DeliveryPricingRule;
+use App\Models\DeliveryPromotion;
 use App\Models\FreeDeliveryRule;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -164,6 +164,7 @@ class DeliveryFeeService
 
         $freeDelivery = $rule->free_delivery_threshold !== null
             && $subtotal >= (float) $rule->free_delivery_threshold;
+
         return $this->finalizeEstimate(
             (float) $rule->base_fee + ((float) $rule->per_km_fee * $distanceInKilometres),
             $subtotal,

@@ -2,12 +2,12 @@
 
 use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\CartController;
+use App\Http\Controllers\Api\v1\DeliveryPricingController;
 use App\Http\Controllers\Api\v1\OrderController;
 use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\v1\RiderController;
 use App\Http\Controllers\Api\v1\VendorController;
 use App\Http\Controllers\Api\v1\VerificationController;
-use App\Http\Controllers\Api\v1\DeliveryPricingController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {

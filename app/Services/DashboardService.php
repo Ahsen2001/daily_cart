@@ -107,5 +107,4 @@ class DashboardService
             ->where('payment_status', 'paid')
             ->sum('total_amount');
     }
-
 }

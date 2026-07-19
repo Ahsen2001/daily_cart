@@ -52,8 +52,7 @@ class VendorRegistrationController extends Controller
             'status' => 'pending',
         ]);
 
-        Vendor::create([
-            'user_id' => $user->id,
+        Vendor::updateOrCreate(['user_id' => $user->id], [
             'store_name' => $request->store_name,
             'business_registration_no' => $request->business_registration_no,
             'phone' => $request->phone,

@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\DeliveryPricingRule;
-use App\Models\DeliveryRuleHistory;
+use App\Models\Delivery;
 use App\Models\DeliveryHoliday;
+use App\Models\DeliveryPricingRule;
 use App\Models\DeliveryPromotion;
+use App\Models\DeliveryRuleHistory;
 use App\Models\FreeDeliveryRule;
 use App\Models\RiderPaymentRule;
 use App\Models\Setting;
-use App\Models\Delivery;
 use App\Models\Zone;
 use App\Services\DeliveryFeeService;
 use App\Services\FinancialPolicyService;

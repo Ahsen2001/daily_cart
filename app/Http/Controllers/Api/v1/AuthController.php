@@ -39,8 +39,7 @@ class AuthController extends Controller
                 'status' => 'active',
             ]);
 
-            Customer::create([
-                'user_id' => $user->id,
+            Customer::updateOrCreate(['user_id' => $user->id], [
                 'first_name' => $validated['name'],
                 'phone' => $validated['phone'],
                 'status' => 'active',

@@ -53,8 +53,7 @@ class RiderRegistrationController extends Controller
             'status' => 'pending',
         ]);
 
-        Rider::create([
-            'user_id' => $user->id,
+        Rider::updateOrCreate(['user_id' => $user->id], [
             'vehicle_type' => $request->vehicle_type,
             'vehicle_number' => $request->vehicle_number,
             'license_number' => $request->license_number,

@@ -7,8 +7,8 @@ use App\Models\ProductVariant;
 use App\Models\Promotion;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 
 class PromotionService

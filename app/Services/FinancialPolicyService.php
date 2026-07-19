@@ -53,6 +53,7 @@ class FinancialPolicyService
     public function riderPayout(Delivery $delivery): float
     {
         $distanceInKilometres = max(0, (int) ($delivery->order?->delivery_distance_meters ?? 0)) / 1000;
+
         return $this->riderPayoutForDistance($distanceInKilometres, $delivery->delivered_at ?? now());
     }
 

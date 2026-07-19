@@ -10,8 +10,8 @@ use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\User;
 use Illuminate\Mail\Mailable;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 class ExternalEmailService

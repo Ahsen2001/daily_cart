@@ -15,11 +15,11 @@ class DemoCatalogSeeder extends Seeder
     {
         $vendor = Vendor::query()
             ->where('status', 'approved')
-            ->whereHas('user', fn ($user) => $user->where('email', 'afrijhaque@gmail.com'))
+            ->whereHas('user', fn ($user) => $user->where('email', 'uahsens2001@gmail.com'))
             ->firstOrFail();
 
         $category = Category::query()->where('slug', 'fruits')->firstOrFail();
-        $creator = User::query()->where('email', 'admin@dailycart.lk')->firstOrFail();
+        $creator = User::query()->where('email', 'uahsens2@gmail.com')->firstOrFail();
 
         $product = Product::withTrashed()->firstOrNew(['slug' => 'fresh-mangoes-1kg']);
         $product->fill([

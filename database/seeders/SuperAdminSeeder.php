@@ -14,11 +14,11 @@ class SuperAdminSeeder extends Seeder
         $role = Role::where('name', 'Super Admin')->firstOrFail();
 
         $user = User::firstOrCreate(
-            ['email' => 'superadmin@dailycart.lk'],
+            ['email' => 'uahsens1@gmail.com'],
             [
-                'name' => 'DailyCart Super Admin',
+                'name' => 'Uahsens Super Admin',
                 'role_id' => $role->id,
-                'phone' => '0700000000',
+                'phone' => '0701000001',
                 'password' => Hash::make('Password@123'),
                 'status' => 'active',
                 'email_verified_at' => now(),

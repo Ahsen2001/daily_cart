@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\UserProfileSynchronizer;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -77,12 +78,14 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::saved(function (User $user) {
-            if (! $user->wasChanged('role_id')) {
-                return;
+            if ($user->wasChanged('role_id')) {
+                $role = $user->role_id ? $user->role()->first() : null;
+                $user->syncRoles($role ? [$role] : []);
             }
 
-            $role = $user->role_id ? $user->role()->first() : null;
-            $user->syncRoles($role ? [$role] : []);
+            if ($user->wasRecentlyCreated || $user->wasChanged('role_id')) {
+                app(UserProfileSynchronizer::class)->ensureFor($user);
+            }
         });
     }
 
@@ -118,6 +121,8 @@ class User extends Authenticatable
                 $this->forceFill(['role_id' => $role->id])->saveQuietly();
                 $this->setRelation('role', $role);
             }
+
+            app(UserProfileSynchronizer::class)->ensureFor($this);
         }
 
         return $result;

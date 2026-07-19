@@ -63,8 +63,7 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $customer = Customer::create([
-            'user_id' => $user->id,
+        $customer = Customer::updateOrCreate(['user_id' => $user->id], [
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'phone' => $request->phone,
