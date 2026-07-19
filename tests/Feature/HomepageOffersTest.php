@@ -21,7 +21,7 @@ class HomepageOffersTest extends TestCase
     {
         [$user, $vendor, $product] = $this->approvedProduct();
 
-        Promotion::create([
+        $vendorPromotion = Promotion::create([
             'vendor_id' => $vendor->id,
             'title' => 'Fresh Mango Weekend Deal',
             'description' => 'Save on fresh mangoes today.',
@@ -37,7 +37,7 @@ class HomepageOffersTest extends TestCase
         ]);
 
         $admin = User::factory()->create();
-        Promotion::create([
+        $adminPromotion = Promotion::create([
             'vendor_id' => null,
             'title' => 'DailyCart Admin Special',
             'description' => 'A platform offer announced by DailyCart.',
@@ -60,14 +60,16 @@ class HomepageOffersTest extends TestCase
             ->assertSee('DailyCart Admin Special')
             ->assertSee('Rs. 150.00 OFF')
             ->assertSee($product->name)
-            ->assertSee('href="'.route('products.show', $product).'"', false);
+            ->assertSee('href="'.route('products.show', ['product' => $product, 'promotion' => $vendorPromotion->id]).'"', false)
+            ->assertSee('href="'.route('products.show', ['product' => $product, 'promotion' => $adminPromotion->id]).'"', false);
 
         $this->get('/offers')
             ->assertOk()
             ->assertSee('Offers Today')
             ->assertSee('Fresh Mango Weekend Deal')
             ->assertSee('DailyCart Admin Special')
-            ->assertSee('href="'.route('products.show', $product).'"', false);
+            ->assertSee('href="'.route('products.show', ['product' => $product, 'promotion' => $vendorPromotion->id]).'"', false)
+            ->assertSee('href="'.route('products.show', ['product' => $product, 'promotion' => $adminPromotion->id]).'"', false);
     }
 
     public function test_expired_or_unapproved_vendor_offers_are_hidden_from_homepage(): void

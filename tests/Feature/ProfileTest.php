@@ -105,6 +105,7 @@ class ProfileTest extends TestCase
                 'address_line_2' => 'Near the market',
                 'city' => 'Kandy',
                 'district' => 'Kandy',
+                'province' => 'Central',
                 'postal_code' => '20000',
                 'latitude' => '7.2906000',
                 'longitude' => '80.6337000',
@@ -147,6 +148,7 @@ class ProfileTest extends TestCase
                 'address_line_1' => '1 Main Street',
                 'city' => 'Galle',
                 'district' => 'Galle',
+                'province' => 'Southern',
             ])
             ->assertSessionHasErrors('district');
 
@@ -189,6 +191,7 @@ class ProfileTest extends TestCase
                 'phone' => '0773000099',
                 'address' => '22 Market Road',
                 'city' => 'Kandy',
+                'province' => 'Central',
                 'latitude' => '7.2906000',
                 'longitude' => '80.6337000',
                 'formatted_address' => '22 Market Road, Kandy',
@@ -219,6 +222,7 @@ class ProfileTest extends TestCase
                 'address' => '5 Lake Road',
                 'city' => 'Kandy',
                 'district' => 'Kandy',
+                'province' => 'Central',
                 'latitude' => '7.2906000',
                 'longitude' => '80.6337000',
                 'formatted_address' => '5 Lake Road, Kandy',

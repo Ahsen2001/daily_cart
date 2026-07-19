@@ -30,6 +30,7 @@ class RegistrationTest extends TestCase
             'address_line_1' => '123 Main St',
             'city' => 'Colombo',
             'district' => 'Colombo',
+            'province' => 'Western',
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);

@@ -29,6 +29,7 @@ class RegistrationLocationTest extends TestCase
             'address_line_1' => 'Main Street',
             'city' => 'Batticaloa',
             'district' => 'Batticaloa',
+            'province' => 'Eastern',
             'latitude' => '7.7170000',
             'longitude' => '81.7000000',
             'password' => 'password',
@@ -54,6 +55,7 @@ class RegistrationLocationTest extends TestCase
             'address' => 'Market Road',
             'city' => 'Colombo',
             'district' => 'Colombo',
+            'province' => 'Western',
             'latitude' => '6.9271000',
             'longitude' => '79.8612000',
             'formatted_address' => 'Market Road, Colombo, Sri Lanka',
@@ -81,6 +83,7 @@ class RegistrationLocationTest extends TestCase
             'address' => 'Lake Road',
             'city' => 'Kandy',
             'district' => 'Kandy',
+            'province' => 'Central',
             'latitude' => '7.2906000',
             'longitude' => '80.6337000',
             'formatted_address' => 'Lake Road, Kandy, Sri Lanka',
@@ -113,6 +116,7 @@ class RegistrationLocationTest extends TestCase
             'address' => 'Market Road',
             'city' => 'Colombo',
             'district' => 'Colombo',
+            'province' => 'Western',
             'status' => 'approved',
         ]);
 
@@ -127,6 +131,7 @@ class RegistrationLocationTest extends TestCase
             'address' => 'New Market Road',
             'city' => 'Colombo',
             'district' => 'Colombo',
+            'province' => 'Western',
             'password' => 'password',
             'password_confirmation' => 'password',
         ])->assertSessionHasNoErrors();

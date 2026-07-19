@@ -88,7 +88,7 @@ class ApiCoreFlowTest extends TestCase
             ->assertJsonValidationErrors('cart');
     }
 
-    public function test_quote_and_order_creation_share_per_vendor_delivery_pricing(): void
+    public function test_quote_and_order_creation_share_one_checkout_delivery_fee(): void
     {
         [, $customer] = $this->createCustomer('pricing');
         $category = Category::create([
@@ -116,9 +116,9 @@ class ApiCoreFlowTest extends TestCase
         $quote = app(OrderService::class)->quote($cart, null, $customer);
 
         $this->assertSame(200.0, $quote['subtotal']);
-        $this->assertSame(500.0, $quote['delivery_fee']);
+        $this->assertSame(250.0, $quote['delivery_fee']);
         $this->assertSame(4.0, $quote['service_charge']);
-        $this->assertSame(704.0, $quote['grand_total']);
+        $this->assertSame(454.0, $quote['grand_total']);
 
         $orders = app(OrderService::class)->createFromCart($customer, [
             'delivery_address' => '1 Test Street, Colombo',
