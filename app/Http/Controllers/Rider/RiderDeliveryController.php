@@ -39,7 +39,7 @@ class RiderDeliveryController extends Controller
     public function accept(Delivery $delivery, DeliveryService $deliveries): RedirectResponse
     {
         $this->authorize('update', $delivery);
-        $deliveries->accept($delivery);
+        $deliveries->accept($delivery, request()->user());
 
         return back()->with('status', 'Delivery accepted.');
     }
@@ -47,7 +47,7 @@ class RiderDeliveryController extends Controller
     public function pickedUp(Delivery $delivery, DeliveryService $deliveries): RedirectResponse
     {
         $this->authorize('update', $delivery);
-        $deliveries->markPickedUp($delivery);
+        $deliveries->markPickedUp($delivery, request()->user());
 
         return back()->with('status', 'Delivery marked as picked up.');
     }
@@ -55,7 +55,7 @@ class RiderDeliveryController extends Controller
     public function onTheWay(Delivery $delivery, DeliveryService $deliveries): RedirectResponse
     {
         $this->authorize('update', $delivery);
-        $deliveries->markOnTheWay($delivery);
+        $deliveries->markOnTheWay($delivery, request()->user());
 
         return back()->with('status', 'Delivery marked as on the way.');
     }
@@ -66,7 +66,8 @@ class RiderDeliveryController extends Controller
             $delivery,
             $request->file('proof_image'),
             $request->file('customer_signature'),
-            $request->note
+            $request->note,
+            $request->user(),
         );
 
         return back()->with('status', 'Delivery completed.');
@@ -74,7 +75,7 @@ class RiderDeliveryController extends Controller
 
     public function failed(FailedDeliveryRequest $request, Delivery $delivery, DeliveryService $deliveries): RedirectResponse
     {
-        $deliveries->markFailed($delivery, $request->failed_reason);
+        $deliveries->markFailed($delivery, $request->failed_reason, $request->user());
 
         return back()->with('status', 'Delivery marked as failed.');
     }

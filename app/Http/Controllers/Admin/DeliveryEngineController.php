@@ -40,6 +40,13 @@ class DeliveryEngineController extends Controller
         return back()->with('status', 'Delivery zone updated.');
     }
 
+    public function destroyZone(Zone $zone): RedirectResponse
+    {
+        $zone->delete();
+
+        return back()->with('status', 'Delivery zone deleted. Existing orders are unchanged.');
+    }
+
     public function rules(): View
     {
         return $this->rulesView('super-admin.delivery.rules.store');
@@ -56,6 +63,8 @@ class DeliveryEngineController extends Controller
             'rules' => DeliveryPricingRule::query()->with('zone')->orderBy('priority')->paginate(20),
             'zones' => Zone::query()->where('status', 'active')->orderBy('name')->get(),
             'storeRoute' => $storeRoute,
+            'updateRoute' => str_replace('.store', '.update', $storeRoute),
+            'destroyRoute' => str_replace('.store', '.destroy', $storeRoute),
         ]);
     }
 
@@ -73,6 +82,14 @@ class DeliveryEngineController extends Controller
         $this->recordRuleHistory($request, $rule, 'updated', $rule->getChanges());
 
         return back()->with('status', 'Delivery pricing rule updated.');
+    }
+
+    public function destroyRule(Request $request, DeliveryPricingRule $rule): RedirectResponse
+    {
+        $this->recordRuleHistory($request, $rule, 'deleted', $rule->getAttributes());
+        $rule->delete();
+
+        return back()->with('status', 'Delivery pricing rule deleted. Existing orders are unchanged.');
     }
 
     public function simulator(Request $request, DeliveryFeeService $deliveryFees, FinancialPolicyService $financialPolicy): View
@@ -195,6 +212,21 @@ class DeliveryEngineController extends Controller
         ]);
 
         return back()->with('status', 'Service-charge policy saved.');
+    }
+
+    public function destroyPolicy(string $type, int $id): RedirectResponse
+    {
+        $model = match ($type) {
+            'promotion' => DeliveryPromotion::class,
+            'free-rule' => FreeDeliveryRule::class,
+            'holiday' => DeliveryHoliday::class,
+            'rider-rule' => RiderPaymentRule::class,
+            default => abort(404),
+        };
+
+        $model::query()->findOrFail($id)->delete();
+
+        return back()->with('status', 'Delivery policy deleted. Existing orders are unchanged.');
     }
 
     public function analytics(): View

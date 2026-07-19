@@ -53,14 +53,14 @@ class AdminOrderController extends Controller
 
     public function assignRider(AssignRiderRequest $request, Order $order, DeliveryService $deliveries): RedirectResponse
     {
-        $deliveries->assignRider($order, Rider::findOrFail($request->rider_id));
+        $deliveries->assignRider($order, Rider::findOrFail($request->rider_id), $request->user());
 
         return redirect()->route('admin.orders.show', $order)->with('status', 'Rider assigned.');
     }
 
     public function status(AdminOrderStatusRequest $request, Order $order, OrderStatusService $orders): RedirectResponse
     {
-        $orders->adminUpdate($order, $request->order_status);
+        $orders->adminUpdate($order, $request->order_status, $request->user());
 
         return back()->with('status', 'Order status updated.');
     }

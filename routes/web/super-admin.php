@@ -26,9 +26,11 @@ Route::middleware(['auth', 'verified', 'role:Super Admin'])->prefix('super-admin
     Route::get('/delivery-management/zones', [DeliveryEngineController::class, 'zones'])->name('delivery.zones.index');
     Route::post('/delivery-management/zones', [DeliveryEngineController::class, 'storeZone'])->name('delivery.zones.store');
     Route::put('/delivery-management/zones/{zone}', [DeliveryEngineController::class, 'updateZone'])->name('delivery.zones.update');
+    Route::delete('/delivery-management/zones/{zone}', [DeliveryEngineController::class, 'destroyZone'])->name('delivery.zones.destroy');
     Route::get('/delivery-management/rules', [DeliveryEngineController::class, 'rules'])->name('delivery.rules.index');
     Route::post('/delivery-management/rules', [DeliveryEngineController::class, 'storeRule'])->name('delivery.rules.store');
     Route::put('/delivery-management/rules/{rule}', [DeliveryEngineController::class, 'updateRule'])->name('delivery.rules.update');
+    Route::delete('/delivery-management/rules/{rule}', [DeliveryEngineController::class, 'destroyRule'])->name('delivery.rules.destroy');
     Route::get('/delivery-management/simulator', [DeliveryEngineController::class, 'simulator'])->name('delivery.simulator');
     Route::get('/delivery-management/analytics', [DeliveryEngineController::class, 'analytics'])->name('delivery.analytics');
     Route::get('/delivery-management/rule-history', [DeliveryEngineController::class, 'history'])->name('delivery.history');
@@ -38,6 +40,7 @@ Route::middleware(['auth', 'verified', 'role:Super Admin'])->prefix('super-admin
     Route::post('/delivery-management/holidays', [DeliveryEngineController::class, 'storeHoliday'])->name('delivery.holidays.store');
     Route::post('/delivery-management/rider-payment-rules', [DeliveryEngineController::class, 'storeRiderRule'])->name('delivery.rider-rules.store');
     Route::put('/delivery-management/service-charge', [DeliveryEngineController::class, 'updateServiceCharge'])->name('delivery.service-charge.update');
+    Route::delete('/delivery-management/policies/{type}/{id}', [DeliveryEngineController::class, 'destroyPolicy'])->name('delivery.policies.destroy');
 
     Route::get('/logs/activity', [SystemLogController::class, 'activityLogs'])->name('logs.activity');
     Route::get('/logs/api', [SystemLogController::class, 'apiLogs'])->name('logs.api');

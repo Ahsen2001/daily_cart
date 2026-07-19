@@ -29,52 +29,44 @@ class OrderStatusService
     public function __construct(
         private readonly LoyaltyPointService $loyaltyPoints,
         private readonly NotificationService $notifications,
+        private readonly OrderUpdateNotificationService $orderUpdates,
     ) {}
 
-    public function confirm(Order $order): Order
+    public function confirm(Order $order, ?User $actor = null): Order
     {
         $this->ensureStatus($order, 'pending', 'Vendor can confirm only pending orders.');
 
-        return DB::transaction(function () use ($order) {
+        return DB::transaction(function () use ($order, $actor) {
             if ($order->subscription_id) {
                 $this->reduceSubscriptionOrderStock($order);
             }
 
             $order->update(['order_status' => 'confirmed']);
-            $this->notify($order->customer->user, new OrderConfirmedNotification($order));
-            app(ExternalEmailService::class)->orderStatus($order->loadMissing('customer.user'), 'Your order '.$order->order_number.' has been confirmed.');
+            $this->orderUpdates->statusChanged($order, 'confirmed', $actor);
 
             return $order->refresh();
         });
     }
 
-    public function pack(Order $order): Order
+    public function pack(Order $order, ?User $actor = null): Order
     {
         $this->ensureStatus($order, 'confirmed', 'Vendor can mark packed only confirmed orders.');
 
-        return DB::transaction(function () use ($order) {
+        return DB::transaction(function () use ($order, $actor) {
             $order->update(['order_status' => 'packed']);
-            $this->notify($order->customer->user, new OrderPackedNotification($order));
-            $order->loadMissing(['vendor.user']);
-            $vendorName = $order->vendor?->store_name ?: $order->vendor?->user?->name ?: 'Vendor';
-            $this->notifications->notifyAdmins(
-                'Order packed',
-                'Order '.$order->order_number.' has been packed by '.$vendorName.' and is ready for rider assignment.',
-                'order_packed_admin'
-            );
-            app(ExternalEmailService::class)->orderStatus($order->loadMissing('customer.user'), 'Your order '.$order->order_number.' has been packed.');
+            $this->orderUpdates->statusChanged($order, 'packed', $actor);
 
             return $order->refresh();
         });
     }
 
-    public function cancel(Order $order, string $reason, string $message = 'This order cannot be cancelled.'): Order
+    public function cancel(Order $order, string $reason, string $message = 'This order cannot be cancelled.', ?User $actor = null): Order
     {
         if (! in_array($order->order_status, ['pending', 'confirmed'], true)) {
             throw ValidationException::withMessages(['order_status' => $message]);
         }
 
-        return DB::transaction(function () use ($order, $reason) {
+        return DB::transaction(function () use ($order, $reason, $actor) {
             $order->update([
                 'order_status' => 'cancelled',
                 'cancellation_reason' => $reason,
@@ -82,21 +74,25 @@ class OrderStatusService
 
             $this->loyaltyPoints->reverseForOrder($order, 'Reversed because order was cancelled.');
 
-            $this->notify($order->customer->user, new OrderCancelledNotification($order));
-            app(ExternalEmailService::class)->orderStatus($order->loadMissing('customer.user'), 'Your order '.$order->order_number.' has been cancelled.');
+            $this->orderUpdates->statusChanged($order, 'cancelled', $actor);
 
             return $order->refresh();
         });
     }
 
-    public function adminUpdate(Order $order, string $status): Order
+    public function adminUpdate(Order $order, string $status, ?User $actor = null): Order
     {
         if (! in_array($status, self::STATUSES, true)) {
             throw ValidationException::withMessages(['order_status' => 'Invalid order status.']);
         }
 
-        return DB::transaction(function () use ($order, $status) {
+        return DB::transaction(function () use ($order, $status, $actor) {
+            if ($order->order_status === $status) {
+                return $order->refresh();
+            }
+
             $order->update(['order_status' => $status]);
+            $this->orderUpdates->statusChanged($order, $status, $actor);
 
             return $order->refresh();
         });

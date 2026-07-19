@@ -40,7 +40,7 @@ class VendorOrderController extends Controller
     public function confirm(Order $order, OrderStatusService $orders): RedirectResponse
     {
         $this->authorize('manage', $order);
-        $orders->confirm($order);
+        $orders->confirm($order, request()->user());
 
         return back()->with('status', 'Order confirmed.');
     }
@@ -48,7 +48,7 @@ class VendorOrderController extends Controller
     public function packed(Order $order, OrderStatusService $orders): RedirectResponse
     {
         $this->authorize('manage', $order);
-        $orders->pack($order);
+        $orders->pack($order, request()->user());
 
         return back()->with('status', 'Order marked as packed.');
     }
@@ -56,7 +56,7 @@ class VendorOrderController extends Controller
     public function cancel(CancelOrderRequest $request, Order $order, OrderStatusService $orders): RedirectResponse
     {
         $this->authorize('manage', $order);
-        $orders->cancel($order, $request->reason, 'Vendor can cancel only pending or confirmed orders.');
+        $orders->cancel($order, $request->reason, 'Vendor can cancel only pending or confirmed orders.', $request->user());
 
         return back()->with('status', 'Order cancelled.');
     }

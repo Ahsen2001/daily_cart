@@ -58,24 +58,25 @@ class RiderController extends Controller
 
         switch ($request->status) {
             case 'accepted':
-                $this->deliveryService->accept($delivery);
+                $this->deliveryService->accept($delivery, $request->user());
                 break;
             case 'picked_up':
-                $this->deliveryService->markPickedUp($delivery);
+                $this->deliveryService->markPickedUp($delivery, $request->user());
                 break;
             case 'on_the_way':
-                $this->deliveryService->markOnTheWay($delivery);
+                $this->deliveryService->markOnTheWay($delivery, $request->user());
                 break;
             case 'delivered':
                 $this->deliveryService->markDelivered(
                     $delivery,
                     $request->file('proof_image'),
                     $request->file('customer_signature'),
-                    $request->note
+                    $request->note,
+                    $request->user(),
                 );
                 break;
             case 'failed':
-                $this->deliveryService->markFailed($delivery, $request->failed_reason);
+                $this->deliveryService->markFailed($delivery, $request->failed_reason, $request->user());
                 break;
         }
 

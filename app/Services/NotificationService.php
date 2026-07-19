@@ -21,13 +21,13 @@ class NotificationService
             'type' => $type,
         ]);
 
-        if (in_array('mail', $channels, true)) {
+        if (in_array('mail', $channels, true) && filled($user->email)) {
             Mail::to($user->email)->queue(
                 (new GenericNotificationMail($title, $message))->afterCommit()
             );
         }
 
-        if (in_array('sms', $channels, true)) {
+        if (in_array('sms', $channels, true) && filled($user->phone)) {
             SendNotificationChannelJob::dispatch($user->id, 'sms', $title, $message)->afterCommit();
         }
 
@@ -40,6 +40,15 @@ class NotificationService
         }
 
         return $notification;
+    }
+
+    public function sendOnce(User $user, string $title, string $message, string $type, array $channels = ['database']): ?Notification
+    {
+        if (Notification::query()->where('user_id', $user->id)->where('type', $type)->exists()) {
+            return null;
+        }
+
+        return $this->send($user, $title, $message, $type, $channels);
     }
 
     public function notifyAdmins(string $title, string $message, string $type, array $channels = ['database']): void
