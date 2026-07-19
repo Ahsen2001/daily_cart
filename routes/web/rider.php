@@ -20,6 +20,7 @@ Route::middleware(['auth', 'verified', 'role:Rider'])->prefix('rider')->name('ri
         Route::patch('/deliveries/{delivery}/picked-up', [RiderDeliveryController::class, 'pickedUp'])->name('deliveries.picked-up');
         Route::patch('/deliveries/{delivery}/on-the-way', [RiderDeliveryController::class, 'onTheWay'])->name('deliveries.on-the-way');
         Route::post('/deliveries/{delivery}/delivered', [RiderDeliveryController::class, 'delivered'])->name('deliveries.delivered');
+        Route::post('/deliveries/{delivery}/proof', [RiderDeliveryController::class, 'replaceProof'])->name('deliveries.proof.replace');
         Route::patch('/deliveries/{delivery}/failed', [RiderDeliveryController::class, 'failed'])->name('deliveries.failed');
         Route::post('/location', [RiderDeliveryController::class, 'location'])->name('location.store');
         Route::get('/earnings', [RiderEarningController::class, 'index'])->name('earnings.index');

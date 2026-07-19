@@ -14,10 +14,13 @@ use Illuminate\View\View;
 
 class PageController extends Controller
 {
-    public function home(PromotionService $promotions): View
+    public function home(Request $request, PromotionService $promotions): View
     {
+        $todayOffers = $promotions->storefront(6);
+        $promotions->recordImpressions($todayOffers, $request);
+
         return view('welcome', [
-            'todayOffers' => $promotions->storefront(6),
+            'todayOffers' => $todayOffers,
             'featuredProducts' => Cache::remember('storefront:featured-products', now()->addSeconds(30), fn () => Product::query()
                 ->visibleToCustomers()
                 ->with(['category', 'vendor', 'images'])
@@ -28,9 +31,11 @@ class PageController extends Controller
         ]);
     }
 
-    public function product(Product $product, PromotionService $promotions): View
+    public function product(Request $request, Product $product, PromotionService $promotions): View
     {
         abort_unless(Product::visibleToCustomers()->whereKey($product->getKey())->exists(), 404);
+
+        $promotions->recordClick($product, $request->integer('promotion'));
 
         $product->load(['category', 'vendor', 'images', 'variants']);
 
@@ -112,10 +117,13 @@ class PageController extends Controller
         return back()->with('contact_status', 'Your message has been sent.');
     }
 
-    public function offers(PromotionService $promotions): View
+    public function offers(Request $request, PromotionService $promotions): View
     {
+        $storefrontPromotions = $promotions->storefront(6);
+        $promotions->recordImpressions($storefrontPromotions, $request);
+
         return $this->contentPage('offers', [
-            'promotions' => $promotions->storefront(6),
+            'promotions' => $storefrontPromotions,
         ]);
     }
 

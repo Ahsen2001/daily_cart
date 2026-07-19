@@ -11,6 +11,8 @@ use App\Notifications\OutForDeliveryNotification;
 use App\Notifications\RiderAssignedNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class DeliveryService
@@ -96,8 +98,10 @@ class DeliveryService
     public function markDelivered(Delivery $delivery, UploadedFile $photo, ?UploadedFile $signature = null, ?string $note = null, ?User $actor = null): Delivery
     {
         $this->ensureDeliveryStatus($delivery, 'on_the_way', 'Rider can mark delivered only on-the-way deliveries.');
+        $proofImagePath = $this->storeProofFile($photo, 'delivery-proofs', 'proof_image');
+        $signaturePath = $signature ? $this->storeProofFile($signature, 'delivery-signatures', 'customer_signature') : null;
 
-        return DB::transaction(function () use ($delivery, $photo, $signature, $note, $actor) {
+        return DB::transaction(function () use ($delivery, $proofImagePath, $signaturePath, $note, $actor) {
             $delivery->update([
                 'status' => 'delivered',
                 'delivered_at' => now(),
@@ -106,8 +110,8 @@ class DeliveryService
             $delivery->update(['rider_payout' => $this->financialPolicy->riderPayout($delivery)]);
 
             $delivery->proofs()->create([
-                'proof_image' => $photo->store('delivery-proofs', 'public'),
-                'customer_signature' => $signature?->store('delivery-signatures', 'public'),
+                'proof_image' => $proofImagePath,
+                'customer_signature' => $signaturePath,
                 'note' => $note,
                 'submitted_at' => now(),
             ]);
@@ -138,6 +142,37 @@ class DeliveryService
         });
     }
 
+    public function replaceProof(Delivery $delivery, UploadedFile $photo, ?UploadedFile $signature = null, ?string $note = null): Delivery
+    {
+        $this->ensureDeliveryStatus($delivery, 'delivered', 'Delivery proof can be replaced only after delivery is completed.');
+        $proofImagePath = $this->storeProofFile($photo, 'delivery-proofs', 'proof_image');
+        $signaturePath = $signature ? $this->storeProofFile($signature, 'delivery-signatures', 'customer_signature') : null;
+
+        DB::transaction(function () use ($delivery, $proofImagePath, $signaturePath, $note) {
+            $proof = $delivery->proofs()->latest('id')->first();
+
+            if ($proof) {
+                $proof->update([
+                    'proof_image' => $proofImagePath,
+                    'customer_signature' => $signaturePath ?? $proof->customer_signature,
+                    'note' => $note ?? $proof->note,
+                    'submitted_at' => now(),
+                ]);
+
+                return;
+            }
+
+            $delivery->proofs()->create([
+                'proof_image' => $proofImagePath,
+                'customer_signature' => $signaturePath,
+                'note' => $note,
+                'submitted_at' => now(),
+            ]);
+        });
+
+        return $delivery->refresh();
+    }
+
     public function markFailed(Delivery $delivery, string $reason, ?User $actor = null): Delivery
     {
         if (! in_array($delivery->status, ['assigned', 'picked_up', 'on_the_way'], true)) {
@@ -160,6 +195,30 @@ class DeliveryService
     {
         if ($delivery->status !== $expected) {
             throw ValidationException::withMessages(['status' => $message]);
+        }
+    }
+
+    private function storeProofFile(UploadedFile $file, string $directory, string $field): string
+    {
+        try {
+            $targetDirectory = storage_path('app/public/'.$directory);
+            File::ensureDirectoryExists($targetDirectory);
+
+            $extension = $file->extension() ?: $file->getClientOriginalExtension() ?: 'jpg';
+            $filename = Str::uuid().'.'.strtolower($extension);
+            $file->move($targetDirectory, $filename);
+
+            if (! File::isFile($targetDirectory.DIRECTORY_SEPARATOR.$filename)) {
+                throw new \RuntimeException('Uploaded proof file was not found after the move.');
+            }
+
+            return trim($directory, '/').'/'.$filename;
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            throw ValidationException::withMessages([
+                $field => 'The image could not be saved. Please choose the image again and retry.',
+            ]);
         }
     }
 }

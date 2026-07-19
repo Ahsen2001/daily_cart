@@ -8,6 +8,7 @@ use App\Models\Promotion;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class PromotionService
@@ -109,5 +110,43 @@ class PromotionService
             'discount' => $bestDiscount,
             'promotion' => $bestPromotion,
         ];
+    }
+
+    /**
+     * Count a promotion at most once per visitor session per day. This keeps a
+     * refresh from inflating the vendor's view metric.
+     */
+    public function recordImpressions(Collection $promotions, Request $request): void
+    {
+        $date = now()->toDateString();
+        $viewed = $request->session()->get('promotion_views', []);
+        $ids = $promotions->pluck('id')
+            ->filter(fn ($id) => ($viewed[$id] ?? null) !== $date)
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return;
+        }
+
+        Promotion::query()->whereKey($ids)->increment('views_count');
+
+        foreach ($ids as $id) {
+            $viewed[$id] = $date;
+        }
+
+        $request->session()->put('promotion_views', $viewed);
+    }
+
+    public function recordClick(Product $product, ?int $promotionId): void
+    {
+        if (! $promotionId) {
+            return;
+        }
+
+        $promotion = $this->applicableTo($product)->firstWhere('id', $promotionId);
+
+        if ($promotion) {
+            $promotion->increment('clicks_count');
+        }
     }
 }

@@ -60,7 +60,7 @@
             <x-input-error :messages="$errors->get('address')" class="mt-2" />
         </div>
 
-        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
                 <x-input-label for="city" :value="__('City')" />
                 <x-text-input id="city" class="mt-1 block w-full" type="text" name="city" :value="old('city')" required autocomplete="address-level2" />
@@ -70,6 +70,11 @@
                 <x-input-label for="district" :value="__('District')" />
                 <x-text-input id="district" class="mt-1 block w-full" type="text" name="district" :value="old('district')" required autocomplete="address-level1" />
                 <x-input-error :messages="$errors->get('district')" class="mt-2" />
+            </div>
+            <div>
+                <x-input-label for="province" :value="__('Province')" />
+                <x-text-input id="province" class="mt-1 block w-full" type="text" name="province" :value="old('province')" required autocomplete="address-level1" />
+                <x-input-error :messages="$errors->get('province')" class="mt-2" />
             </div>
         </div>
 

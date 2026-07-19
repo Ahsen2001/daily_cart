@@ -36,7 +36,13 @@
                         <div class="grid gap-4 sm:grid-cols-2">
                             @foreach ($delivery->proofs as $proof)
                                 <div class="rounded-md border p-3 text-sm">
-                                    <img src="{{ Storage::url($proof->proof_image) }}" alt="Delivery proof" class="mb-3 h-40 w-full rounded object-cover">
+                                    @if ($proof->proof_image_url)
+                                        <img src="{{ $proof->proof_image_url }}" alt="Delivery proof" class="mb-3 h-40 w-full rounded object-cover">
+                                    @else
+                                        <div class="mb-3 rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">
+                                            {{ __('The original proof image is unavailable. Upload a replacement below.') }}
+                                        </div>
+                                    @endif
                                     <div><x-local-time :date="$proof->submitted_at" /></div>
                                     @if ($proof->note)
                                         <div class="mt-1 text-gray-500">{{ $proof->note }}</div>
@@ -102,6 +108,26 @@
                             @method('PATCH')
                             <textarea name="failed_reason" rows="3" class="w-full rounded-md border-gray-300 shadow-sm" required placeholder="{{ __('Failed delivery reason') }}"></textarea>
                             <x-danger-button class="w-full justify-center">{{ __('Mark Failed') }}</x-danger-button>
+                        </form>
+                    </div>
+                @endif
+
+                @if ($delivery->status === 'delivered' && $delivery->proofs->contains(fn ($proof) => ! $proof->proof_image_url))
+                    <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                        <h3 class="mb-2 font-semibold">{{ __('Replace Missing Delivery Proof') }}</h3>
+                        <p class="mb-4 text-sm text-gray-600">{{ __('Upload the delivery photo again so the proof is available to the rider, customer, and administrators.') }}</p>
+                        <form method="POST" action="{{ route('rider.deliveries.proof.replace', $delivery) }}" enctype="multipart/form-data" class="space-y-3">
+                            @csrf
+                            <div>
+                                <x-input-label for="replacement_proof_image" :value="__('Proof Photo')" />
+                                <input id="replacement_proof_image" type="file" name="proof_image" accept="image/*" class="mt-1 w-full text-sm" required>
+                            </div>
+                            <div>
+                                <x-input-label for="replacement_customer_signature" :value="__('Customer Signature (optional)')" />
+                                <input id="replacement_customer_signature" type="file" name="customer_signature" accept="image/*" class="mt-1 w-full text-sm">
+                            </div>
+                            <textarea name="note" rows="2" class="w-full rounded-md border-gray-300 shadow-sm" placeholder="{{ __('Optional note') }}"></textarea>
+                            <x-primary-button class="w-full justify-center">{{ __('Save Replacement Proof') }}</x-primary-button>
                         </form>
                     </div>
                 @endif

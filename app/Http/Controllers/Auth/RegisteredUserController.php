@@ -45,6 +45,7 @@ class RegisteredUserController extends Controller
             'address_line_2' => ['nullable', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
             'district' => ['required', 'string', 'max:255'],
+            'province' => ['required', 'string', 'max:255'],
             'postal_code' => ['nullable', 'string', 'max:30'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90', 'required_with:longitude'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180', 'required_with:latitude'],
@@ -78,9 +79,11 @@ class RegisteredUserController extends Controller
             'address_line_2' => $request->address_line_2,
             'city' => $request->city,
             'district' => $request->district,
+            'province' => $request->province,
             'postal_code' => $request->postal_code,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
+            'formatted_address' => $request->formatted_address,
             'is_default' => true,
         ]);
 

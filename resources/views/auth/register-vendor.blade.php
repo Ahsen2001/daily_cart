@@ -27,7 +27,7 @@
             <x-input-error :messages="$errors->get('business_registration_no')" class="mt-2" />
         </div>
 
-        <div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-3">
             <div>
                 <x-input-label for="email" :value="__('Email')" />
                 <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required />
@@ -58,6 +58,11 @@
                 <x-input-label for="district" :value="__('District')" />
                 <x-text-input id="district" class="block mt-1 w-full" type="text" name="district" :value="old('district')" required />
                 <x-input-error :messages="$errors->get('district')" class="mt-2" />
+            </div>
+            <div>
+                <x-input-label for="province" :value="__('Province')" />
+                <x-text-input id="province" class="block mt-1 w-full" type="text" name="province" :value="old('province')" required autocomplete="address-level1" />
+                <x-input-error :messages="$errors->get('province')" class="mt-2" />
             </div>
         </div>
 

@@ -73,6 +73,19 @@ class RiderDeliveryController extends Controller
         return back()->with('status', 'Delivery completed.');
     }
 
+    public function replaceProof(DeliveryProofRequest $request, Delivery $delivery, DeliveryService $deliveries): RedirectResponse
+    {
+        $this->authorize('update', $delivery);
+        $deliveries->replaceProof(
+            $delivery,
+            $request->file('proof_image'),
+            $request->file('customer_signature'),
+            $request->note,
+        );
+
+        return back()->with('status', 'Delivery proof image updated.');
+    }
+
     public function failed(FailedDeliveryRequest $request, Delivery $delivery, DeliveryService $deliveries): RedirectResponse
     {
         $deliveries->markFailed($delivery, $request->failed_reason, $request->user());

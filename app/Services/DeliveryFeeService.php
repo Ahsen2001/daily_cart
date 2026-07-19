@@ -44,6 +44,7 @@ class DeliveryFeeService
         ?string $couponCode = null,
     ): array {
         $district = $this->resolveDistrict($district, $customer);
+        $province = $this->resolveProvince($province, $customer);
         $pricingRule = $this->matchingPricingRule($district, $province);
 
         if ($pricingRule) {
@@ -258,5 +259,23 @@ class DeliveryFeeService
         $savedDistrict = trim((string) $savedDistrict);
 
         return $savedDistrict !== '' ? $savedDistrict : null;
+    }
+
+    private function resolveProvince(?string $province, ?Customer $customer): ?string
+    {
+        $province = trim((string) $province);
+
+        if ($province !== '') {
+            return $province;
+        }
+
+        $savedProvince = $customer?->addresses()
+            ->orderByDesc('is_default')
+            ->orderBy('id')
+            ->value('province');
+
+        $savedProvince = trim((string) $savedProvince);
+
+        return $savedProvince !== '' ? $savedProvince : null;
     }
 }

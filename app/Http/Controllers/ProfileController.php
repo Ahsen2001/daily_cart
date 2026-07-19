@@ -88,10 +88,12 @@ class ProfileController extends Controller
                 'address_line_2' => $address?->address_line_2,
                 'city' => $address?->city,
                 'district' => $address?->district,
+                'province' => $address?->province,
                 'postal_code' => $address?->postal_code,
                 'latitude' => $address?->latitude,
                 'longitude' => $address?->longitude,
-                'formatted_address' => collect([$address?->address_line_1, $address?->city, $address?->district])->filter()->implode(', '),
+                'formatted_address' => $address?->formatted_address
+                    ?: collect([$address?->address_line_1, $address?->city, $address?->district, $address?->province])->filter()->implode(', '),
             ];
         }
 
@@ -107,6 +109,7 @@ class ProfileController extends Controller
             'address' => $roleProfile->address,
             'city' => $roleProfile->city,
             'district' => $user->vendor ? null : $roleProfile->district,
+            'province' => $roleProfile->province,
             'latitude' => $roleProfile->latitude,
             'longitude' => $roleProfile->longitude,
             'formatted_address' => $roleProfile->formatted_address
@@ -139,9 +142,11 @@ class ProfileController extends Controller
                 'address_line_2' => $validated['address_line_2'] ?? null,
                 'city' => $validated['city'],
                 'district' => $validated['district'],
+                'province' => $validated['province'],
                 'postal_code' => $validated['postal_code'] ?? null,
                 'latitude' => $validated['latitude'] ?? null,
                 'longitude' => $validated['longitude'] ?? null,
+                'formatted_address' => $validated['formatted_address'] ?? null,
                 'is_default' => true,
             ])->save();
 
@@ -159,6 +164,7 @@ class ProfileController extends Controller
         $location = [
             'address' => $validated['address'],
             'city' => $validated['city'],
+            'province' => $validated['province'],
             'latitude' => $validated['latitude'] ?? null,
             'longitude' => $validated['longitude'] ?? null,
             'formatted_address' => $validated['formatted_address']

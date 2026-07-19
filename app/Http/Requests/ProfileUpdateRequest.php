@@ -39,6 +39,7 @@ class ProfileUpdateRequest extends FormRequest
         $rules['phone'] = ['required', 'string', 'max:30', Rule::unique(User::class, 'phone')->ignore($this->user()->id)];
         $rules += [
             'city' => ['required', 'string', 'max:255'],
+            'province' => ['required', 'string', 'max:255'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90', 'required_with:longitude'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180', 'required_with:latitude'],
             'formatted_address' => ['nullable', 'string', 'max:500'],

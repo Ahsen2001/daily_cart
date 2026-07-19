@@ -120,6 +120,12 @@
                                 <x-input-error class="mt-2" :messages="$errors->get('district')" />
                             </div>
                         @endunless
+
+                        <div>
+                            <x-input-label for="province" :value="__('Province')" />
+                            <x-text-input id="province" name="province" type="text" class="mt-1 block w-full" :value="old('province', $profileLocation['province'])" required autocomplete="address-level1" />
+                            <x-input-error class="mt-2" :messages="$errors->get('province')" />
+                        </div>
                     </div>
 
                     @if ($user->customer)

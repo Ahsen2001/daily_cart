@@ -20,6 +20,7 @@ class Rider extends Model
         'address',
         'city',
         'district',
+        'province',
         'latitude',
         'longitude',
         'formatted_address',

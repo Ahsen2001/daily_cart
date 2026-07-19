@@ -19,9 +19,11 @@ class Address extends Model
         'address_line_2',
         'city',
         'district',
+        'province',
         'postal_code',
         'latitude',
         'longitude',
+        'formatted_address',
         'is_default',
     ];
 

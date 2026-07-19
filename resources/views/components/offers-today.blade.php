@@ -28,7 +28,9 @@
                         $offerImage = $promotion->banner_image
                             ? \Illuminate\Support\Facades\Storage::url($promotion->banner_image)
                             : $offerProduct?->display_image_url;
-                        $offerUrl = $offerProduct ? route('products.show', $offerProduct) : route('pages.offers');
+                        $offerUrl = $offerProduct
+                            ? route('products.show', ['product' => $offerProduct, 'promotion' => $promotion->id])
+                            : route('pages.offers');
                         $discountLabel = $promotion->discount_type === 'percentage'
                             ? rtrim(rtrim(number_format((float) $promotion->discount_value, 2), '0'), '.').'% OFF'
                             : \App\Services\CurrencyService::formatLkr($promotion->discount_value).' OFF';
