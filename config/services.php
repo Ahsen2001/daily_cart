@@ -46,7 +46,9 @@ return [
     ],
 
     'sms' => [
+        'provider' => env('SMS_PROVIDER'),
         'endpoint' => env('SMS_GATEWAY_URL'),
+        'user_id' => env('SMS_USER_ID'),
         'token' => env('SMS_GATEWAY_TOKEN'),
         'sender' => env('SMS_SENDER_ID', 'DailyCart'),
     ],
