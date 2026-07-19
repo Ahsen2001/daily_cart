@@ -22,7 +22,10 @@ class ExternalSmsService
             throw new RuntimeException('SMS_GATEWAY_URL must be configured to send phone verification codes.');
         }
 
-        $request = Http::acceptJson()->timeout(10);
+        // Explicitly bypass any stale local development proxy for the external SMS gateway.
+        $request = Http::acceptJson()
+            ->timeout(10)
+            ->withOptions(['proxy' => config('services.sms.proxy', '')]);
 
         if (config('services.sms.provider') === 'smslenz') {
             $response = $request->post(rtrim($endpoint, '/').'/send-sms', [
