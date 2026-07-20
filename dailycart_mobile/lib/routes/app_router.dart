@@ -81,6 +81,7 @@ import '../screens/rider/rider_dashboard_screen.dart';
 import '../screens/rider/rider_earnings_screen.dart';
 import '../screens/rider/rider_map_screen.dart';
 import '../screens/rider/rider_profile_screen.dart';
+import '../screens/rider/rider_report_screen.dart';
 import 'app_routes.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -328,7 +329,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       name: 'delivery-proof',
       builder: (context, state) {
         final deliveryId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return DeliveryProofScreen(deliveryId: deliveryId);
+        return DeliveryProofScreen(
+          deliveryId: deliveryId,
+          replaceExisting:
+              state.uri.queryParameters['replace'] == 'true',
+        );
       },
     ),
     GoRoute(
@@ -353,6 +358,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       path: AppRoutes.editRiderProfile,
       name: 'edit-rider-profile',
       builder: (context, state) => const EditRiderProfileScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.riderReports,
+      builder: (context, state) => const RiderReportScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.riderNotifications,
+      builder: (context, state) => const NotificationsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.riderSupportTickets,
+      builder: (context, state) => const SupportTicketsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.riderCreateSupportTicket,
+      builder: (context, state) => const CreateSupportTicketScreen(),
+    ),
+    GoRoute(
+      path: '${AppRoutes.riderSupportTicketDetails}/:id',
+      builder: (context, state) => SupportTicketDetailsScreen(
+        ticketId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.riderChangePassword,
+      builder: (context, state) => const ChangePasswordScreen(),
     ),
     GoRoute(
       path: AppRoutes.categories,

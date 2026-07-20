@@ -25,7 +25,10 @@ class _RiderDashboardScreenState extends ConsumerState<RiderDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(riderProvider).getRiderDashboard());
+    Future.microtask(() async {
+      await ref.read(riderProvider).getRiderDashboard();
+      await ref.read(riderProvider).getRiderProfile();
+    });
   }
 
   @override
@@ -50,6 +53,21 @@ class _RiderDashboardScreenState extends ConsumerState<RiderDashboardScreen> {
                         mainAxisSpacing: 14,
                         childAspectRatio: 1.04,
                         children: [
+                          RiderDashboardCard(
+                            title: 'Availability',
+                            value: dashboard.availabilityStatus
+                                .replaceAll('_', ' ')
+                                .toUpperCase(),
+                            icon: dashboard.availabilityStatus == 'available'
+                                ? Icons.toggle_on
+                                : Icons.toggle_off,
+                            color: dashboard.availabilityStatus == 'available'
+                                ? AppColors.primaryGreen
+                                : AppColors.mutedText,
+                            onTap: () => _toggleAvailability(
+                              dashboard.availabilityStatus,
+                            ),
+                          ),
                           RiderDashboardCard(
                             title: "Today's Deliveries",
                             value: '${dashboard.todayDeliveries}',
@@ -125,6 +143,22 @@ class _RiderDashboardScreenState extends ConsumerState<RiderDashboardScreen> {
             label: 'Profile',
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _toggleAvailability(String current) async {
+    final next = current == 'available' ? 'unavailable' : 'available';
+    final ok = await ref.read(riderProvider).updateAvailability(next);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'Availability changed to $next.'
+              : ref.read(riderProvider).errorMessage ??
+                  'Unable to change availability.',
+        ),
       ),
     );
   }

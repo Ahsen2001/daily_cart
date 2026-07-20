@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/rider_delivery_provider.dart';
 import '../../providers/rider_location_provider.dart';
@@ -24,6 +27,7 @@ class RiderMapScreen extends ConsumerStatefulWidget {
 
 class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
   Position? _position;
+  StreamSubscription<Position>? _tracking;
 
   @override
   void initState() {
@@ -31,7 +35,14 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
     Future.microtask(() async {
       await ref.read(riderDeliveryProvider).getDeliveryDetails(widget.deliveryId);
       await _loadCurrentLocation();
+      _startTracking();
     });
+  }
+
+  @override
+  void dispose() {
+    _tracking?.cancel();
+    super.dispose();
   }
 
   @override
@@ -79,9 +90,9 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const DailyCartCard(
+                DailyCartCard(
                   child: Text(
-                    'Route directions placeholder. Open Google Maps navigation from the customer location marker when platform URL handling is connected.',
+                    'Live location tracking is ${_tracking == null ? 'inactive' : 'active'} for this delivery.',
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -95,13 +106,9 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
                   label: 'Open Google Maps Navigation',
                   icon: Icons.navigation_outlined,
                   variant: CustomButtonVariant.secondary,
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Google Maps navigation placeholder.'),
-                      ),
-                    );
-                  },
+                  onPressed: delivery == null
+                      ? null
+                      : () => _openNavigation(destination),
                 ),
               ],
             ),
@@ -127,6 +134,7 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
     final ok = await ref.read(riderLocationProvider).updateRiderLocation(
           latitude: position.latitude,
           longitude: position.longitude,
+          deliveryId: widget.deliveryId,
         );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -134,5 +142,40 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
         content: Text(ok ? 'Location updated.' : 'Unable to update location.'),
       ),
     );
+  }
+
+  void _startTracking() {
+    final status =
+        ref.read(riderDeliveryProvider).selectedDelivery?.status.toLowerCase();
+    if (!const {'accepted', 'picked_up', 'on_the_way'}.contains(status)) {
+      return;
+    }
+    _tracking?.cancel();
+    _tracking = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 20,
+      ),
+    ).listen((position) {
+      if (mounted) setState(() => _position = position);
+      ref.read(riderLocationProvider).updateRiderLocation(
+            latitude: position.latitude,
+            longitude: position.longitude,
+            deliveryId: widget.deliveryId,
+          );
+    });
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openNavigation(LatLng destination) async {
+    final uri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=driving',
+    );
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open a maps application.')),
+      );
+    }
   }
 }

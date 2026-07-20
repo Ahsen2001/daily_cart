@@ -9,6 +9,8 @@ class RiderProfileModel {
     this.licenseNumber = '',
     this.approvalStatus = 'pending',
     this.profilePhoto = '',
+    this.availabilityStatus = 'unavailable',
+    this.address = '',
   });
 
   final int id;
@@ -20,6 +22,8 @@ class RiderProfileModel {
   final String licenseNumber;
   final String approvalStatus;
   final String profilePhoto;
+  final String availabilityStatus;
+  final String address;
 
   bool get isApproved => approvalStatus.toLowerCase() == 'approved';
 
@@ -35,6 +39,9 @@ class RiderProfileModel {
       approvalStatus:
           (json['approval_status'] ?? json['status'] ?? 'pending').toString(),
       profilePhoto: (json['profile_photo'] ?? json['avatar'] ?? '').toString(),
+      availabilityStatus:
+          (json['availability_status'] ?? 'unavailable').toString(),
+      address: (json['address'] ?? '').toString(),
     );
   }
 
@@ -46,6 +53,7 @@ class RiderProfileModel {
       'vehicle_type': vehicleType,
       'vehicle_number': vehicleNumber,
       'license_number': licenseNumber,
+      'address': address,
     };
   }
 

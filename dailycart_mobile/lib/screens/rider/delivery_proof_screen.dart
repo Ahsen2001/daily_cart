@@ -11,10 +11,12 @@ import '../../widgets/proof_image_picker.dart';
 class DeliveryProofScreen extends ConsumerStatefulWidget {
   const DeliveryProofScreen({
     required this.deliveryId,
+    this.replaceExisting = false,
     super.key,
   });
 
   final int deliveryId;
+  final bool replaceExisting;
 
   @override
   ConsumerState<DeliveryProofScreen> createState() =>
@@ -24,6 +26,7 @@ class DeliveryProofScreen extends ConsumerStatefulWidget {
 class _DeliveryProofScreenState extends ConsumerState<DeliveryProofScreen> {
   final _noteController = TextEditingController();
   String? _proofImagePath;
+  String? _signatureImagePath;
 
   @override
   void dispose() {
@@ -49,15 +52,27 @@ class _DeliveryProofScreenState extends ConsumerState<DeliveryProofScreen> {
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Customer signature placeholder.'),
+                  onPressed: () async {
+                    await showModalBottomSheet<void>(
+                      context: context,
+                      builder: (context) => Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: ProofImagePicker(
+                          imagePath: _signatureImagePath,
+                          onChanged: (path) {
+                            setState(() => _signatureImagePath = path);
+                            Navigator.pop(context);
+                          },
+                        ),
                       ),
                     );
                   },
                   icon: const Icon(Icons.draw_outlined),
-                  label: const Text('Signature placeholder'),
+                  label: Text(
+                    _signatureImagePath == null
+                        ? 'Add optional signature image'
+                        : 'Signature selected',
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -73,7 +88,9 @@ class _DeliveryProofScreenState extends ConsumerState<DeliveryProofScreen> {
           ),
           const SizedBox(height: 20),
           CustomButton(
-            label: 'Save Proof and Mark Delivered',
+            label: widget.replaceExisting
+                ? 'Replace Delivery Proof'
+                : 'Save Proof and Mark Delivered',
             icon: Icons.check_circle_outline_rounded,
             isLoading: state.isLoading,
             onPressed: _proofImagePath == null ? null : _submit,
@@ -84,14 +101,31 @@ class _DeliveryProofScreenState extends ConsumerState<DeliveryProofScreen> {
   }
 
   Future<void> _submit() async {
-    final ok = await ref.read(riderDeliveryProvider).markDelivered(
-          deliveryId: widget.deliveryId,
-          proofImagePath: _proofImagePath ?? '',
-          note: _noteController.text.trim(),
-        );
+    final provider = ref.read(riderDeliveryProvider);
+    final ok = widget.replaceExisting
+        ? await provider.replaceProof(
+            deliveryId: widget.deliveryId,
+            proofImagePath: _proofImagePath ?? '',
+            signatureImagePath: _signatureImagePath,
+            note: _noteController.text.trim(),
+          )
+        : await provider.markDelivered(
+            deliveryId: widget.deliveryId,
+            proofImagePath: _proofImagePath ?? '',
+            signatureImagePath: _signatureImagePath,
+            note: _noteController.text.trim(),
+          );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'Delivery completed.' : 'Unable to save proof.')),
+      SnackBar(
+        content: Text(
+          ok
+              ? widget.replaceExisting
+                  ? 'Delivery proof replaced.'
+                  : 'Delivery completed.'
+              : 'Unable to save proof.',
+        ),
+      ),
     );
     if (ok) context.pop();
   }

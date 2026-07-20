@@ -27,6 +27,7 @@ class _EditRiderProfileScreenState
   final _vehicleTypeController = TextEditingController();
   final _vehicleNumberController = TextEditingController();
   final _licenseController = TextEditingController();
+  final _addressController = TextEditingController();
   bool _filled = false;
 
   @override
@@ -43,6 +44,7 @@ class _EditRiderProfileScreenState
     _vehicleTypeController.dispose();
     _vehicleNumberController.dispose();
     _licenseController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -58,6 +60,7 @@ class _EditRiderProfileScreenState
       _vehicleTypeController.text = profile.vehicleType;
       _vehicleNumberController.text = profile.vehicleNumber;
       _licenseController.text = profile.licenseNumber;
+      _addressController.text = profile.address;
     }
 
     return Scaffold(
@@ -100,18 +103,27 @@ class _EditRiderProfileScreenState
                               label: 'Vehicle Type',
                               controller: _vehicleTypeController,
                               icon: Icons.two_wheeler_outlined,
+                              validator: _required,
                             ),
                             const SizedBox(height: 12),
                             CustomTextField(
                               label: 'Vehicle Number',
                               controller: _vehicleNumberController,
                               icon: Icons.pin_outlined,
+                              validator: _required,
                             ),
                             const SizedBox(height: 12),
                             CustomTextField(
                               label: 'License Number',
                               controller: _licenseController,
                               icon: Icons.badge_outlined,
+                              validator: _required,
+                            ),
+                            const SizedBox(height: 12),
+                            CustomTextField(
+                              label: 'Home Base Address',
+                              controller: _addressController,
+                              icon: Icons.home_work_outlined,
                             ),
                           ],
                         ),
@@ -140,6 +152,8 @@ class _EditRiderProfileScreenState
       licenseNumber: _licenseController.text.trim(),
       approvalStatus: profile.approvalStatus,
       profilePhoto: profile.profilePhoto,
+      availabilityStatus: profile.availabilityStatus,
+      address: _addressController.text.trim(),
     );
     final ok = await ref.read(riderProvider).updateRiderProfile(updated);
     if (!mounted) return;

@@ -13,6 +13,9 @@ class DeliveryModel {
     this.latitude,
     this.longitude,
     this.items = const [],
+    this.proofs = const [],
+    this.acceptedAt,
+    this.failedReason = '',
   });
 
   final int id;
@@ -28,8 +31,12 @@ class DeliveryModel {
   final double? latitude;
   final double? longitude;
   final List<DeliveryItemModel> items;
+  final List<DeliveryProofSummaryModel> proofs;
+  final DateTime? acceptedAt;
+  final String failedReason;
 
-  bool get canMarkPickedUp => status.toLowerCase() == 'assigned';
+  bool get canAccept => status.toLowerCase() == 'assigned';
+  bool get canMarkPickedUp => status.toLowerCase() == 'accepted';
   bool get canMarkOnTheWay => status.toLowerCase() == 'picked_up';
   bool get canMarkDelivered => status.toLowerCase() == 'on_the_way';
   bool get canMarkFailed {
@@ -39,7 +46,9 @@ class DeliveryModel {
 
   factory DeliveryModel.fromJson(Map<String, dynamic> json) {
     final order = json['order'];
-    final customer = json['customer'] ?? json['user'];
+    final customer = json['customer'] ??
+        json['user'] ??
+        (order is Map<String, dynamic> ? order['customer'] : null);
     final source = order is Map<String, dynamic> ? order : json;
 
     return DeliveryModel(
@@ -63,14 +72,28 @@ class DeliveryModel {
       paymentMethod: (source['payment_method'] ?? '').toString(),
       paymentStatus: (source['payment_status'] ?? '').toString(),
       scheduledDeliveryTime: _nullableDate(
-        source['scheduled_delivery_time'] ?? source['scheduled_at'],
+        source['scheduled_delivery_at'] ??
+            source['scheduled_delivery_time'] ??
+            json['scheduled_at'] ??
+            source['scheduled_at'],
       ),
       totalAmount: _toDouble(source['grand_total'] ?? source['total_amount']),
-      latitude: _nullableDouble(json['latitude'] ?? source['latitude']),
-      longitude: _nullableDouble(json['longitude'] ?? source['longitude']),
+      latitude: _nullableDouble(
+        json['latitude'] ?? source['delivery_latitude'] ?? source['latitude'],
+      ),
+      longitude: _nullableDouble(
+        json['longitude'] ??
+            source['delivery_longitude'] ??
+            source['longitude'],
+      ),
       items: _listFrom(source['items'] ?? source['order_items'])
           .map(DeliveryItemModel.fromJson)
           .toList(growable: false),
+      proofs: _listFrom(json['proofs'])
+          .map(DeliveryProofSummaryModel.fromJson)
+          .toList(growable: false),
+      acceptedAt: _nullableDate(json['accepted_at']),
+      failedReason: (json['failed_reason'] ?? '').toString(),
     );
   }
 
@@ -117,7 +140,35 @@ class DeliveryItemModel {
     return DeliveryItemModel(
       productName: (json['product_name'] ?? json['name'] ?? '').toString(),
       quantity: DeliveryModel._toInt(json['quantity']),
-      subtotal: DeliveryModel._toDouble(json['subtotal']),
+      subtotal: DeliveryModel._toDouble(
+        json['total_price'] ?? json['subtotal'],
+      ),
+    );
+  }
+}
+
+class DeliveryProofSummaryModel {
+  const DeliveryProofSummaryModel({
+    required this.id,
+    required this.proofImage,
+    required this.customerSignature,
+    required this.note,
+    this.submittedAt,
+  });
+
+  final int id;
+  final String proofImage;
+  final String customerSignature;
+  final String note;
+  final DateTime? submittedAt;
+
+  factory DeliveryProofSummaryModel.fromJson(Map<String, dynamic> json) {
+    return DeliveryProofSummaryModel(
+      id: DeliveryModel._toInt(json['id']),
+      proofImage: (json['proof_image'] ?? '').toString(),
+      customerSignature: (json['customer_signature'] ?? '').toString(),
+      note: (json['note'] ?? '').toString(),
+      submittedAt: DeliveryModel._nullableDate(json['submitted_at']),
     );
   }
 }

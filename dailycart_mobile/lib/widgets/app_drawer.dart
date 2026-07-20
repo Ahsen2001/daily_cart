@@ -180,6 +180,22 @@ class AppDrawer extends ConsumerWidget {
                         context.push(AppRoutes.riderProfile);
                       },
                     ),
+                    ListTile(
+                      leading: const Icon(Icons.analytics_outlined),
+                      title: const Text('Reports'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.riderReports);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.support_agent_outlined),
+                      title: const Text('Support'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.riderSupportTickets);
+                      },
+                    ),
                   ] else ...[
                     ListTile(
                       leading: const Icon(Icons.receipt_long_outlined),

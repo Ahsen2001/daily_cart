@@ -8,6 +8,7 @@ class RiderDashboardModel {
     this.weeklyEarnings = 0,
     this.monthlyEarnings = 0,
     this.approvalStatus = 'pending',
+    this.availabilityStatus = 'unavailable',
   });
 
   final int todayDeliveries;
@@ -18,6 +19,7 @@ class RiderDashboardModel {
   final double weeklyEarnings;
   final double monthlyEarnings;
   final String approvalStatus;
+  final String availabilityStatus;
 
   bool get isApproved => approvalStatus.toLowerCase() == 'approved';
 
@@ -32,6 +34,8 @@ class RiderDashboardModel {
       monthlyEarnings: _toDouble(json['monthly_earnings']),
       approvalStatus:
           (json['approval_status'] ?? json['status'] ?? 'pending').toString(),
+      availabilityStatus:
+          (json['availability_status'] ?? 'unavailable').toString(),
     );
   }
 

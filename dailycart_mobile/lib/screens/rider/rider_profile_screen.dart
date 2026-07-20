@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/rider_provider.dart';
+import '../../providers/profile_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -48,6 +50,11 @@ class _RiderProfileScreenState extends ConsumerState<RiderProfileScreen> {
                           _Info('Vehicle Type', profile.vehicleType),
                           _Info('Vehicle Number', profile.vehicleNumber),
                           _Info('License Number', profile.licenseNumber),
+                          _Info(
+                            'Availability',
+                            profile.availabilityStatus.replaceAll('_', ' '),
+                          ),
+                          _Info('Home Base', profile.address),
                         ],
                       ),
                     ),
@@ -65,12 +72,83 @@ class _RiderProfileScreenState extends ConsumerState<RiderProfileScreen> {
                             title: 'Rider Earnings',
                             onTap: () => context.push(AppRoutes.riderEarnings),
                           ),
+                          SettingTile(
+                            icon: Icons.analytics_outlined,
+                            title: 'Rider Reports',
+                            onTap: () => context.push(AppRoutes.riderReports),
+                          ),
+                          SettingTile(
+                            icon: Icons.notifications_none,
+                            title: 'Notifications',
+                            onTap: () =>
+                                context.push(AppRoutes.riderNotifications),
+                          ),
+                          SettingTile(
+                            icon: Icons.support_agent,
+                            title: 'Support',
+                            onTap: () =>
+                                context.push(AppRoutes.riderSupportTickets),
+                          ),
+                          SettingTile(
+                            icon: Icons.lock_outline,
+                            title: 'Change Password',
+                            onTap: () =>
+                                context.push(AppRoutes.riderChangePassword),
+                          ),
+                          SettingTile(
+                            icon: Icons.delete_forever_outlined,
+                            title: 'Delete Rider Account',
+                            onTap: _deleteAccount,
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
     );
+  }
+
+  Future<void> _deleteAccount() async {
+    final password = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete rider account?'),
+        content: TextField(
+          controller: password,
+          obscureText: true,
+          decoration: const InputDecoration(labelText: 'Confirm password'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    final value = password.text;
+    password.dispose();
+    if (confirmed != true || value.isEmpty) return;
+    final ok = await ref.read(profileProvider).deleteAccount(value);
+    if (!mounted) return;
+    if (ok) {
+      await ref.read(authProvider).clearToken();
+      if (mounted) context.go(AppRoutes.login);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ref.read(profileProvider).errorMessage ??
+                'Unable to delete rider account.',
+          ),
+        ),
+      );
+    }
   }
 }
 

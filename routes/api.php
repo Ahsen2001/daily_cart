@@ -118,7 +118,6 @@ Route::prefix('v1')->group(function () {
             Route::post('/profile/photo', [CustomerAccountController::class, 'uploadPhoto']);
             Route::patch('/profile/password', [CustomerAccountController::class, 'changePassword']);
             Route::delete('/profile', [CustomerAccountController::class, 'destroyAccount']);
-            Route::delete('/profile', [CustomerAccountController::class, 'destroyAccount']);
 
             Route::get('/notifications', [CustomerAccountController::class, 'notifications']);
             Route::patch('/notifications/read-all', [CustomerAccountController::class, 'readAllNotifications']);
@@ -135,10 +134,32 @@ Route::prefix('v1')->group(function () {
 
         // Rider endpoints
         Route::prefix('rider')->middleware(['ability:rider', 'verified', 'phone.verified', 'role:Rider', 'rider.approved'])->group(function () {
+            Route::get('/dashboard', [RiderController::class, 'dashboard']);
+            Route::get('/profile', [RiderController::class, 'profile']);
+            Route::put('/profile', [RiderController::class, 'updateProfile']);
+            Route::post('/profile/photo', [CustomerAccountController::class, 'uploadPhoto']);
+            Route::patch('/profile/password', [CustomerAccountController::class, 'changePassword']);
+            Route::delete('/profile', [CustomerAccountController::class, 'destroyAccount']);
+            Route::patch('/availability', [RiderController::class, 'availability']);
             Route::get('/deliveries', [RiderController::class, 'index']);
             Route::get('/deliveries/{delivery}', [RiderController::class, 'show']);
+            Route::patch('/deliveries/{delivery}/accept', [RiderController::class, 'accept']);
             Route::patch('/deliveries/{delivery}/status', [RiderController::class, 'updateStatus']);
+            Route::post('/deliveries/{delivery}/proof', [RiderController::class, 'replaceProof']);
             Route::post('/location', [RiderController::class, 'location']);
+            Route::get('/earnings', [RiderController::class, 'earnings']);
+            Route::get('/reports', [RiderController::class, 'reports']);
+
+            Route::get('/notifications', [CustomerAccountController::class, 'notifications']);
+            Route::patch('/notifications/read-all', [CustomerAccountController::class, 'readAllNotifications']);
+            Route::post('/notifications/device-token', [CustomerAccountController::class, 'saveDeviceToken']);
+            Route::patch('/notifications/{notification}/read', [CustomerAccountController::class, 'readNotification']);
+            Route::delete('/notifications/{notification}', [CustomerAccountController::class, 'deleteNotification']);
+            Route::get('/support-tickets', [CustomerAccountController::class, 'tickets']);
+            Route::post('/support-tickets', [CustomerAccountController::class, 'createTicket']);
+            Route::get('/support-tickets/{ticket}', [CustomerAccountController::class, 'ticket']);
+            Route::post('/support-tickets/{ticket}/replies', [CustomerAccountController::class, 'replyTicket']);
+            Route::patch('/support-tickets/{ticket}/close', [CustomerAccountController::class, 'closeTicket']);
         });
 
         // Vendor endpoints
@@ -149,6 +170,7 @@ Route::prefix('v1')->group(function () {
             Route::put('/profile', [VendorBusinessController::class, 'updateProfile']);
             Route::post('/profile/photo', [CustomerAccountController::class, 'uploadPhoto']);
             Route::patch('/profile/password', [CustomerAccountController::class, 'changePassword']);
+            Route::delete('/profile', [CustomerAccountController::class, 'destroyAccount']);
 
             Route::get('/products', [VendorCatalogController::class, 'index']);
             Route::post('/products', [VendorCatalogController::class, 'store']);

@@ -41,6 +41,10 @@ class RiderDeliveryProvider extends ChangeNotifier {
     return _update(() => _apiService.markPickedUp(deliveryId));
   }
 
+  Future<bool> acceptDelivery(int deliveryId) {
+    return _update(() => _apiService.acceptDelivery(deliveryId));
+  }
+
   Future<bool> markOnTheWay(int deliveryId) {
     return _update(() => _apiService.markOnTheWay(deliveryId));
   }
@@ -52,12 +56,30 @@ class RiderDeliveryProvider extends ChangeNotifier {
   Future<bool> markDelivered({
     required int deliveryId,
     required String proofImagePath,
+    String? signatureImagePath,
     String note = '',
   }) {
     return _update(
       () => _apiService.markDelivered(
         deliveryId: deliveryId,
         proofImagePath: proofImagePath,
+        signatureImagePath: signatureImagePath,
+        note: note,
+      ),
+    );
+  }
+
+  Future<bool> replaceProof({
+    required int deliveryId,
+    required String proofImagePath,
+    String? signatureImagePath,
+    String note = '',
+  }) {
+    return _update(
+      () => _apiService.replaceProof(
+        deliveryId: deliveryId,
+        proofImagePath: proofImagePath,
+        signatureImagePath: signatureImagePath,
         note: note,
       ),
     );

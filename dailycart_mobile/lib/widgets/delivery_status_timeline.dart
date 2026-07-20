@@ -12,6 +12,7 @@ class DeliveryStatusTimeline extends StatelessWidget {
 
   static const _steps = [
     ('assigned', 'Assigned'),
+    ('accepted', 'Accepted'),
     ('picked_up', 'Picked Up'),
     ('on_the_way', 'On the Way'),
     ('delivered', 'Delivered'),

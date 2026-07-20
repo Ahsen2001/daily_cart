@@ -27,6 +27,7 @@ class RiderLocationProvider extends ChangeNotifier {
   Future<bool> updateRiderLocation({
     required double latitude,
     required double longitude,
+    required int deliveryId,
   }) async {
     isLoading = true;
     errorMessage = null;
@@ -37,7 +38,10 @@ class RiderLocationProvider extends ChangeNotifier {
         longitude: longitude,
         updatedAt: DateTime.now(),
       );
-      await _apiService.updateRiderLocation(location);
+      await _apiService.updateRiderLocation(
+        location,
+        deliveryId: deliveryId,
+      );
       currentLocation = location;
       return true;
     } on ApiException catch (error) {

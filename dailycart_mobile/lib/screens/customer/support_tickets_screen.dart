@@ -38,7 +38,9 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
             onPressed: () => context.push(
               AppIdentity.isVendor
                   ? AppRoutes.vendorCreateSupportTicket
-                  : AppRoutes.createSupportTicket,
+                  : AppIdentity.isRider
+                      ? AppRoutes.riderCreateSupportTicket
+                      : AppRoutes.createSupportTicket,
             ),
             icon: const Icon(Icons.add_rounded),
           ),
@@ -62,7 +64,7 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
                       return TicketCard(
                         ticket: ticket,
                         onTap: () => context.push(
-                          '${AppIdentity.isVendor ? AppRoutes.vendorSupportTicketDetails : AppRoutes.supportTicketDetails}/${ticket.id}',
+                          '${AppIdentity.isVendor ? AppRoutes.vendorSupportTicketDetails : AppIdentity.isRider ? AppRoutes.riderSupportTicketDetails : AppRoutes.supportTicketDetails}/${ticket.id}',
                         ),
                       );
                     },
@@ -75,7 +77,9 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
         onPressed: () => context.push(
           AppIdentity.isVendor
               ? AppRoutes.vendorCreateSupportTicket
-              : AppRoutes.createSupportTicket,
+              : AppIdentity.isRider
+                  ? AppRoutes.riderCreateSupportTicket
+                  : AppRoutes.createSupportTicket,
         ),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Ticket'),

@@ -21,6 +21,7 @@ class RiderProvider extends ChangeNotifier {
 
   RiderDashboardModel? dashboard;
   RiderProfileModel? profile;
+  Map<String, dynamic>? report;
   bool isLoading = false;
   String? errorMessage;
 
@@ -43,6 +44,31 @@ class RiderProvider extends ChangeNotifier {
   Future<bool> updateRiderProfile(RiderProfileModel riderProfile) async {
     return _run(() async {
       profile = await _apiService.updateRiderProfile(riderProfile);
+    });
+  }
+
+  Future<bool> updateAvailability(String status) {
+    return _run(() async {
+      profile = await _apiService.updateAvailability(status);
+      if (dashboard != null) {
+        dashboard = RiderDashboardModel(
+          todayDeliveries: dashboard!.todayDeliveries,
+          assignedDeliveries: dashboard!.assignedDeliveries,
+          completedDeliveries: dashboard!.completedDeliveries,
+          failedDeliveries: dashboard!.failedDeliveries,
+          todayEarnings: dashboard!.todayEarnings,
+          weeklyEarnings: dashboard!.weeklyEarnings,
+          monthlyEarnings: dashboard!.monthlyEarnings,
+          approvalStatus: dashboard!.approvalStatus,
+          availabilityStatus: status,
+        );
+      }
+    });
+  }
+
+  Future<bool> getRiderReport() {
+    return _run(() async {
+      report = await _apiService.getReports();
     });
   }
 

@@ -14,6 +14,7 @@ class RiderLocation extends Model
 
     protected $fillable = [
         'rider_id',
+        'delivery_id',
         'latitude',
         'longitude',
         'recorded_at',
@@ -31,5 +32,10 @@ class RiderLocation extends Model
     public function rider(): BelongsTo
     {
         return $this->belongsTo(Rider::class);
+    }
+
+    public function delivery(): BelongsTo
+    {
+        return $this->belongsTo(Delivery::class);
     }
 }

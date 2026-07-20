@@ -17,11 +17,14 @@ class RiderLocationApiService with AuthenticatedApiMixin {
   @override
   SecureStorageHelper get storage => _storage;
 
-  Future<void> updateRiderLocation(RiderLocationModel location) async {
+  Future<void> updateRiderLocation(
+    RiderLocationModel location, {
+    required int deliveryId,
+  }) async {
     try {
       await _dio.post<void>(
         '/rider/location',
-        data: location.toJson(),
+        data: {...location.toJson(), 'delivery_id': deliveryId},
         options: await authOptions(),
       );
     } on DioException catch (error) {

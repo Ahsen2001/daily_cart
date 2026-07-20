@@ -130,6 +130,14 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       ),
                       isSecondary: true,
                     ),
+                    if (delivery.canAccept) ...[
+                      const SizedBox(height: 10),
+                      DeliveryActionButton(
+                        label: 'Accept Delivery',
+                        icon: Icons.assignment_turned_in_outlined,
+                        onPressed: () => _accept(delivery.id),
+                      ),
+                    ],
                     if (delivery.canMarkPickedUp) ...[
                       const SizedBox(height: 10),
                       DeliveryActionButton(
@@ -165,6 +173,17 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                         onPressed: () => _failed(delivery.id),
                       ),
                     ],
+                    if (delivery.status.toLowerCase() == 'delivered') ...[
+                      const SizedBox(height: 10),
+                      DeliveryActionButton(
+                        label: 'Replace Delivery Proof',
+                        icon: Icons.photo_camera_back_outlined,
+                        isSecondary: true,
+                        onPressed: () => context.push(
+                          '${AppRoutes.deliveryProof}/${delivery.id}?replace=true',
+                        ),
+                      ),
+                    ],
                   ],
                 ),
     );
@@ -173,6 +192,11 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   Future<void> _pickedUp(int id) async {
     final ok = await ref.read(riderDeliveryProvider).markPickedUp(id);
     _show(ok ? 'Delivery marked picked up.' : 'Unable to update delivery.');
+  }
+
+  Future<void> _accept(int id) async {
+    final ok = await ref.read(riderDeliveryProvider).acceptDelivery(id);
+    _show(ok ? 'Delivery accepted.' : 'Unable to accept delivery.');
   }
 
   Future<void> _onTheWay(int id) async {

@@ -63,4 +63,31 @@ class RiderApiService with AuthenticatedApiMixin {
       throw ApiException.fromDio(error);
     }
   }
+
+  Future<RiderProfileModel> updateAvailability(String status) async {
+    try {
+      final response = await _dio.patch<dynamic>(
+        '/rider/availability',
+        data: {'availability_status': status},
+        options: await authOptions(),
+      );
+      return RiderProfileModel.fromJson(
+        ApiListParser.extractObject(response.data, key: 'rider'),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<Map<String, dynamic>> getReports() async {
+    try {
+      final response = await _dio.get<dynamic>(
+        '/rider/reports',
+        options: await authOptions(),
+      );
+      return ApiListParser.extractObject(response.data, key: 'report');
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
 }

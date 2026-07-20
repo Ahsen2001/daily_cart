@@ -58,7 +58,10 @@ class DeliveryService
     {
         $this->ensureDeliveryStatus($delivery, 'assigned', 'Only assigned deliveries can be accepted.');
 
-        $delivery->update(['accepted_at' => now()]);
+        $delivery->update([
+            'status' => 'accepted',
+            'accepted_at' => now(),
+        ]);
         $this->orderUpdates->statusChanged($delivery->order, 'delivery_accepted', $actor);
 
         return $delivery->refresh();
@@ -66,7 +69,7 @@ class DeliveryService
 
     public function markPickedUp(Delivery $delivery, ?User $actor = null): Delivery
     {
-        $this->ensureDeliveryStatus($delivery, 'assigned', 'Rider can mark picked up only assigned deliveries.');
+        $this->ensureDeliveryStatus($delivery, 'accepted', 'Rider must accept the delivery before pickup.');
 
         return DB::transaction(function () use ($delivery, $actor) {
             $delivery->update([

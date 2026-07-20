@@ -43,6 +43,12 @@ class AppRoutes {
   static const riderEarnings = '/rider-earnings';
   static const riderProfile = '/rider-profile';
   static const editRiderProfile = '/edit-rider-profile';
+  static const riderReports = '/rider-reports';
+  static const riderNotifications = '/rider-notifications';
+  static const riderSupportTickets = '/rider-support-tickets';
+  static const riderCreateSupportTicket = '/rider-create-support-ticket';
+  static const riderSupportTicketDetails = '/rider-support-ticket-details';
+  static const riderChangePassword = '/rider-change-password';
   static const categories = '/categories';
   static const products = '/products';
   static const productDetails = '/product-details';

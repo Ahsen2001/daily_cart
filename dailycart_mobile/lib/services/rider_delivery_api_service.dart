@@ -75,6 +75,20 @@ class RiderDeliveryApiService with AuthenticatedApiMixin {
     return updateDeliveryStatus(deliveryId: deliveryId, status: 'picked_up');
   }
 
+  Future<DeliveryModel> acceptDelivery(int deliveryId) async {
+    try {
+      final response = await _dio.patch<dynamic>(
+        '/rider/deliveries/$deliveryId/accept',
+        options: await authOptions(),
+      );
+      return DeliveryModel.fromJson(
+        ApiListParser.extractObject(response.data, key: 'delivery'),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
   Future<DeliveryModel> markOnTheWay(int deliveryId) {
     return updateDeliveryStatus(deliveryId: deliveryId, status: 'on_the_way');
   }
@@ -90,6 +104,7 @@ class RiderDeliveryApiService with AuthenticatedApiMixin {
   Future<DeliveryModel> markDelivered({
     required int deliveryId,
     required String proofImagePath,
+    String? signatureImagePath,
     String note = '',
   }) async {
     try {
@@ -102,11 +117,48 @@ class RiderDeliveryApiService with AuthenticatedApiMixin {
           },
           files: [
             ApiUploadFile(field: 'proof_image', path: proofImagePath),
+            if (signatureImagePath != null &&
+                signatureImagePath.isNotEmpty)
+              ApiUploadFile(
+                field: 'customer_signature',
+                path: signatureImagePath,
+              ),
           ],
         ),
         options: await authOptions(),
       );
       return DeliveryModel.fromJson(ApiListParser.extractObject(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<DeliveryModel> replaceProof({
+    required int deliveryId,
+    required String proofImagePath,
+    String? signatureImagePath,
+    String note = '',
+  }) async {
+    try {
+      final response = await _dio.post<dynamic>(
+        '/rider/deliveries/$deliveryId/proof',
+        data: await ApiClient.shared.multipart(
+          fields: {'note': note},
+          files: [
+            ApiUploadFile(field: 'proof_image', path: proofImagePath),
+            if (signatureImagePath != null &&
+                signatureImagePath.isNotEmpty)
+              ApiUploadFile(
+                field: 'customer_signature',
+                path: signatureImagePath,
+              ),
+          ],
+        ),
+        options: await authOptions(),
+      );
+      return DeliveryModel.fromJson(
+        ApiListParser.extractObject(response.data, key: 'delivery'),
+      );
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
