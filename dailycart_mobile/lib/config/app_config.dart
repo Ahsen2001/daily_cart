@@ -2,12 +2,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
   static String get apiBaseUrl {
-    return dotenv.env['API_BASE_URL'] ?? 'https://dailycart.lk/api';
+    return dotenv.env['API_BASE_URL'] ?? 'https://dailycart.lk/api/v1';
   }
 
   static String get testingApiBaseUrl {
     return dotenv.env['TESTING_API_BASE_URL'] ??
-        'https://your-laravel-cloud-url.laravel.cloud/api';
+        'https://your-laravel-cloud-url.laravel.cloud/api/v1';
   }
 
   static String get googleMapsApiKey {

@@ -158,8 +158,8 @@ class ApiCoreFlowTest extends TestCase
         ]);
         $user->assignRole($role);
 
-        $customer = Customer::create([
-            'user_id' => $user->id,
+        $customer = $user->customer()->firstOrFail();
+        $customer->update([
             'first_name' => ucfirst($suffix),
             'phone' => $user->phone,
             'status' => 'active',

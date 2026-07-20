@@ -5,10 +5,8 @@ namespace Tests\Feature;
 use App\Mail\OtpMail;
 use App\Models\EmailOtp;
 use App\Models\OtpVerification;
-use App\Models\Rider;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\Vendor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -100,8 +98,7 @@ class ApiSecurityHardeningTest extends TestCase
         $vendorRole = Role::findOrCreate('Vendor', 'web');
         $vendorUser = User::factory()->create(['role_id' => $vendorRole->id, 'phone' => '0772000003']);
         $vendorUser->assignRole($vendorRole);
-        Vendor::create([
-            'user_id' => $vendorUser->id,
+        $vendorUser->vendor()->update([
             'store_name' => 'Pending Store',
             'phone' => $vendorUser->phone,
             'address' => '1 Vendor Street',
@@ -118,8 +115,7 @@ class ApiSecurityHardeningTest extends TestCase
         $riderRole = Role::findOrCreate('Rider', 'web');
         $riderUser = User::factory()->create(['role_id' => $riderRole->id, 'phone' => '0772000004']);
         $riderUser->assignRole($riderRole);
-        Rider::create([
-            'user_id' => $riderUser->id,
+        $riderUser->rider()->update([
             'vehicle_type' => 'motorbike',
             'availability_status' => 'unavailable',
             'verification_status' => 'pending',

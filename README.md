@@ -123,14 +123,14 @@ The mobile client is in `dailycart_mobile`:
 cd dailycart_mobile
 cp .env.example .env
 flutter pub get
-flutter run
+flutter run --flavor customer -t lib/main_customer.dart
 ```
 
 Configure `dailycart_mobile/.env`:
 
 ```dotenv
-API_BASE_URL=http://10.0.2.2:8000/api
-TESTING_API_BASE_URL=https://your-staging-host/api
+API_BASE_URL=http://10.0.2.2:8000/api/v1
+TESTING_API_BASE_URL=https://your-staging-host/api/v1
 PAYHERE_RETURN_URL=http://10.0.2.2:8000/customer/payments
 GOOGLE_MAPS_API_KEY=
 ```
@@ -140,10 +140,23 @@ GOOGLE_MAPS_API_KEY=
 - Physical device: use the computer's LAN address and allow the port through the firewall.
 - Production builds must use HTTPS API and return URLs.
 
-If Android/iOS platform folders are missing, generate them before running the app:
+Do not run `flutter create .` over this project. The checked-in Android flavors
+and iOS schemes are part of the production app identity configuration.
+
+## API contract
+
+The frozen Laravel v1 contract is documented in
+[`docs/api/v1/README.md`](docs/api/v1/README.md). Its exact route surface is
+stored in [`docs/api/v1/route-contract.json`](docs/api/v1/route-contract.json)
+and enforced by `ApiV1RouteContractTest`.
+
+Flutter calls that are missing or inconsistent with Laravel are tracked in
+[`docs/api/v1/mobile-gap-matrix.md`](docs/api/v1/mobile-gap-matrix.md).
+
+Run the route freeze test with:
 
 ```bash
-flutter create --project-name dailycart_mobile --org com.dailycart --platforms=android,ios .
+php artisan test --filter=ApiV1RouteContractTest
 ```
 
 ## Testing and code quality

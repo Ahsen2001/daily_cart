@@ -1,0 +1,41 @@
+{
+  "contract_version": "1.0.0",
+  "frozen_at": "2026-07-20",
+  "base_path": "/api/v1",
+  "endpoints": [
+    {"method": "POST", "path": "/api/v1/register", "access": "public"},
+    {"method": "POST", "path": "/api/v1/login", "access": "public"},
+    {"method": "GET", "path": "/api/v1/categories", "access": "public"},
+    {"method": "GET", "path": "/api/v1/products", "access": "public"},
+    {"method": "GET", "path": "/api/v1/products/{product}", "access": "public"},
+    {"method": "GET", "path": "/api/v1/delivery/zones", "access": "public"},
+    {"method": "GET", "path": "/api/v1/delivery/promotions", "access": "public"},
+    {"method": "POST", "path": "/api/v1/delivery/estimate", "access": "public"},
+
+    {"method": "POST", "path": "/api/v1/logout", "access": "authenticated", "ability": "auth"},
+    {"method": "GET", "path": "/api/v1/profile", "access": "authenticated", "ability": "profile"},
+    {"method": "POST", "path": "/api/v1/email/verification-otp", "access": "authenticated", "ability": "verification"},
+    {"method": "POST", "path": "/api/v1/email/verification-otp/verify", "access": "authenticated", "ability": "verification"},
+    {"method": "POST", "path": "/api/v1/phone/verification-otp", "access": "authenticated", "ability": "verification"},
+    {"method": "POST", "path": "/api/v1/phone/verification-otp/verify", "access": "authenticated", "ability": "verification"},
+
+    {"method": "GET", "path": "/api/v1/cart", "access": "customer", "ability": "customer"},
+    {"method": "POST", "path": "/api/v1/cart", "access": "customer", "ability": "customer"},
+    {"method": "PATCH", "path": "/api/v1/cart-items/{item}", "access": "customer", "ability": "customer"},
+    {"method": "DELETE", "path": "/api/v1/cart-items/{item}", "access": "customer", "ability": "customer"},
+    {"method": "DELETE", "path": "/api/v1/cart/clear", "access": "customer", "ability": "customer"},
+    {"method": "POST", "path": "/api/v1/checkout/quote", "access": "customer", "ability": "customer"},
+    {"method": "POST", "path": "/api/v1/orders", "access": "customer", "ability": "customer"},
+    {"method": "GET", "path": "/api/v1/orders", "access": "customer", "ability": "customer"},
+    {"method": "GET", "path": "/api/v1/orders/{order}", "access": "customer", "ability": "customer"},
+
+    {"method": "GET", "path": "/api/v1/rider/deliveries", "access": "approved_rider", "ability": "rider"},
+    {"method": "GET", "path": "/api/v1/rider/deliveries/{delivery}", "access": "approved_rider", "ability": "rider"},
+    {"method": "PATCH", "path": "/api/v1/rider/deliveries/{delivery}/status", "access": "approved_rider", "ability": "rider"},
+    {"method": "POST", "path": "/api/v1/rider/location", "access": "approved_rider", "ability": "rider"},
+
+    {"method": "GET", "path": "/api/v1/vendor/overview", "access": "approved_vendor", "ability": "vendor"},
+    {"method": "GET", "path": "/api/v1/vendor/orders", "access": "approved_vendor", "ability": "vendor"},
+    {"method": "GET", "path": "/api/v1/vendor/wallet", "access": "approved_vendor", "ability": "vendor"}
+  ]
+}
