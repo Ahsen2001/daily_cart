@@ -18,12 +18,21 @@ that its server endpoint exists.
 The mobile base URL has been aligned to `/api/v1`. Any deployment environment
 still using `/api` must update its `API_BASE_URL`.
 
+## Authentication corrections completed in contract 1.1
+
+- Separate Customer, Vendor, and Rider registration endpoints now persist
+  role-specific profile fields.
+- Flutter uses `GET /profile` and the separate email and phone OTP endpoints.
+- Mobile password recovery uses `/password/forgot` and `/password/reset`.
+- Authentication responses include token expiration, verification state, and
+  approval state.
+- Flutter validates stored sessions at startup, centrally clears sessions on
+  `401`, and guards routes by authentication and role.
+
 ## Implemented but currently mismatched
 
 | Area | Flutter call | Frozen Laravel v1 | Required correction |
 | --- | --- | --- | --- |
-| Profile read | `GET /user` | `GET /profile` | Change Flutter to `/profile`. |
-| OTP verification | `POST /otp/verify` with email/phone/purpose | Separate email and phone `/verification-otp/verify` endpoints using `code` | Split the Flutter verification flow by channel. |
 | Add cart variant | request key `variant_id` | request key `product_variant_id` | Rename Flutter payload key. |
 | Update cart item | `PATCH /cart/items/{id}` | `PATCH /cart-items/{id}` | Change Flutter path. |
 | Remove cart item | `DELETE /cart/items/{id}` | `DELETE /cart-items/{id}` | Change Flutter path. |
@@ -39,9 +48,15 @@ still using `/api` must update its `API_BASE_URL`.
 These route families exist, although their model parsing still requires
 contract tests:
 
-- `POST /register`
+- `POST /register/customer`
+- `POST /register/vendor`
+- `POST /register/rider`
 - `POST /login`
 - `POST /logout`
+- `POST /password/forgot`
+- `POST /password/reset`
+- `GET /profile`
+- Email and phone verification OTP endpoints
 - `GET /categories`
 - `GET /products`
 - `GET /products/{id}`
@@ -59,7 +74,6 @@ contract tests:
 
 ### Customer account
 
-- Forgot password API
 - Profile update, photo update, and password update
 - Address list/create/update/delete/default
 - Generic device-token registration
@@ -136,4 +150,3 @@ these responses without removing currently documented fields.
 6. Add customer wishlist, reviews, coupons, loyalty, promotions, and support.
 7. Add contract tests for every newly implemented endpoint before enabling its
    mobile screen.
-

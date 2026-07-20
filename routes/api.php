@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\CartController;
 use App\Http\Controllers\Api\v1\DeliveryPricingController;
 use App\Http\Controllers\Api\v1\OrderController;
+use App\Http\Controllers\Api\v1\PasswordRecoveryController;
 use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\v1\RiderController;
 use App\Http\Controllers\Api\v1\VendorController;
@@ -13,7 +14,12 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     // Public routes
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:api-register');
+    Route::post('/register/customer', [AuthController::class, 'registerCustomer'])->middleware('throttle:api-register');
+    Route::post('/register/vendor', [AuthController::class, 'registerVendor'])->middleware('throttle:api-register');
+    Route::post('/register/rider', [AuthController::class, 'registerRider'])->middleware('throttle:api-register');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:api-login');
+    Route::post('/password/forgot', [PasswordRecoveryController::class, 'forgot'])->middleware('throttle:api-otp');
+    Route::post('/password/reset', [PasswordRecoveryController::class, 'reset'])->middleware('throttle:api-otp');
 
     Route::get('/categories', [ProductController::class, 'categories']);
     Route::get('/products', [ProductController::class, 'index']);
@@ -34,7 +40,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/phone/verification-otp/verify', [VerificationController::class, 'verifyPhone']);
         });
 
-        Route::middleware(['ability:customer', 'verified', 'phone.verified'])->group(function () {
+        Route::middleware(['ability:customer', 'verified', 'phone.verified', 'role:Customer'])->group(function () {
             // Customer Cart
             Route::get('/cart', [CartController::class, 'show']);
             Route::post('/cart', [CartController::class, 'add']);

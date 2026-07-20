@@ -1,6 +1,6 @@
 # DailyCart Laravel API v1 Contract
 
-Contract version: **1.0.0**  
+Contract version: **1.1.0**  
 Frozen: **2026-07-20**  
 Canonical base path: **`/api/v1`**
 
@@ -40,17 +40,39 @@ not understand.
 
 ## Authentication and authorization
 
-Registration creates only Customer accounts. Login tokens contain these common
-abilities:
+Role registration uses separate Customer, Vendor, and Rider endpoints.
+`POST /register` remains a backward-compatible Customer-only alias and rejects
+a Vendor or Rider `role` value. Login tokens contain these common abilities:
 
 - `auth`
 - `profile`
 - `verification`
 - one role ability: `customer`, `vendor`, or `rider`
 
-Customer commerce routes additionally require verified email and phone.
+Customer commerce routes additionally require the Customer role plus verified
+email and phone.
 Vendor and Rider routes additionally require the corresponding role, verified
 email and phone, and an approved role profile.
+
+Authentication and registration return one response shape:
+
+```json
+{
+  "success": true,
+  "message": "Human-readable result",
+  "token_type": "Bearer",
+  "access_token": "plain-text-token",
+  "token": "plain-text-token",
+  "expires_at": "2026-07-27T12:00:00Z",
+  "requires_verification": true,
+  "requires_approval": false,
+  "user": {}
+}
+```
+
+`token` is retained as a compatibility alias for `access_token`. Clients must
+store `expires_at`, validate the session through `GET /profile` at startup, and
+clear local credentials after a `401` or logout.
 
 Authentication state is represented as follows:
 
@@ -101,6 +123,9 @@ parse English message text to determine application state.
 | `role` | `Customer\|Vendor\|Rider\|Admin\|Super Admin` | yes |
 | `email_verified_at` | ISO-8601 string | yes |
 | `phone_verified_at` | ISO-8601 string | yes |
+| `is_email_verified`, `is_phone_verified` | boolean | no |
+| `is_approved` | boolean | no |
+| `approval_status` | string | yes |
 | `status` | string | no |
 | `created_at` | ISO-8601 string | no |
 
@@ -156,8 +181,24 @@ mobile feature completion.
 
 | Method and path | Request | Success |
 | --- | --- | --- |
-| `POST /register` | `name` required string ≤255; `email` required unique email; `phone` required unique string ≤20; `password` required string ≥8; `device_name` optional string ≤100 | `201 {"token": string, "user": User}` |
-| `POST /login` | `email` required email; `password` required string; `device_name` optional string ≤100 | `200 {"token": string, "user": User}` |
+| `POST /register` | Customer-only compatibility alias. Common registration payload; optional `role` may only be `customer`. | `201 AuthenticationResponse` |
+| `POST /register/customer` | Common registration payload. | `201 AuthenticationResponse` |
+| `POST /register/vendor` | Common payload plus `store_name`; optional `business_registration_no`; required home-base fields. | `201 AuthenticationResponse` |
+| `POST /register/rider` | Common payload plus `vehicle_type`; optional `vehicle_number`, `license_number`; required home-base fields. | `201 AuthenticationResponse` |
+| `POST /login` | `email` required email; `password` required string; `device_name` optional string ≤100 | `200 AuthenticationResponse` |
+| `POST /password/forgot` | `email` required email | `200 {"success": true, "message": string}` |
+| `POST /password/reset` | `email`; six-digit `code`; confirmed `password` | `200 {"success": true, "message": string}` |
+
+The common registration payload is `name`, unique `email`, unique `phone`,
+confirmed `password`, and optional `device_name`. Home-base fields are
+`address`, `city`, `district`, and `province`, with optional paired
+`latitude`/`longitude` and `formatted_address`. Rider `vehicle_type` is one of
+`bicycle`, `motorbike`, `three_wheeler`, or `van`.
+
+Vendor and Rider accounts begin pending approval. All newly registered
+accounts must verify both email and phone. Password recovery always returns the
+same forgot response, whether or not the email exists, and a successful reset
+revokes every existing API token for the user.
 
 Invalid credentials return `422`; suspended users return `403`.
 
@@ -295,4 +336,3 @@ Before changing v1:
 4. Update the Flutter model and service consuming the endpoint.
 5. Run `php artisan test --filter=ApiV1RouteContractTest`.
 6. Run the relevant API flow tests and `flutter analyze`.
-

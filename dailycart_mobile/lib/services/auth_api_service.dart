@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 import '../config/app_config.dart';
@@ -49,18 +51,19 @@ class AuthApiService {
     required String password,
     required String passwordConfirmation,
     required UserRole role,
+    Map<String, dynamic> roleData = const {},
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '/register',
+        '/register/${role.name}',
         data: {
           'name': name,
           'email': email,
           'phone': phone,
           'password': password,
           'password_confirmation': passwordConfirmation,
-          'role': role.name,
-          'device_name': 'dailycart_mobile',
+          'device_name': 'dailycart_${role.name}',
+          ...roleData,
         },
       );
 
@@ -81,51 +84,73 @@ class AuthApiService {
   Future<String> forgotPassword(String email) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '/forgot-password',
+        '/password/forgot',
         data: {'email': email},
       );
 
       return _messageFrom(response.data) ??
-          'Password reset instructions were sent to your email.';
+          'If an account exists, a password reset code has been sent.';
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
   }
 
-  Future<String> verifyOtp({
-    required String otp,
-    String? email,
-    String? phone,
-    String purpose = 'phone_verification',
+  Future<String> resetPassword({
+    required String email,
+    required String code,
+    required String password,
+    required String passwordConfirmation,
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '/otp/verify',
+        '/password/reset',
         data: {
-          'otp': otp,
-          'email': ?email,
-          'phone': ?phone,
-          'purpose': purpose,
+          'email': email,
+          'code': code,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
         },
       );
 
-      return _messageFrom(response.data) ?? 'OTP verified successfully.';
+      return _messageFrom(response.data) ?? 'Password reset successfully.';
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
   }
 
-  Future<UserModel> getUser(String token) async {
+  Future<String> sendVerificationCode({
+    required String token,
+    required VerificationChannel channel,
+  }) async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>(
-        '/user',
+      final response = await _dio.post<Map<String, dynamic>>(
+        channel.sendPath,
         options: _authOptions(token),
       );
 
+      return _messageFrom(response.data) ?? 'Verification code sent.';
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<UserModel> verifyCode({
+    required String token,
+    required String code,
+    required VerificationChannel channel,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        channel.verifyPath,
+        data: {'code': code},
+        options: _authOptions(token),
+      );
       final data = response.data ?? {};
-      final userJson = data['user'] is Map<String, dynamic>
-          ? data['user'] as Map<String, dynamic>
-          : data;
+      final userJson = data['user'];
+
+      if (userJson is! Map<String, dynamic>) {
+        throw const ApiException('Invalid verification response from server.');
+      }
 
       return UserModel.fromJson(userJson);
     } on DioException catch (error) {
@@ -133,9 +158,26 @@ class AuthApiService {
     }
   }
 
-  Future<UserModel> refreshUser(String token) {
-    return getUser(token);
+  Future<UserModel> getProfile(String token) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/profile',
+        options: _authOptions(token),
+      );
+
+      final data = response.data ?? {};
+      final userJson = data['user'];
+      if (userJson is! Map<String, dynamic>) {
+        throw const ApiException('Invalid profile response from server.');
+      }
+
+      return UserModel.fromJson(userJson);
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
   }
+
+  Future<UserModel> refreshUser(String token) => getProfile(token);
 
   Options _authOptions(String token) {
     return Options(headers: {'Authorization': 'Bearer $token'});
@@ -147,44 +189,73 @@ class AuthApiService {
   }
 }
 
+enum VerificationChannel {
+  email,
+  phone;
+
+  String get sendPath => switch (this) {
+    VerificationChannel.email => '/email/verification-otp',
+    VerificationChannel.phone => '/phone/verification-otp',
+  };
+
+  String get verifyPath => '$sendPath/verify';
+}
+
 class AuthResponse {
   const AuthResponse({
     required this.success,
     required this.message,
+    required this.requiresVerification,
+    required this.requiresApproval,
     this.token,
+    this.expiresAt,
     this.user,
   });
 
   final bool success;
   final String message;
+  final bool requiresVerification;
+  final bool requiresApproval;
   final String? token;
+  final DateTime? expiresAt;
   final UserModel? user;
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     final userJson = json['user'];
+    final user = userJson is Map<String, dynamic>
+        ? UserModel.fromJson(userJson)
+        : null;
+    final token = (json['access_token'] ?? json['token'])?.toString();
 
     return AuthResponse(
-      success: json['success'] == true,
+      success: json['success'] == true || (token != null && user != null),
       message: (json['message'] ?? '').toString(),
-      token: (json['token'] ?? json['access_token'])?.toString(),
-      user: userJson is Map<String, dynamic>
-          ? UserModel.fromJson(userJson)
-          : null,
+      requiresVerification:
+          json['requires_verification'] == true ||
+          user?.requiresVerification == true,
+      requiresApproval:
+          json['requires_approval'] == true ||
+          user?.isPendingApproval == true,
+      token: token,
+      expiresAt: DateTime.tryParse(json['expires_at']?.toString() ?? ''),
+      user: user,
     );
-  }
-
-  bool get requiresApproval {
-    final messageLower = message.toLowerCase();
-    return user?.isPendingApproval == true ||
-        messageLower.contains('pending approval') ||
-        messageLower.contains('waiting for admin approval');
   }
 }
 
 class ApiException implements Exception {
-  const ApiException(this.message);
+  const ApiException(this.message, {this.statusCode});
+
+  static Future<void> Function()? _unauthorizedHandler;
 
   final String message;
+  final int? statusCode;
+
+  bool get isUnauthorized => statusCode == 401;
+
+  static void setUnauthorizedHandler(Future<void> Function()? handler) {
+    _unauthorizedHandler = handler;
+  }
 
   factory ApiException.fromDio(DioException error) {
     if (error.type == DioExceptionType.connectionTimeout ||
@@ -194,28 +265,42 @@ class ApiException implements Exception {
       return const ApiException('Network error. Please check your connection.');
     }
 
+    final statusCode = error.response?.statusCode;
+    if (statusCode == 401) {
+      final handler = _unauthorizedHandler;
+      if (handler != null) {
+        unawaited(handler());
+      }
+      return const ApiException(
+        'Your session has expired. Please sign in again.',
+        statusCode: 401,
+      );
+    }
+
     final data = error.response?.data;
     if (data is Map<String, dynamic>) {
       final validationMessage = _validationMessage(data['errors']);
       if (validationMessage != null) {
-        return ApiException(validationMessage);
+        return ApiException(validationMessage, statusCode: statusCode);
       }
 
       final message = data['message'];
       if (message is String && message.isNotEmpty) {
-        return ApiException(message);
+        return ApiException(message, statusCode: statusCode);
       }
     }
 
-    if (error.response?.statusCode == 401) {
-      return const ApiException('Invalid email or password.');
+    if (statusCode == 500) {
+      return const ApiException(
+        'Server error. Please try again later.',
+        statusCode: 500,
+      );
     }
 
-    if (error.response?.statusCode == 500) {
-      return const ApiException('Server error. Please try again later.');
-    }
-
-    return const ApiException('Something went wrong. Please try again.');
+    return ApiException(
+      'Something went wrong. Please try again.',
+      statusCode: statusCode,
+    );
   }
 
   static String? _validationMessage(Object? errors) {

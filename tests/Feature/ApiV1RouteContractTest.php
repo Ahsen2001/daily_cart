@@ -62,6 +62,10 @@ class ApiV1RouteContractTest extends TestCase
                 $this->assertContains('phone.verified', $middleware, $uri);
             }
 
+            if ($endpoint['access'] === 'customer') {
+                $this->assertContains('role:Customer', $middleware, $uri);
+            }
+
             if ($endpoint['access'] === 'approved_rider') {
                 $this->assertContains('role:Rider', $middleware, $uri);
                 $this->assertContains('rider.approved', $middleware, $uri);

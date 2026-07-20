@@ -44,6 +44,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
+    if (result.requiresVerification) {
+      context.go(AppRoutes.otpVerification);
+      return;
+    }
+
     if (result.requiresApproval) {
       context.go(AppRoutes.pendingApproval, extra: result.message);
       return;

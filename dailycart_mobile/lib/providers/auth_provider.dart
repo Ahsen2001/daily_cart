@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../config/app_identity.dart';
 import '../models/user_model.dart';
 import '../models/user_role.dart';
+import '../routes/app_routes.dart';
 import '../services/auth_api_service.dart';
 import '../services/onboarding_service.dart';
 import '../utils/secure_storage_helper.dart';
@@ -30,8 +32,10 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider({
     required AuthApiService apiService,
     required SecureStorageHelper storage,
-  })  : _apiService = apiService,
-        _storage = storage;
+  }) : _apiService = apiService,
+       _storage = storage {
+    ApiException.setUnauthorizedHandler(_handleUnauthorized);
+  }
 
   final AuthApiService _apiService;
   final SecureStorageHelper _storage;
@@ -40,9 +44,16 @@ class AuthProvider extends ChangeNotifier {
   String? token;
   UserRole? role;
   bool isLoading = false;
+  bool isInitialized = false;
+  bool isSessionValidated = false;
   String? errorMessage;
 
-  bool get isAuthenticated => token != null && user != null;
+  bool get isAuthenticated =>
+      isSessionValidated && token != null && user != null;
+
+  bool get requiresVerification => user?.requiresVerification == true;
+
+  bool get requiresApproval => user?.isPendingApproval == true;
 
   Future<AuthActionResult> login({
     required String email,
@@ -54,30 +65,7 @@ class AuthProvider extends ChangeNotifier {
         password: password,
       );
 
-      if (response.requiresApproval && response.user != null) {
-        user = response.user;
-        role = response.user!.role;
-        return AuthActionResult.pendingApproval(response.message);
-      }
-
-      final responseToken = response.token;
-      final responseUser = response.user;
-
-      if (responseToken == null || responseUser == null) {
-        throw const ApiException('Invalid login response from server.');
-      }
-
-      await saveToken(responseToken);
-      await _storage.saveUser(responseUser);
-
-      token = responseToken;
-      user = responseUser;
-      role = responseUser.role;
-
-      return AuthActionResult.success(
-        message: response.message,
-        redirectRoute: responseUser.role.homeRoute,
-      );
+      return _acceptAuthenticationResponse(response);
     });
   }
 
@@ -88,6 +76,7 @@ class AuthProvider extends ChangeNotifier {
     required String password,
     required String passwordConfirmation,
     required UserRole role,
+    Map<String, dynamic> roleData = const {},
   }) async {
     return _runAuthAction(() async {
       final response = await _apiService.register(
@@ -97,46 +86,72 @@ class AuthProvider extends ChangeNotifier {
         password: password,
         passwordConfirmation: passwordConfirmation,
         role: role,
+        roleData: roleData,
       );
 
-      final responseUser = response.user;
-      final responseToken = response.token;
+      return _acceptAuthenticationResponse(response);
+    });
+  }
 
-      if (role == UserRole.vendor || role == UserRole.rider) {
-        user = responseUser;
-        this.role = role;
-        return AuthActionResult.pendingApproval(
-          role == UserRole.vendor
-              ? 'Your vendor account is waiting for admin approval.'
-              : 'Your rider account is waiting for admin approval.',
+  Future<AuthActionResult> sendVerificationCode(
+    VerificationChannel channel,
+  ) async {
+    return _runAuthAction(() async {
+      final currentToken = token ?? await _storage.getToken();
+      if (currentToken == null) {
+        throw const ApiException('Sign in again to verify your account.');
+      }
+
+      final message = await _apiService.sendVerificationCode(
+        token: currentToken,
+        channel: channel,
+      );
+
+      return AuthActionResult.success(message: message);
+    });
+  }
+
+  Future<AuthActionResult> verifyCode({
+    required String code,
+    required VerificationChannel channel,
+  }) async {
+    return _runAuthAction(() async {
+      final currentToken = token ?? await _storage.getToken();
+      if (currentToken == null) {
+        throw const ApiException('Sign in again to verify your account.');
+      }
+
+      final verifiedUser = await _apiService.verifyCode(
+        token: currentToken,
+        code: code,
+        channel: channel,
+      );
+      user = verifiedUser;
+      role = verifiedUser.role;
+      isSessionValidated = true;
+      await _storage.saveUser(verifiedUser);
+
+      if (verifiedUser.requiresVerification) {
+        return AuthActionResult.verificationRequired(
+          'Verification saved. Complete the remaining verification step.',
         );
       }
 
-      if (responseToken != null && responseUser != null) {
-        await _storage.saveAuthData(token: responseToken, user: responseUser);
-        token = responseToken;
-        user = responseUser;
-        this.role = responseUser.role;
-
-        return AuthActionResult.success(
-          message: response.message.isEmpty
-              ? 'Account created successfully.'
-              : response.message,
-          redirectRoute: responseUser.role.homeRoute,
+      if (verifiedUser.isPendingApproval) {
+        return AuthActionResult.pendingApproval(
+          'Verification complete. Your account is waiting for admin approval.',
         );
       }
 
       return AuthActionResult.success(
-        message: response.message.isEmpty
-            ? 'Account created successfully.'
-            : response.message,
-        redirectRoute: '/login',
+        message: 'Account verified successfully.',
+        redirectRoute: verifiedUser.role.homeRoute,
       );
     });
   }
 
   Future<void> logout() async {
-    final currentToken = token ?? await getToken();
+    final currentToken = token ?? await _storage.getToken();
 
     isLoading = true;
     notifyListeners();
@@ -146,9 +161,10 @@ class AuthProvider extends ChangeNotifier {
         await _apiService.logout(currentToken);
       }
     } catch (_) {
-      // Always clear the local session even if the network logout fails.
+      // Local credentials must still be removed if network logout fails.
     } finally {
       await clearToken();
+      isInitialized = true;
       isLoading = false;
       notifyListeners();
     }
@@ -156,44 +172,136 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> checkAuthStatus() async {
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
 
-    token = await getToken();
-    user = await _storage.getUser();
-    role = user?.role ?? await _storage.getRole();
+    try {
+      final storedToken = await _storage.getToken();
+      final expiresAt = await _storage.getTokenExpiration();
 
-    isLoading = false;
-    notifyListeners();
+      if (storedToken == null ||
+          (expiresAt != null && !expiresAt.isAfter(DateTime.now().toUtc()))) {
+        await clearToken();
+        return;
+      }
+
+      token = storedToken;
+      final refreshedUser = await _apiService.getProfile(storedToken);
+      _ensureCorrectAppRole(refreshedUser);
+      user = refreshedUser;
+      role = refreshedUser.role;
+      isSessionValidated = true;
+      await _storage.saveUser(refreshedUser);
+    } on ApiException catch (error) {
+      errorMessage = error.message;
+      await clearToken();
+    } catch (_) {
+      errorMessage = 'Unable to validate your session. Please sign in again.';
+      await clearToken();
+    } finally {
+      isInitialized = true;
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> refreshUser() async {
-    final currentToken = token ?? await getToken();
+    final currentToken = token ?? await _storage.getToken();
     if (currentToken == null) {
+      await clearToken();
+      notifyListeners();
       return;
     }
 
-    user = await _apiService.refreshUser(currentToken);
-    role = user?.role;
-    if (user != null) {
-      await _storage.saveUser(user!);
+    try {
+      user = await _apiService.refreshUser(currentToken);
+      role = user?.role;
+      isSessionValidated = user != null;
+      if (user != null) {
+        await _storage.saveUser(user!);
+      }
+      notifyListeners();
+    } on ApiException catch (error) {
+      if (!error.isUnauthorized) {
+        rethrow;
+      }
     }
-    notifyListeners();
   }
 
-  Future<void> saveToken(String value) {
-    return _storage.saveToken(value);
-  }
-
-  Future<String?> getToken() {
-    return _storage.getToken();
-  }
+  Future<String?> getToken() => _storage.getToken();
 
   Future<void> clearToken() async {
     token = null;
     user = null;
     role = null;
-    errorMessage = null;
+    isSessionValidated = false;
     await _storage.clearAuthData();
+  }
+
+  Future<AuthActionResult> _acceptAuthenticationResponse(
+    AuthResponse response,
+  ) async {
+    final responseToken = response.token;
+    final responseUser = response.user;
+
+    if (!response.success || responseToken == null || responseUser == null) {
+      throw const ApiException('Invalid authentication response from server.');
+    }
+
+    _ensureCorrectAppRole(responseUser);
+
+    await _storage.saveAuthData(
+      token: responseToken,
+      user: responseUser,
+      expiresAt: response.expiresAt,
+    );
+    token = responseToken;
+    user = responseUser;
+    role = responseUser.role;
+    isSessionValidated = true;
+
+    if (response.requiresVerification || responseUser.requiresVerification) {
+      return AuthActionResult.verificationRequired(
+        response.message.isEmpty
+            ? 'Verify your email and phone to continue.'
+            : response.message,
+      );
+    }
+
+    if (response.requiresApproval || responseUser.isPendingApproval) {
+      return AuthActionResult.pendingApproval(
+        response.message.isEmpty
+            ? 'Your account is waiting for admin approval.'
+            : response.message,
+      );
+    }
+
+    return AuthActionResult.success(
+      message: response.message,
+      redirectRoute: responseUser.role.homeRoute,
+    );
+  }
+
+  Future<void> _handleUnauthorized() async {
+    if (token == null && !isSessionValidated) {
+      return;
+    }
+
+    errorMessage = 'Your session has expired. Please sign in again.';
+    await clearToken();
+    isInitialized = true;
+    notifyListeners();
+  }
+
+  void _ensureCorrectAppRole(UserModel authenticatedUser) {
+    final expectedRole = UserRole.fromName(AppIdentity.flavor.name);
+    if (authenticatedUser.role != expectedRole) {
+      throw ApiException(
+        'This ${authenticatedUser.role.label.toLowerCase()} account must be '
+        'used in the DailyCart ${authenticatedUser.role.label} app.',
+        statusCode: 403,
+      );
+    }
   }
 
   Future<AuthActionResult> _runAuthAction(
@@ -206,11 +314,6 @@ class AuthProvider extends ChangeNotifier {
     try {
       return await action();
     } on ApiException catch (error) {
-      if (_isPendingApprovalMessage(error.message)) {
-        errorMessage = null;
-        return AuthActionResult.pendingApproval(error.message);
-      }
-
       errorMessage = error.message;
       return AuthActionResult.failure(error.message);
     } catch (_) {
@@ -221,24 +324,19 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  bool _isPendingApprovalMessage(String message) {
-    final normalized = message.toLowerCase();
-    return normalized.contains('pending approval') ||
-        normalized.contains('waiting for admin approval') ||
-        normalized.contains('awaiting approval');
-  }
 }
 
 class AuthActionResult {
   const AuthActionResult._({
     required this.isSuccess,
+    required this.requiresVerification,
     required this.requiresApproval,
     required this.message,
     this.redirectRoute,
   });
 
   final bool isSuccess;
+  final bool requiresVerification;
   final bool requiresApproval;
   final String message;
   final String? redirectRoute;
@@ -249,23 +347,37 @@ class AuthActionResult {
   }) {
     return AuthActionResult._(
       isSuccess: true,
+      requiresVerification: false,
       requiresApproval: false,
       message: message,
       redirectRoute: redirectRoute,
     );
   }
 
+  factory AuthActionResult.verificationRequired(String message) {
+    return AuthActionResult._(
+      isSuccess: false,
+      requiresVerification: true,
+      requiresApproval: false,
+      message: message,
+      redirectRoute: AppRoutes.otpVerification,
+    );
+  }
+
   factory AuthActionResult.pendingApproval(String message) {
     return AuthActionResult._(
       isSuccess: false,
+      requiresVerification: false,
       requiresApproval: true,
       message: message,
+      redirectRoute: AppRoutes.pendingApproval,
     );
   }
 
   factory AuthActionResult.failure(String message) {
     return AuthActionResult._(
       isSuccess: false,
+      requiresVerification: false,
       requiresApproval: false,
       message: message,
     );

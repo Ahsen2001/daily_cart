@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../config/app_identity.dart';
 import '../../models/user_role.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
@@ -26,21 +27,78 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  UserRole? _selectedRole = UserRole.customer;
+  final _storeNameController = TextEditingController();
+  final _businessRegistrationController = TextEditingController();
+  final _vehicleNumberController = TextEditingController();
+  final _licenseNumberController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _districtController = TextEditingController();
+  final _provinceController = TextEditingController();
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
+
+  String _vehicleType = 'motorbike';
+
+  UserRole get _role => UserRole.fromName(AppIdentity.flavor.name);
+
+  bool get _usesHomeBase =>
+      _role == UserRole.vendor || _role == UserRole.rider;
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    for (final controller in [
+      _nameController,
+      _emailController,
+      _phoneController,
+      _passwordController,
+      _confirmPasswordController,
+      _storeNameController,
+      _businessRegistrationController,
+      _vehicleNumberController,
+      _licenseNumberController,
+      _addressController,
+      _cityController,
+      _districtController,
+      _provinceController,
+      _latitudeController,
+      _longitudeController,
+    ]) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate() || _selectedRole == null) {
+    if (!_formKey.currentState!.validate()) {
       return;
+    }
+
+    final roleData = <String, dynamic>{};
+    if (_role == UserRole.vendor) {
+      roleData.addAll({
+        'store_name': _storeNameController.text.trim(),
+        'business_registration_no':
+            _nullIfEmpty(_businessRegistrationController.text),
+      });
+    }
+    if (_role == UserRole.rider) {
+      roleData.addAll({
+        'vehicle_type': _vehicleType,
+        'vehicle_number': _nullIfEmpty(_vehicleNumberController.text),
+        'license_number': _nullIfEmpty(_licenseNumberController.text),
+      });
+    }
+    if (_usesHomeBase) {
+      roleData.addAll({
+        'address': _addressController.text.trim(),
+        'city': _cityController.text.trim(),
+        'district': _districtController.text.trim(),
+        'province': _provinceController.text.trim(),
+        'formatted_address': _addressController.text.trim(),
+        'latitude': _doubleOrNull(_latitudeController.text),
+        'longitude': _doubleOrNull(_longitudeController.text),
+      });
     }
 
     final result = await ref.read(authProvider).register(
@@ -49,18 +107,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           phone: _phoneController.text.trim(),
           password: _passwordController.text,
           passwordConfirmation: _confirmPasswordController.text,
-          role: _selectedRole!,
+          role: _role,
+          roleData: roleData,
         );
 
     if (!mounted) {
       return;
     }
 
+    if (result.requiresVerification) {
+      context.go(AppRoutes.otpVerification);
+      return;
+    }
     if (result.requiresApproval) {
       context.go(AppRoutes.pendingApproval, extra: result.message);
       return;
     }
-
     if (result.isSuccess && result.redirectRoute != null) {
       context.go(result.redirectRoute!);
       return;
@@ -95,16 +157,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const Center(child: AppLogo(size: 86)),
                     const SizedBox(height: 24),
                     Text(
-                      'Create account',
-                      style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                color: AppColors.textColor,
-                                fontWeight: FontWeight.w900,
-                              ),
+                      'Create ${_role.label.toLowerCase()} account',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            color: AppColors.textColor,
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Register as a customer, vendor, or rider.',
+                      'This registration is for ${AppIdentity.displayName}.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.mutedText,
                           ),
@@ -112,7 +173,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const SizedBox(height: 24),
                     DailyCartCard(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomTextField(
                             label: 'Full Name',
@@ -139,6 +199,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             validator: _required('Phone number is required.'),
                           ),
+                          if (_role == UserRole.vendor) ..._vendorFields(),
+                          if (_role == UserRole.rider) ..._riderFields(),
+                          if (_usesHomeBase) ..._homeBaseFields(),
                           const SizedBox(height: 14),
                           CustomTextField(
                             label: 'Password',
@@ -156,24 +219,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             obscureText: true,
                             validator: _validateConfirmPassword,
                           ),
-                          const SizedBox(height: 18),
-                          Text(
-                            'Role',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(height: 10),
-                          _RoleSelector(
-                            selectedRole: _selectedRole,
-                            onChanged: (role) {
-                              setState(() => _selectedRole = role);
-                            },
-                          ),
                           const SizedBox(height: 22),
                           CustomButton(
-                            label: 'Register',
+                            label: 'Register ${_role.label}',
                             icon: Icons.person_add_alt_rounded,
                             isLoading: auth.isLoading,
                             onPressed: _register,
@@ -198,13 +246,129 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
+  List<Widget> _vendorFields() {
+    return [
+      const SizedBox(height: 14),
+      CustomTextField(
+        label: 'Store Name',
+        controller: _storeNameController,
+        icon: Icons.storefront_outlined,
+        textInputAction: TextInputAction.next,
+        validator: _required('Store name is required.'),
+      ),
+      const SizedBox(height: 14),
+      CustomTextField(
+        label: 'Business Registration Number (optional)',
+        controller: _businessRegistrationController,
+        icon: Icons.badge_outlined,
+        textInputAction: TextInputAction.next,
+      ),
+    ];
+  }
+
+  List<Widget> _riderFields() {
+    return [
+      const SizedBox(height: 14),
+      DropdownButtonFormField<String>(
+        initialValue: _vehicleType,
+        decoration: const InputDecoration(
+          labelText: 'Vehicle Type',
+          prefixIcon: Icon(Icons.two_wheeler_rounded),
+        ),
+        items: const [
+          DropdownMenuItem(value: 'bicycle', child: Text('Bicycle')),
+          DropdownMenuItem(value: 'motorbike', child: Text('Motorbike')),
+          DropdownMenuItem(value: 'three_wheeler', child: Text('Three wheeler')),
+          DropdownMenuItem(value: 'van', child: Text('Van')),
+        ],
+        onChanged: (value) {
+          if (value != null) {
+            setState(() => _vehicleType = value);
+          }
+        },
+      ),
+      const SizedBox(height: 14),
+      CustomTextField(
+        label: 'Vehicle Number (optional)',
+        controller: _vehicleNumberController,
+        icon: Icons.pin_outlined,
+        textInputAction: TextInputAction.next,
+      ),
+      const SizedBox(height: 14),
+      CustomTextField(
+        label: 'License Number (optional)',
+        controller: _licenseNumberController,
+        icon: Icons.credit_card_outlined,
+        textInputAction: TextInputAction.next,
+      ),
+    ];
+  }
+
+  List<Widget> _homeBaseFields() {
+    return [
+      const SizedBox(height: 14),
+      CustomTextField(
+        label: _role == UserRole.vendor ? 'Store Address' : 'Home-base Address',
+        controller: _addressController,
+        icon: Icons.location_on_outlined,
+        textInputAction: TextInputAction.next,
+        validator: _required('Address is required.'),
+      ),
+      const SizedBox(height: 14),
+      CustomTextField(
+        label: 'City',
+        controller: _cityController,
+        icon: Icons.location_city_outlined,
+        textInputAction: TextInputAction.next,
+        validator: _required('City is required.'),
+      ),
+      const SizedBox(height: 14),
+      CustomTextField(
+        label: 'District',
+        controller: _districtController,
+        icon: Icons.map_outlined,
+        textInputAction: TextInputAction.next,
+        validator: _required('District is required.'),
+      ),
+      const SizedBox(height: 14),
+      CustomTextField(
+        label: 'Province',
+        controller: _provinceController,
+        icon: Icons.public_outlined,
+        textInputAction: TextInputAction.next,
+        validator: _required('Province is required.'),
+      ),
+      const SizedBox(height: 14),
+      Row(
+        children: [
+          Expanded(
+            child: CustomTextField(
+              label: 'Latitude (optional)',
+              controller: _latitudeController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true, signed: true),
+              textInputAction: TextInputAction.next,
+              validator: _validateLatitude,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: CustomTextField(
+              label: 'Longitude (optional)',
+              controller: _longitudeController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true, signed: true),
+              textInputAction: TextInputAction.next,
+              validator: _validateLongitude,
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
   String? Function(String?) _required(String message) {
-    return (value) {
-      if (value == null || value.trim().isEmpty) {
-        return message;
-      }
-      return null;
-    };
+    return (value) => value == null || value.trim().isEmpty ? message : null;
   }
 
   String? _validateEmail(String? value) {
@@ -212,8 +376,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (email.isEmpty) {
       return 'Email is required.';
     }
-    final isValid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
-    if (!isValid) {
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
       return 'Enter a valid email address.';
     }
     return null;
@@ -233,42 +396,38 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (value == null || value.isEmpty) {
       return 'Confirm password is required.';
     }
-    if (value != _passwordController.text) {
-      return 'Passwords do not match.';
+    return value == _passwordController.text ? null : 'Passwords do not match.';
+  }
+
+  String? _validateLatitude(String? value) =>
+      _validateCoordinate(value, -90, 90, 'latitude');
+
+  String? _validateLongitude(String? value) =>
+      _validateCoordinate(value, -180, 180, 'longitude');
+
+  String? _validateCoordinate(
+    String? value,
+    double minimum,
+    double maximum,
+    String label,
+  ) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+    final coordinate = double.tryParse(value.trim());
+    if (coordinate == null || coordinate < minimum || coordinate > maximum) {
+      return 'Invalid $label.';
     }
     return null;
   }
-}
 
-class _RoleSelector extends StatelessWidget {
-  const _RoleSelector({
-    required this.selectedRole,
-    required this.onChanged,
-  });
+  static String? _nullIfEmpty(String value) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
 
-  final UserRole? selectedRole;
-  final ValueChanged<UserRole> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SegmentedButton<UserRole>(
-        segments: [
-          for (final role in UserRole.values)
-            ButtonSegment<UserRole>(
-              value: role,
-              label: Text(role.label),
-            ),
-        ],
-        selected: selectedRole == null ? <UserRole>{} : {selectedRole!},
-        onSelectionChanged: (value) => onChanged(value.first),
-        style: SegmentedButton.styleFrom(
-          selectedBackgroundColor: AppColors.primaryGreen,
-          selectedForegroundColor: AppColors.white,
-          foregroundColor: AppColors.textColor,
-        ),
-      ),
-    );
+  static double? _doubleOrNull(String value) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : double.tryParse(trimmed);
   }
 }

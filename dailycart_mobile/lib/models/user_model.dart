@@ -8,6 +8,9 @@ class UserModel {
     required this.phone,
     required this.role,
     this.status,
+    this.approvalStatus,
+    this.isEmailVerified = false,
+    this.isPhoneVerified = false,
     this.isApproved = true,
   });
 
@@ -17,6 +20,9 @@ class UserModel {
   final String phone;
   final UserRole role;
   final String? status;
+  final String? approvalStatus;
+  final bool isEmailVerified;
+  final bool isPhoneVerified;
   final bool isApproved;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -27,6 +33,15 @@ class UserModel {
       phone: (json['phone'] ?? '').toString(),
       role: UserRole.fromName(json['role']?.toString()),
       status: json['status']?.toString(),
+      approvalStatus: json['approval_status']?.toString(),
+      isEmailVerified: _toBool(
+        json['is_email_verified'] ?? (json['email_verified_at'] != null),
+        fallback: false,
+      ),
+      isPhoneVerified: _toBool(
+        json['is_phone_verified'] ?? (json['phone_verified_at'] != null),
+        fallback: false,
+      ),
       isApproved: _toBool(json['is_approved'] ?? json['approved'], fallback: true),
     );
   }
@@ -39,6 +54,9 @@ class UserModel {
       'phone': phone,
       'role': role.name,
       'status': status ?? '',
+      'approval_status': approvalStatus ?? '',
+      'is_email_verified': isEmailVerified.toString(),
+      'is_phone_verified': isPhoneVerified.toString(),
       'is_approved': isApproved.toString(),
     };
   }
@@ -70,9 +88,22 @@ class UserModel {
       phone: values['phone'] ?? '',
       role: UserRole.fromName(role),
       status: values['status']?.isEmpty ?? true ? null : values['status'],
+      approvalStatus: values['approval_status']?.isEmpty ?? true
+          ? null
+          : values['approval_status'],
+      isEmailVerified: _toBool(
+        values['is_email_verified'],
+        fallback: false,
+      ),
+      isPhoneVerified: _toBool(
+        values['is_phone_verified'],
+        fallback: false,
+      ),
       isApproved: _toBool(values['is_approved'], fallback: true),
     );
   }
+
+  bool get requiresVerification => !isEmailVerified || !isPhoneVerified;
 
   static int _toInt(Object? value) {
     if (value is int) {

@@ -58,6 +58,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return;
     }
 
+    if (auth.requiresVerification) {
+      context.go(AppRoutes.otpVerification);
+      return;
+    }
+
+    if (auth.requiresApproval) {
+      context.go(AppRoutes.pendingApproval);
+      return;
+    }
+
     context.go(auth.role?.homeRoute ?? AppRoutes.login);
   }
 

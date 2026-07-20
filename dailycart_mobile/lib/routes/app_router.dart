@@ -1,10 +1,16 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../config/app_identity.dart';
+import '../models/user_role.dart';
+import '../providers/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/otp_verification_screen.dart';
 import '../screens/auth/pending_approval_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/auth/reset_password_screen.dart';
 import '../models/address_model.dart';
 import '../models/checkout_response_model.dart';
 import '../screens/customer/add_edit_address_screen.dart';
@@ -69,9 +75,17 @@ import '../screens/rider/rider_map_screen.dart';
 import '../screens/rider/rider_profile_screen.dart';
 import 'app_routes.dart';
 
-final appRouter = GoRouter(
-  initialLocation: AppRoutes.splash,
-  routes: [
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final auth = ref.read(authProvider);
+
+  return GoRouter(
+    navigatorKey: rootNavigatorKey,
+    initialLocation: AppRoutes.splash,
+    refreshListenable: auth,
+    redirect: (context, state) => _redirectFor(auth, state),
+    routes: [
     GoRoute(
       path: AppRoutes.splash,
       name: 'splash',
@@ -96,6 +110,13 @@ final appRouter = GoRouter(
       path: AppRoutes.forgotPassword,
       name: 'forgot-password',
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.resetPassword,
+      name: 'reset-password',
+      builder: (context, state) => ResetPasswordScreen(
+        initialEmail: state.extra is String ? state.extra as String : '',
+      ),
     ),
     GoRoute(
       path: AppRoutes.otpVerification,
@@ -504,5 +525,106 @@ final appRouter = GoRouter(
         return PromotionDetailsScreen(promotionId: promotionId);
       },
     ),
-  ],
-);
+    ],
+  );
+});
+
+String? _redirectFor(AuthProvider auth, GoRouterState state) {
+  final location = state.uri.path;
+  if (location == AppRoutes.splash || !auth.isInitialized) {
+    return null;
+  }
+
+  const publicAuthRoutes = {
+    AppRoutes.onboarding,
+    AppRoutes.login,
+    AppRoutes.register,
+    AppRoutes.forgotPassword,
+    AppRoutes.resetPassword,
+  };
+
+  if (!auth.isAuthenticated) {
+    return publicAuthRoutes.contains(location) ? null : AppRoutes.login;
+  }
+
+  if (auth.requiresVerification) {
+    return location == AppRoutes.otpVerification
+        ? null
+        : AppRoutes.otpVerification;
+  }
+
+  if (auth.requiresApproval) {
+    return location == AppRoutes.pendingApproval
+        ? null
+        : AppRoutes.pendingApproval;
+  }
+
+  final home = auth.role?.homeRoute ?? AppRoutes.login;
+  if (publicAuthRoutes.contains(location) ||
+      location == AppRoutes.otpVerification ||
+      location == AppRoutes.pendingApproval) {
+    return home;
+  }
+
+  final requiredRole = _requiredRoleFor(location);
+  if (requiredRole != null && requiredRole != auth.role) {
+    return home;
+  }
+
+  return null;
+}
+
+UserRole? _requiredRoleFor(String location) {
+  const vendorPrefixes = [
+    '/vendor-',
+  ];
+  const riderPrefixes = [
+    '/rider-',
+    '/assigned-deliveries',
+    '/delivery-details',
+    '/delivery-proof',
+  ];
+  const customerPrefixes = [
+    '/customer-',
+    '/categories',
+    '/products',
+    '/product-details',
+    '/search',
+    '/wishlist',
+    '/cart',
+    '/checkout',
+    '/addresses',
+    '/address-form',
+    '/delivery-schedule',
+    '/payment-',
+    '/payhere-webview',
+    '/order-',
+    '/my-orders',
+    '/notifications',
+    '/profile',
+    '/edit-profile',
+    '/change-password',
+    '/add-review',
+    '/my-reviews',
+    '/product-reviews',
+    '/support-',
+    '/create-support-ticket',
+    '/loyalty-',
+    '/available-coupons',
+    '/promotions',
+    '/promotion-details',
+  ];
+
+  if (vendorPrefixes.any(location.startsWith)) {
+    return UserRole.vendor;
+  }
+  if (riderPrefixes.any(location.startsWith)) {
+    return UserRole.rider;
+  }
+  if (customerPrefixes.any(location.startsWith)) {
+    return UserRole.customer;
+  }
+
+  final appRole = UserRole.fromName(AppIdentity.flavor.name);
+  return location == appRole.homeRoute ? appRole : null;
+}

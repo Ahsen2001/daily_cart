@@ -28,6 +28,7 @@ class ApiCoreFlowTest extends TestCase
             'email' => 'api-customer@example.com',
             'phone' => '0771000001',
             'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
         ]);
 
         $response

@@ -27,6 +27,7 @@ class ApiSecurityHardeningTest extends TestCase
             'email' => 'unverified@example.com',
             'phone' => '0772000001',
             'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
             'device_name' => 'test-phone',
         ])->assertCreated();
 

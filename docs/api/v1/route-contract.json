@@ -1,10 +1,15 @@
 {
-  "contract_version": "1.0.0",
+  "contract_version": "1.1.0",
   "frozen_at": "2026-07-20",
   "base_path": "/api/v1",
   "endpoints": [
     {"method": "POST", "path": "/api/v1/register", "access": "public"},
+    {"method": "POST", "path": "/api/v1/register/customer", "access": "public"},
+    {"method": "POST", "path": "/api/v1/register/vendor", "access": "public"},
+    {"method": "POST", "path": "/api/v1/register/rider", "access": "public"},
     {"method": "POST", "path": "/api/v1/login", "access": "public"},
+    {"method": "POST", "path": "/api/v1/password/forgot", "access": "public"},
+    {"method": "POST", "path": "/api/v1/password/reset", "access": "public"},
     {"method": "GET", "path": "/api/v1/categories", "access": "public"},
     {"method": "GET", "path": "/api/v1/products", "access": "public"},
     {"method": "GET", "path": "/api/v1/products/{product}", "access": "public"},

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/app_logo.dart';
@@ -42,6 +43,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
+        );
+        context.push(
+          AppRoutes.resetPassword,
+          extra: _emailController.text.trim(),
         );
       }
     } catch (error) {
@@ -89,7 +94,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Enter your email to request a password reset link.',
+                      'Enter your email to request a 6-digit password reset code.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.mutedText,
                           ),
@@ -107,7 +112,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           ),
                           const SizedBox(height: 22),
                           CustomButton(
-                            label: 'Send Reset Request',
+                            label: 'Send Reset Code',
                             icon: Icons.send_rounded,
                             isLoading: _isLoading,
                             onPressed: _sendResetRequest,

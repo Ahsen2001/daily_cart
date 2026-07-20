@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/responsive.dart';
@@ -8,7 +10,7 @@ import '../../widgets/app_logo.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/dailycart_card.dart';
 
-class PendingApprovalScreen extends StatelessWidget {
+class PendingApprovalScreen extends ConsumerWidget {
   const PendingApprovalScreen({
     required this.message,
     super.key,
@@ -17,7 +19,7 @@ class PendingApprovalScreen extends StatelessWidget {
   final String message;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -71,9 +73,14 @@ class PendingApprovalScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
                         CustomButton(
-                          label: 'Back to Login',
-                          icon: Icons.arrow_back_rounded,
-                          onPressed: () => context.go(AppRoutes.login),
+                          label: 'Sign Out',
+                          icon: Icons.logout_rounded,
+                          onPressed: () async {
+                            await ref.read(authProvider).logout();
+                            if (context.mounted) {
+                              context.go(AppRoutes.login);
+                            }
+                          },
                         ),
                       ],
                     ),
