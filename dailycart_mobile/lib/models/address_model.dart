@@ -30,8 +30,10 @@ class AddressModel {
   factory AddressModel.fromJson(Map<String, dynamic> json) {
     return AddressModel(
       id: _toInt(json['id']),
-      fullName: (json['full_name'] ?? json['name'] ?? '').toString(),
-      phoneNumber: (json['phone_number'] ?? json['phone'] ?? '').toString(),
+      fullName:
+          (json['recipient_name'] ?? json['full_name'] ?? json['name'] ?? '')
+              .toString(),
+      phoneNumber: (json['phone'] ?? json['phone_number'] ?? '').toString(),
       addressLine1: (json['address_line_1'] ?? json['address_line1'] ?? '')
           .toString(),
       addressLine2: (json['address_line_2'] ?? json['address_line2'] ?? '')
@@ -48,8 +50,8 @@ class AddressModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'full_name': fullName,
-      'phone_number': phoneNumber,
+      'recipient_name': fullName,
+      'phone': phoneNumber,
       'address_line_1': addressLine1,
       'address_line_2': addressLine2,
       'city': city,
@@ -58,6 +60,7 @@ class AddressModel {
       'landmark': landmark,
       'latitude': latitude,
       'longitude': longitude,
+      'formatted_address': displayAddress,
       'is_default': isDefault,
     };
   }

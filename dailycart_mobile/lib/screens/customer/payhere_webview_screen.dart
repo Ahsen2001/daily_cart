@@ -35,11 +35,13 @@ class _PayHereWebViewScreenState extends ConsumerState<PayHereWebViewScreen> {
           onProgress: (progress) => setState(() => _progress = progress),
           onNavigationRequest: (request) {
             final url = request.url;
-            if (url.contains('/payment/success')) {
+            if (url.contains('/payhere/return') ||
+                url.contains('/payment/success')) {
               _finishPayment(successHint: true);
               return NavigationDecision.prevent;
             }
-            if (url.contains('/payment/cancel') ||
+            if (url.contains('/payhere/cancel') ||
+                url.contains('/payment/cancel') ||
                 url.contains('/payment/failed')) {
               _finishPayment(successHint: false);
               return NavigationDecision.prevent;

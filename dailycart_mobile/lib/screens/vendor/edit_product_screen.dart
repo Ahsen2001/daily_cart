@@ -29,6 +29,7 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
   final _stockController = TextEditingController();
   final _descriptionController = TextEditingController();
   bool _filled = false;
+  bool _isSubscriptionEligible = false;
 
   @override
   void initState() {
@@ -57,6 +58,7 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
       _priceController.text = product.price.toStringAsFixed(2);
       _stockController.text = '${product.stockQuantity}';
       _descriptionController.text = product.description;
+      _isSubscriptionEligible = product.isSubscriptionEligible;
     }
 
     return Scaffold(
@@ -105,6 +107,14 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
                                 prefixIcon: Icon(Icons.description_outlined),
                               ),
                             ),
+                            SwitchListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('Allow subscriptions'),
+                              value: _isSubscriptionEligible,
+                              onChanged: (value) => setState(
+                                () => _isSubscriptionEligible = value,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -144,6 +154,10 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
       image: product.image,
       images: product.images,
       variants: product.variants,
+      gallery: product.gallery,
+      isSubscriptionEligible: _isSubscriptionEligible,
+      lowStockThreshold: product.lowStockThreshold,
+      rejectionReason: product.rejectionReason,
     );
     final ok = await ref.read(vendorProductProvider).updateProduct(updated);
     if (!mounted) {

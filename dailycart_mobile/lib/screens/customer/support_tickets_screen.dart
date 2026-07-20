@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/support_ticket_provider.dart';
+import '../../config/app_identity.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
@@ -34,7 +35,11 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
         actions: [
           IconButton(
             tooltip: 'Create ticket',
-            onPressed: () => context.push(AppRoutes.createSupportTicket),
+            onPressed: () => context.push(
+              AppIdentity.isVendor
+                  ? AppRoutes.vendorCreateSupportTicket
+                  : AppRoutes.createSupportTicket,
+            ),
             icon: const Icon(Icons.add_rounded),
           ),
         ],
@@ -57,7 +62,7 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
                       return TicketCard(
                         ticket: ticket,
                         onTap: () => context.push(
-                          '${AppRoutes.supportTicketDetails}/${ticket.id}',
+                          '${AppIdentity.isVendor ? AppRoutes.vendorSupportTicketDetails : AppRoutes.supportTicketDetails}/${ticket.id}',
                         ),
                       );
                     },
@@ -67,7 +72,11 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
                   ),
                 ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.createSupportTicket),
+        onPressed: () => context.push(
+          AppIdentity.isVendor
+              ? AppRoutes.vendorCreateSupportTicket
+              : AppRoutes.createSupportTicket,
+        ),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Ticket'),
       ),

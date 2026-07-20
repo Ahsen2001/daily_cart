@@ -56,10 +56,14 @@ class OrderApiService with AuthenticatedApiMixin {
     }
   }
 
-  Future<OrderModel> cancelOrder(int orderId) async {
+  Future<OrderModel> cancelOrder(
+    int orderId, {
+    String reason = 'Customer requested cancellation from the mobile app.',
+  }) async {
     try {
       final response = await _dio.patch<dynamic>(
         '/orders/$orderId/cancel',
+        data: {'reason': reason},
         options: await authOptions(),
       );
       return OrderModel.fromJson(ApiListParser.extractObject(response.data));

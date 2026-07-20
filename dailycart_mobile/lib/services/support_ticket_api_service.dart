@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../models/support_ticket_model.dart';
+import '../config/app_identity.dart';
 import '../networking/api_client.dart';
 import '../utils/secure_storage_helper.dart';
 import 'api_list_parser.dart';
@@ -18,10 +19,16 @@ class SupportTicketApiService with AuthenticatedApiMixin {
   @override
   SecureStorageHelper get storage => _storage;
 
+  String get _prefix => AppIdentity.isVendor
+      ? '/vendor'
+      : AppIdentity.isRider
+          ? '/rider'
+          : '';
+
   Future<List<SupportTicketModel>> getTickets() async {
     try {
       final response = await _dio.get<dynamic>(
-        '/support-tickets',
+        '$_prefix/support-tickets',
         options: await authOptions(),
       );
       return ApiListParser.extractList(
@@ -41,7 +48,7 @@ class SupportTicketApiService with AuthenticatedApiMixin {
   }) async {
     try {
       final response = await _dio.post<dynamic>(
-        '/support-tickets',
+        '$_prefix/support-tickets',
         data: {
           'subject': subject,
           'message': message,
@@ -61,7 +68,7 @@ class SupportTicketApiService with AuthenticatedApiMixin {
   Future<SupportTicketModel> getTicketDetails(int ticketId) async {
     try {
       final response = await _dio.get<dynamic>(
-        '/support-tickets/$ticketId',
+        '$_prefix/support-tickets/$ticketId',
         options: await authOptions(),
       );
       return SupportTicketModel.fromJson(
@@ -78,7 +85,7 @@ class SupportTicketApiService with AuthenticatedApiMixin {
   }) async {
     try {
       final response = await _dio.post<dynamic>(
-        '/support-tickets/$ticketId/replies',
+        '$_prefix/support-tickets/$ticketId/replies',
         data: {'message': message},
         options: await authOptions(),
       );
@@ -93,7 +100,7 @@ class SupportTicketApiService with AuthenticatedApiMixin {
   Future<SupportTicketModel> closeTicket(int ticketId) async {
     try {
       final response = await _dio.patch<dynamic>(
-        '/support-tickets/$ticketId/close',
+        '$_prefix/support-tickets/$ticketId/close',
         options: await authOptions(),
       );
       return SupportTicketModel.fromJson(

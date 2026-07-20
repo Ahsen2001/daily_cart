@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/vendor_provider.dart';
+import '../../providers/profile_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -92,9 +94,70 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                             onTap: () => context.push(AppRoutes.vendorEditProfile),
                           ),
                           SettingTile(
+                            icon: Icons.lock_outline,
+                            title: 'Change Password',
+                            onTap: () =>
+                                context.push(AppRoutes.vendorChangePassword),
+                          ),
+                          SettingTile(
                             icon: Icons.reviews_outlined,
                             title: 'Vendor Reviews',
                             onTap: () => context.push(AppRoutes.vendorReviews),
+                          ),
+                          SettingTile(
+                            icon: Icons.account_balance_wallet_outlined,
+                            title: 'Wallet & Payouts',
+                            onTap: () => context.push(AppRoutes.vendorWallet),
+                          ),
+                          SettingTile(
+                            icon: Icons.currency_exchange,
+                            title: 'Refunds',
+                            onTap: () => context.push(AppRoutes.vendorRefunds),
+                          ),
+                          SettingTile(
+                            icon: Icons.confirmation_number_outlined,
+                            title: 'Coupons',
+                            onTap: () => context.push(AppRoutes.vendorCoupons),
+                          ),
+                          SettingTile(
+                            icon: Icons.local_offer_outlined,
+                            title: 'Promotions',
+                            onTap: () =>
+                                context.push(AppRoutes.vendorPromotions),
+                          ),
+                          SettingTile(
+                            icon: Icons.autorenew,
+                            title: 'Subscriptions',
+                            onTap: () =>
+                                context.push(AppRoutes.vendorSubscriptions),
+                          ),
+                          SettingTile(
+                            icon: Icons.event_repeat_outlined,
+                            title: 'Scheduled Orders',
+                            onTap: () =>
+                                context.push(AppRoutes.vendorScheduledOrders),
+                          ),
+                          SettingTile(
+                            icon: Icons.analytics_outlined,
+                            title: 'Reports',
+                            onTap: () => context.push(AppRoutes.vendorReports),
+                          ),
+                          SettingTile(
+                            icon: Icons.notifications_none,
+                            title: 'Notifications',
+                            onTap: () =>
+                                context.push(AppRoutes.vendorNotifications),
+                          ),
+                          SettingTile(
+                            icon: Icons.support_agent,
+                            title: 'Support',
+                            onTap: () =>
+                                context.push(AppRoutes.vendorSupportTickets),
+                          ),
+                          SettingTile(
+                            icon: Icons.delete_forever_outlined,
+                            title: 'Delete Vendor Account',
+                            onTap: _deleteAccount,
                           ),
                         ],
                       ),
@@ -102,6 +165,49 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                   ],
                 ),
     );
+  }
+
+  Future<void> _deleteAccount() async {
+    final password = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete vendor account?'),
+        content: TextField(
+          controller: password,
+          obscureText: true,
+          decoration: const InputDecoration(labelText: 'Confirm password'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    final value = password.text;
+    password.dispose();
+    if (confirmed != true || value.isEmpty) return;
+    final ok = await ref.read(profileProvider).deleteAccount(value);
+    if (!mounted) return;
+    if (ok) {
+      await ref.read(authProvider).clearToken();
+      if (mounted) context.go(AppRoutes.login);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ref.read(profileProvider).errorMessage ??
+                'Unable to delete vendor account.',
+          ),
+        ),
+      );
+    }
   }
 }
 

@@ -23,6 +23,18 @@ class AppRoutes {
   static const vendorReviews = '/vendor-reviews';
   static const vendorProfile = '/vendor-profile';
   static const vendorEditProfile = '/vendor-edit-profile';
+  static const vendorWallet = '/vendor-wallet';
+  static const vendorRefunds = '/vendor-refunds';
+  static const vendorCoupons = '/vendor-coupons';
+  static const vendorPromotions = '/vendor-promotions';
+  static const vendorSubscriptions = '/vendor-subscriptions';
+  static const vendorScheduledOrders = '/vendor-scheduled-orders';
+  static const vendorReports = '/vendor-reports';
+  static const vendorNotifications = '/vendor-notifications';
+  static const vendorSupportTickets = '/vendor-support-tickets';
+  static const vendorCreateSupportTicket = '/vendor-create-support-ticket';
+  static const vendorSupportTicketDetails = '/vendor-support-ticket-details';
+  static const vendorChangePassword = '/vendor-change-password';
   static const riderDashboard = '/rider-dashboard';
   static const assignedDeliveries = '/assigned-deliveries';
   static const deliveryDetails = '/delivery-details';
@@ -65,4 +77,10 @@ class AppRoutes {
   static const availableCoupons = '/available-coupons';
   static const promotions = '/promotions';
   static const promotionDetails = '/promotion-details';
+  static const wallet = '/wallet';
+  static const refunds = '/refunds';
+  static const subscriptions = '/subscriptions';
+  static const createSubscription = '/create-subscription';
+  static const scheduledOrders = '/scheduled-orders';
+  static const policy = '/policy';
 }

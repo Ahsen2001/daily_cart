@@ -102,6 +102,7 @@ class _VendorDashboardScreenState extends ConsumerState<VendorDashboardScreen> {
                             value: '${dashboard.lowStockProducts}',
                             icon: Icons.warning_amber_rounded,
                             color: AppColors.danger,
+                            onTap: () => context.push(AppRoutes.vendorProducts),
                           ),
                         ],
                       ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/address_model.dart';
 import '../models/checkout_request_model.dart';
+import '../models/checkout_quote_model.dart';
 import '../models/checkout_response_model.dart';
 import '../models/payment_method_model.dart';
 import '../services/auth_api_service.dart';
@@ -25,6 +26,8 @@ class CheckoutProvider extends ChangeNotifier {
   DateTime? selectedDeliveryTime;
   PaymentMethodType selectedPaymentMethod = PaymentMethodType.cashOnDelivery;
   OrderModel? order;
+  List<OrderModel> orders = const [];
+  CheckoutQuoteModel? quote;
   String? paymentUrl;
   bool isLoading = false;
   String? errorMessage;
@@ -36,6 +39,34 @@ class CheckoutProvider extends ChangeNotifier {
   void selectAddress(AddressModel address) {
     selectedAddress = address;
     notifyListeners();
+  }
+
+  Future<bool> refreshQuote({
+    String? couponCode,
+    int loyaltyPoints = 0,
+    int? deliveryDistanceMeters,
+  }) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      quote = await _apiService.getQuote(
+        couponCode: couponCode,
+        loyaltyPoints: loyaltyPoints,
+        deliveryDistrict: selectedAddress?.district,
+        deliveryDistanceMeters: deliveryDistanceMeters,
+      );
+      return true;
+    } on ApiException catch (error) {
+      errorMessage = error.message;
+      return false;
+    } catch (_) {
+      errorMessage = 'Unable to calculate checkout totals.';
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   bool selectDeliveryTime(DateTime deliveryTime) {
@@ -80,6 +111,10 @@ class CheckoutProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final quoteReady = await refreshQuote(couponCode: couponCode);
+      if (!quoteReady) {
+        return false;
+      }
       final response = await _apiService.createOrder(
         CheckoutRequestModel(
           address: selectedAddress!,
@@ -88,6 +123,7 @@ class CheckoutProvider extends ChangeNotifier {
           couponCode: couponCode,
         ),
       );
+      orders = response.orders;
       order = response.order;
       paymentUrl = response.paymentUrl;
       return response.success;

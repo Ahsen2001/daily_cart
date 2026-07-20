@@ -42,14 +42,18 @@ class OrderModel {
     return OrderModel(
       id: _toInt(json['id']),
       orderNumber: (json['order_number'] ?? '').toString(),
-      orderDate: _toDate(json['created_at'] ?? json['order_date']),
-      status: (json['status'] ?? 'pending').toString(),
+      orderDate: _toDate(
+        json['placed_at'] ?? json['created_at'] ?? json['order_date'],
+      ),
+      status: (json['order_status'] ?? json['status'] ?? 'pending').toString(),
       paymentStatus: (json['payment_status'] ?? 'pending').toString(),
       paymentMethod: (json['payment_method'] ?? '').toString(),
       deliveryAddress:
           (json['delivery_address'] ?? json['address'] ?? '').toString(),
       scheduledDeliveryTime: _toNullableDate(
-        json['scheduled_delivery_time'] ?? json['scheduled_at'],
+        json['scheduled_delivery_at'] ??
+            json['scheduled_delivery_time'] ??
+            json['scheduled_at'],
       ),
       estimatedDeliveryTime: _toNullableDate(
         json['estimated_delivery_time'] ?? json['eta'],
@@ -61,10 +65,13 @@ class OrderModel {
           ? (rider['phone'] ?? '').toString()
           : (json['rider_phone'] ?? '').toString(),
       subtotal: _toDouble(json['subtotal']),
-      discount: _toDouble(json['discount']),
-      deliveryCharge: _toDouble(json['delivery_charge']),
+      discount: _toDouble(json['discount_amount'] ?? json['discount']),
+      deliveryCharge:
+          _toDouble(json['delivery_fee'] ?? json['delivery_charge']),
       serviceCharge: _toDouble(json['service_charge']),
-      grandTotal: _toDouble(json['grand_total'] ?? json['total']),
+      grandTotal: _toDouble(
+        json['total_amount'] ?? json['grand_total'] ?? json['total'],
+      ),
       items: _listFrom(json['items'] ?? json['order_items'])
           .map(OrderItemModel.fromJson)
           .toList(growable: false),
@@ -142,8 +149,9 @@ class OrderItemModel {
       productName: (json['product_name'] ?? json['name'] ?? '').toString(),
       image: (json['image'] ?? json['image_url'] ?? '').toString(),
       quantity: OrderModel._toInt(json['quantity']),
-      price: OrderModel._toDouble(json['price']),
-      subtotal: OrderModel._toDouble(json['subtotal']),
+      price: OrderModel._toDouble(json['unit_price'] ?? json['price']),
+      subtotal:
+          OrderModel._toDouble(json['total_price'] ?? json['subtotal']),
     );
   }
 }

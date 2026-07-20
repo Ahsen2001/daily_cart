@@ -21,6 +21,7 @@ class ProductModel {
     this.variants = const [],
     this.reviews = const [],
     this.similarProducts = const [],
+    this.isSubscriptionEligible = false,
   });
 
   final int id;
@@ -42,6 +43,7 @@ class ProductModel {
   final List<ProductVariantModel> variants;
   final List<ReviewModel> reviews;
   final List<ProductModel> similarProducts;
+  final bool isSubscriptionEligible;
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     final category = json['category'];
@@ -83,6 +85,8 @@ class ProductModel {
       similarProducts: _listFrom(json['similar_products'])
           .map(ProductModel.fromJson)
           .toList(growable: false),
+      isSubscriptionEligible: json['is_subscription_eligible'] == true ||
+          json['is_subscription_eligible']?.toString() == '1',
     );
   }
 
@@ -93,8 +97,10 @@ class ProductModel {
   bool get isAvailable => stockQuantity > 0;
 
   bool get isVisibleForCustomer {
-    return status.toLowerCase() == 'active' &&
-        approvalStatus.toLowerCase() == 'approved';
+    final normalizedStatus = status.toLowerCase();
+    return (normalizedStatus == 'active' || normalizedStatus == 'approved') &&
+        !const {'pending', 'rejected', 'inactive'}
+            .contains(approvalStatus.toLowerCase());
   }
 
   List<String> get imageUrls {

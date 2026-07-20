@@ -93,6 +93,53 @@ class VendorProductProvider extends ChangeNotifier {
     });
   }
 
+  Future<bool> addVariant({
+    required int productId,
+    required String name,
+    required double price,
+    required int stockQuantity,
+    String? sku,
+  }) {
+    return _run(() async {
+      selectedProduct = await _apiService.addVariant(
+        productId: productId,
+        name: name,
+        price: price,
+        stockQuantity: stockQuantity,
+        sku: sku,
+      );
+      _replaceSelected();
+    });
+  }
+
+  Future<bool> deleteVariant(int productId, int variantId) {
+    return _run(() async {
+      selectedProduct = await _apiService.deleteVariant(
+        productId: productId,
+        variantId: variantId,
+      );
+      _replaceSelected();
+    });
+  }
+
+  Future<bool> deleteImage(int productId, int imageId) {
+    return _run(() async {
+      selectedProduct = await _apiService.deleteImage(
+        productId: productId,
+        imageId: imageId,
+      );
+      _replaceSelected();
+    });
+  }
+
+  void _replaceSelected() {
+    final selected = selectedProduct;
+    if (selected == null) return;
+    products = products
+        .map((item) => item.id == selected.id ? selected : item)
+        .toList(growable: false);
+  }
+
   Future<bool> _run(Future<void> Function() action) async {
     isLoading = true;
     errorMessage = null;

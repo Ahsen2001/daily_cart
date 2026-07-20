@@ -150,6 +150,11 @@ class Product extends Model
         return $this->hasMany(Review::class);
     }
 
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
     public function scopeApproved($query)
     {
         return $query->where('status', 'approved');

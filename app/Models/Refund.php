@@ -18,6 +18,8 @@ class Refund extends Model
         'refund_method',
         'reason',
         'admin_note',
+        'vendor_note',
+        'vendor_responded_at',
         'status',
         'requested_at',
         'processed_at',
@@ -29,6 +31,7 @@ class Refund extends Model
             'amount' => 'decimal:2',
             'requested_at' => 'datetime',
             'processed_at' => 'datetime',
+            'vendor_responded_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
     }

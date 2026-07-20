@@ -14,13 +14,22 @@ class CartModel {
     final cartJson = json['cart'] is Map<String, dynamic>
         ? json['cart'] as Map<String, dynamic>
         : json;
-    final itemList = cartJson['items'] is List ? cartJson['items'] as List : [];
+    final itemList = json['cart'] is List
+        ? json['cart'] as List
+        : cartJson['items'] is List
+            ? cartJson['items'] as List
+            : null;
+    if (itemList == null) {
+      throw const FormatException('Cart response is missing the cart items.');
+    }
     final items = itemList
         .whereType<Map<String, dynamic>>()
         .map(CartItemModel.fromJson)
         .toList(growable: false);
 
-    final summaryJson = cartJson['summary'] is Map<String, dynamic>
+    final summaryJson = json['totals'] is Map<String, dynamic>
+        ? json['totals'] as Map<String, dynamic>
+        : cartJson['summary'] is Map<String, dynamic>
         ? cartJson['summary'] as Map<String, dynamic>
         : <String, dynamic>{};
 

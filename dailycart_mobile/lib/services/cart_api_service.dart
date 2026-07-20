@@ -41,7 +41,7 @@ class CartApiService with AuthenticatedApiMixin {
         data: {
           'product_id': productId,
           'quantity': quantity,
-          'variant_id': ?variantId,
+          'product_variant_id': ?variantId,
         },
         options: await authOptions(),
       );
@@ -57,7 +57,7 @@ class CartApiService with AuthenticatedApiMixin {
   }) async {
     try {
       final response = await _dio.patch<dynamic>(
-        '/cart/items/$cartItemId',
+        '/cart-items/$cartItemId',
         data: {'quantity': quantity},
         options: await authOptions(),
       );
@@ -70,7 +70,7 @@ class CartApiService with AuthenticatedApiMixin {
   Future<CartModel> removeCartItem(int cartItemId) async {
     try {
       final response = await _dio.delete<dynamic>(
-        '/cart/items/$cartItemId',
+        '/cart-items/$cartItemId',
         options: await authOptions(),
       );
       return CartModel.fromJson(ApiResponseParser.requireMap(response.data));
@@ -82,7 +82,7 @@ class CartApiService with AuthenticatedApiMixin {
   Future<CartModel> clearCart() async {
     try {
       final response = await _dio.delete<dynamic>(
-        '/cart',
+        '/cart/clear',
         options: await authOptions(),
       );
       return CartModel.fromJson(ApiResponseParser.requireMap(response.data));

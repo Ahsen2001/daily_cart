@@ -88,7 +88,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               child: SafeArea(
                 child: CheckoutSummaryCard(
-                  summary: cart.summary,
+                  summary: checkout.quote?.summary ?? cart.summary,
                   action: CustomButton(
                     label: 'Place Order',
                     icon: Icons.shopping_bag_rounded,
@@ -122,16 +122,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     switch (checkout.selectedPaymentMethod) {
       case PaymentMethodType.cashOnDelivery:
-        context.go(AppRoutes.orderSuccess, extra: order);
+        context.go(
+          AppRoutes.orderSuccess,
+          extra: {'orders': checkout.orders, 'payHere': false},
+        );
       case PaymentMethodType.payHere:
-        final url = checkout.paymentUrl;
-        if (url == null || url.isEmpty) {
-          _showMessage('Payment URL is missing.');
-          return;
-        }
-        context.push(
-          AppRoutes.payHereWebView,
-          extra: {'orderId': order.id, 'paymentUrl': url},
+        context.go(
+          AppRoutes.orderSuccess,
+          extra: {'orders': checkout.orders, 'payHere': true},
         );
       case PaymentMethodType.bankTransfer:
       case PaymentMethodType.wallet:

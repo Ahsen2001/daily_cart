@@ -58,6 +58,10 @@ class ProfileProvider extends ChangeNotifier {
     });
   }
 
+  Future<bool> deleteAccount(String password) {
+    return _run(() => _apiService.deleteAccount(password));
+  }
+
   Future<bool> _run(Future<void> Function() action) async {
     isLoading = true;
     errorMessage = null;

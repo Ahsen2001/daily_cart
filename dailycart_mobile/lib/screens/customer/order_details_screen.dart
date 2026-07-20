@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
+import '../../providers/customer_extended_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
@@ -78,6 +79,16 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                         onPressed: _cancelOrder,
                       ),
                     ],
+                    if (order.isCompleted &&
+                        order.paymentStatus.toLowerCase() == 'paid') ...[
+                      const SizedBox(height: 10),
+                      CustomButton(
+                        label: 'Request Refund',
+                        icon: Icons.currency_exchange,
+                        variant: CustomButtonVariant.secondary,
+                        onPressed: () => _requestRefund(order),
+                      ),
+                    ],
                   ],
                 ),
     );
@@ -87,6 +98,65 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
     final ok = await ref.read(orderProvider).cancelOrder(widget.orderId);
     if (mounted) {
       _show(ok ? 'Order cancelled.' : 'Unable to cancel order.');
+    }
+  }
+
+  Future<void> _requestRefund(OrderModel order) async {
+    final amount = TextEditingController(
+      text: order.grandTotal.toStringAsFixed(2),
+    );
+    final reason = TextEditingController();
+    final submit = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Request refund'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: amount,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Refund amount'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reason,
+              maxLines: 3,
+              decoration: const InputDecoration(labelText: 'Reason'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
+    final refundAmount = double.tryParse(amount.text);
+    final refundReason = reason.text.trim();
+    amount.dispose();
+    reason.dispose();
+    if (submit != true || refundAmount == null || refundReason.isEmpty) return;
+
+    final ok = await ref.read(customerExtendedProvider).requestRefund(
+          orderId: order.id,
+          amount: refundAmount,
+          reason: refundReason,
+        );
+    if (mounted) {
+      _show(
+        ok
+            ? 'Refund request submitted.'
+            : ref.read(customerExtendedProvider).errorMessage ??
+                'Unable to request refund.',
+      );
     }
   }
 

@@ -125,6 +125,21 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   variant: CustomButtonVariant.secondary,
                   onPressed: () => _addToWishlist(product),
                 ),
+                if (product.isSubscriptionEligible) ...[
+                  const SizedBox(height: 10),
+                  CustomButton(
+                    label: 'Subscribe & Repeat',
+                    icon: Icons.autorenew,
+                    variant: CustomButtonVariant.secondary,
+                    onPressed: () => context.push(
+                      AppRoutes.createSubscription,
+                      extra: {
+                        'product': product,
+                        'variant': _selectedVariant,
+                      },
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 _ReviewsSection(
                   productId: product.id,

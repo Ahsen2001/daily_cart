@@ -9,6 +9,7 @@ import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/dailycart_card.dart';
+import 'map_picker_screen.dart';
 
 class AddEditAddressScreen extends ConsumerStatefulWidget {
   const AddEditAddressScreen({
@@ -165,9 +166,9 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
-                    onPressed: _useMapPlaceholder,
+                    onPressed: _openMapPicker,
                     icon: const Icon(Icons.map_outlined),
-                    label: const Text('Use Google Maps picker placeholder'),
+                    label: const Text('Choose on Google Maps'),
                   ),
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
@@ -235,14 +236,31 @@ class _AddEditAddressScreenState extends ConsumerState<AddEditAddressScreen> {
     }
   }
 
-  void _useMapPlaceholder() {
-    setState(() {
-      _latitudeController.text = '6.9271';
-      _longitudeController.text = '79.8612';
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google Maps picker placeholder selected.')),
+  Future<void> _openMapPicker() async {
+    final result = await Navigator.of(context).push<Map<String, Object?>>(
+      MaterialPageRoute(
+        builder: (_) => MapPickerScreen(
+          initialLatitude: double.tryParse(_latitudeController.text),
+          initialLongitude: double.tryParse(_longitudeController.text),
+        ),
+      ),
     );
+    if (result == null || !mounted) return;
+    setState(() {
+      _latitudeController.text = result['latitude'].toString();
+      _longitudeController.text = result['longitude'].toString();
+      _setWhenPresent(_line1Controller, result['address_line_1']);
+      _setWhenPresent(_cityController, result['city']);
+      _setWhenPresent(_districtController, result['district']);
+      _setWhenPresent(_postalCodeController, result['postal_code']);
+    });
+  }
+
+  void _setWhenPresent(TextEditingController controller, Object? value) {
+    final text = value?.toString().trim() ?? '';
+    if (text.isNotEmpty && controller.text.trim().isEmpty) {
+      controller.text = text;
+    }
   }
 
   String? Function(String?) _required(String message) {

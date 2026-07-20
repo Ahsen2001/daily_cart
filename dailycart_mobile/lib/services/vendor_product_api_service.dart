@@ -134,4 +134,64 @@ class VendorProductApiService with AuthenticatedApiMixin {
       throw ApiException.fromDio(error);
     }
   }
+
+  Future<VendorProductModel> addVariant({
+    required int productId,
+    required String name,
+    required double price,
+    required int stockQuantity,
+    String? sku,
+  }) async {
+    try {
+      final response = await _dio.post<dynamic>(
+        '/vendor/products/$productId/variants',
+        data: {
+          'name': name,
+          'price': price,
+          'stock_quantity': stockQuantity,
+          if (sku != null && sku.isNotEmpty) 'sku': sku,
+        },
+        options: await authOptions(),
+      );
+      return VendorProductModel.fromJson(
+        ApiListParser.extractObject(response.data, key: 'product'),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<VendorProductModel> deleteVariant({
+    required int productId,
+    required int variantId,
+  }) async {
+    try {
+      final response = await _dio.delete<dynamic>(
+        '/vendor/products/$productId/variants/$variantId',
+        options: await authOptions(),
+      );
+      return VendorProductModel.fromJson(
+        ApiListParser.extractObject(response.data, key: 'product'),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<VendorProductModel> deleteImage({
+    required int productId,
+    required int imageId,
+  }) async {
+    try {
+      final response = await _dio.delete<dynamic>(
+        '/vendor/products/$productId/images/$imageId',
+        options: await authOptions(),
+      );
+      return VendorProductModel.fromJson(
+        ApiListParser.extractObject(response.data, key: 'product'),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
 }

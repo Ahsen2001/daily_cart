@@ -18,6 +18,10 @@ class VendorProductModel {
     this.image = '',
     this.images = const [],
     this.variants = const [],
+    this.gallery = const [],
+    this.isSubscriptionEligible = false,
+    this.lowStockThreshold = 5,
+    this.rejectionReason = '',
   });
 
   final int id;
@@ -38,6 +42,10 @@ class VendorProductModel {
   final String image;
   final List<String> images;
   final List<VendorProductVariantModel> variants;
+  final List<VendorProductImageModel> gallery;
+  final bool isSubscriptionEligible;
+  final int lowStockThreshold;
+  final String rejectionReason;
 
   bool get isLowStock => stockQuantity <= 5;
 
@@ -70,6 +78,14 @@ class VendorProductModel {
       variants: _listFrom(json['variants'])
           .map(VendorProductVariantModel.fromJson)
           .toList(growable: false),
+      gallery: _listFrom(json['images'])
+          .map(VendorProductImageModel.fromJson)
+          .toList(growable: false),
+      isSubscriptionEligible:
+          json['is_subscription_eligible'] == true ||
+              json['is_subscription_eligible']?.toString() == '1',
+      lowStockThreshold: _toInt(json['low_stock_threshold'] ?? 5),
+      rejectionReason: (json['rejection_reason'] ?? '').toString(),
     );
   }
 
@@ -87,6 +103,7 @@ class VendorProductModel {
       'barcode': barcode,
       'stock_quantity': stockQuantity,
       'expiry_date': expiryDate?.toIso8601String(),
+      'is_subscription_eligible': isSubscriptionEligible,
     };
   }
 
@@ -136,6 +153,26 @@ class VendorProductModel {
       return null;
     }
     return DateTime.tryParse(value.toString());
+  }
+}
+
+class VendorProductImageModel {
+  const VendorProductImageModel({
+    required this.id,
+    required this.url,
+    this.isPrimary = false,
+  });
+
+  final int id;
+  final String url;
+  final bool isPrimary;
+
+  factory VendorProductImageModel.fromJson(Map<String, dynamic> json) {
+    return VendorProductImageModel(
+      id: VendorProductModel._toInt(json['id']),
+      url: (json['url'] ?? '').toString(),
+      isPrimary: json['is_primary'] == true,
+    );
   }
 }
 

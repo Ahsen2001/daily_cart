@@ -94,19 +94,47 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             onTap: () => context.push(AppRoutes.promotions),
                           ),
                           SettingTile(
+                            icon: Icons.account_balance_wallet_outlined,
+                            title: 'Wallet',
+                            onTap: () => context.push(AppRoutes.wallet),
+                          ),
+                          SettingTile(
+                            icon: Icons.currency_exchange,
+                            title: 'Refunds',
+                            onTap: () => context.push(AppRoutes.refunds),
+                          ),
+                          SettingTile(
+                            icon: Icons.autorenew,
+                            title: 'Subscriptions',
+                            onTap: () => context.push(AppRoutes.subscriptions),
+                          ),
+                          SettingTile(
+                            icon: Icons.event_repeat_outlined,
+                            title: 'Scheduled Orders',
+                            onTap: () => context.push(AppRoutes.scheduledOrders),
+                          ),
+                          SettingTile(
                             icon: Icons.privacy_tip_outlined,
                             title: 'Privacy Policy',
-                            onTap: () => _placeholder('Privacy Policy'),
+                            onTap: () =>
+                                context.push('${AppRoutes.policy}/privacy'),
                           ),
                           SettingTile(
                             icon: Icons.description_outlined,
                             title: 'Terms & Conditions',
-                            onTap: () => _placeholder('Terms & Conditions'),
+                            onTap: () =>
+                                context.push('${AppRoutes.policy}/terms'),
                           ),
                           SettingTile(
                             icon: Icons.receipt_long_outlined,
                             title: 'Refund Policy',
-                            onTap: () => _placeholder('Refund Policy'),
+                            onTap: () =>
+                                context.push('${AppRoutes.policy}/refund'),
+                          ),
+                          SettingTile(
+                            icon: Icons.delete_forever_outlined,
+                            title: 'Delete Account',
+                            onTap: _deleteAccount,
                           ),
                           SettingTile(
                             icon: Icons.logout_rounded,
@@ -118,12 +146,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ],
                 ),
-    );
-  }
-
-  void _placeholder(String title) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$title placeholder.')),
     );
   }
 
@@ -163,5 +185,61 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (mounted) {
       context.go(AppRoutes.login);
     }
+  }
+
+  Future<void> _deleteAccount() async {
+    final password = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete account?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'This permanently deletes your DailyCart account and cannot be undone.',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: password,
+              obscureText: true,
+              decoration:
+                  const InputDecoration(labelText: 'Confirm your password'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep account'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || password.text.isEmpty) {
+      password.dispose();
+      return;
+    }
+    final value = password.text;
+    password.dispose();
+    final ok = await ref.read(profileProvider).deleteAccount(value);
+    if (!mounted) return;
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ref.read(profileProvider).errorMessage ??
+                'Unable to delete account.',
+          ),
+        ),
+      );
+      return;
+    }
+    await ref.read(authProvider).clearToken();
+    if (mounted) context.go(AppRoutes.login);
   }
 }

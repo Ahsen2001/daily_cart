@@ -9,7 +9,11 @@ use Illuminate\Validation\ValidationException;
 
 class PayHereService
 {
-    public function checkoutPayload(Payment $payment): array
+    public function checkoutPayload(
+        Payment $payment,
+        ?string $returnUrl = null,
+        ?string $cancelUrl = null
+    ): array
     {
         $payment->loadMissing('order.customer.user');
         $order = $payment->order;
@@ -25,8 +29,8 @@ class PayHereService
 
         $payload = [
             'merchant_id' => config('payhere.merchant_id'),
-            'return_url' => route('customer.payments.success', $payment),
-            'cancel_url' => route('customer.payments.failed', $payment),
+            'return_url' => $returnUrl ?? route('customer.payments.success', $payment),
+            'cancel_url' => $cancelUrl ?? route('customer.payments.failed', $payment),
             'notify_url' => config('payhere.notify_url') ?: route('payhere.notify'),
             'order_id' => $order->order_number,
             'items' => 'DailyCart order '.$order->order_number,

@@ -78,6 +78,11 @@ class Vendor extends Model
         return $this->hasOne(VendorWallet::class);
     }
 
+    public function payoutRequests(): HasMany
+    {
+        return $this->hasMany(VendorPayoutRequest::class);
+    }
+
     public function promotions(): HasMany
     {
         return $this->hasMany(Promotion::class);

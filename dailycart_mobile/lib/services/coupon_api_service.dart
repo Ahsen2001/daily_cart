@@ -29,7 +29,10 @@ class CouponApiService with AuthenticatedApiMixin {
         options: await authOptions(),
       );
 
-      final data = ApiResponseParser.requireMap(response.data);
+      final data = ApiResponseParser.requireObject(
+        ApiResponseParser.requireMap(response.data),
+        key: 'coupon',
+      );
       return CouponModel.fromJson({
         ...data,
         'code': data['code'] ?? code,

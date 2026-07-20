@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../models/profile_model.dart';
+import '../config/app_identity.dart';
 import '../networking/api_client.dart';
 import '../utils/secure_storage_helper.dart';
 import 'api_list_parser.dart';
@@ -19,6 +20,12 @@ class ProfileApiService with AuthenticatedApiMixin {
 
   @override
   SecureStorageHelper get storage => _storage;
+
+  String get _accountPrefix => AppIdentity.isVendor
+      ? '/vendor'
+      : AppIdentity.isRider
+          ? '/rider'
+          : '';
 
   Future<ProfileModel> getProfile() async {
     try {
@@ -67,12 +74,24 @@ class ProfileApiService with AuthenticatedApiMixin {
   }) async {
     try {
       await _dio.patch<void>(
-        '/profile/password',
+        '$_accountPrefix/profile/password',
         data: {
           'current_password': currentPassword,
           'password': newPassword,
           'password_confirmation': confirmPassword,
         },
+        options: await authOptions(),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<void> deleteAccount(String password) async {
+    try {
+      await _dio.delete<void>(
+        '$_accountPrefix/profile',
+        data: {'password': password},
         options: await authOptions(),
       );
     } on DioException catch (error) {

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../models/checkout_request_model.dart';
+import '../models/checkout_quote_model.dart';
 import '../models/checkout_response_model.dart';
 import '../networking/api_client.dart';
 import '../networking/api_response.dart';
@@ -27,12 +28,40 @@ class CheckoutApiService with AuthenticatedApiMixin {
   ) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '/checkout',
+        '/orders',
         data: request.toJson(),
         options: await authOptions(),
       );
       return CheckoutResponseModel.fromJson(
         ApiResponseParser.requireMap(response.data),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<CheckoutQuoteModel> getQuote({
+    String? couponCode,
+    int loyaltyPoints = 0,
+    String? deliveryDistrict,
+    int? deliveryDistanceMeters,
+  }) async {
+    try {
+      final response = await _dio.post<dynamic>(
+        '/checkout/quote',
+        data: {
+          if (couponCode != null && couponCode.isNotEmpty)
+            'coupon_code': couponCode,
+          if (loyaltyPoints > 0) 'loyalty_points': loyaltyPoints,
+          if (deliveryDistrict != null && deliveryDistrict.isNotEmpty)
+            'delivery_district': deliveryDistrict,
+          if (deliveryDistanceMeters != null)
+            'delivery_distance_meters': deliveryDistanceMeters,
+        },
+        options: await authOptions(),
+      );
+      return CheckoutQuoteModel.fromJson(
+        ApiListParser.extractObject(response.data, key: 'quote'),
       );
     } on DioException catch (error) {
       throw ApiException.fromDio(error);

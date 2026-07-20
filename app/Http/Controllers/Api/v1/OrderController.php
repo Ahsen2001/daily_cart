@@ -26,7 +26,7 @@ class OrderController extends Controller
         }
 
         $orders = Order::query()->where('customer_id', $customer->id)
-            ->with('statusHistories')
+            ->with($this->orderRelations())
             ->latest()
             ->paginate(15);
 
@@ -49,7 +49,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'Unauthorized access.'], 403);
         }
 
-        $order->load('statusHistories');
+        $order->load($this->orderRelations());
 
         return response()->json([
             'order' => new OrderResource($order),
@@ -104,11 +104,23 @@ class OrderController extends Controller
             return response()->json(['message' => 'Customer profile not found.'], 404);
         }
 
-        $orders = $this->orderService->createFromCart($customer, $request->validated());
+        $orders = collect($this->orderService->createFromCart($customer, $request->validated()))
+            ->map(fn (Order $order) => $order->load($this->orderRelations()));
 
         return response()->json([
             'message' => 'Orders placed successfully.',
             'orders' => OrderResource::collection($orders),
         ], 201);
+    }
+
+    private function orderRelations(): array
+    {
+        return [
+            'statusHistories',
+            'items.product',
+            'items.variant',
+            'payment',
+            'delivery.rider.user',
+        ];
     }
 }

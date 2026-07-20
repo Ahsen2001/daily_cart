@@ -37,7 +37,7 @@ class VendorOrderModel {
     return VendorOrderModel(
       id: _toInt(json['id']),
       orderNumber: (json['order_number'] ?? '').toString(),
-      status: (json['status'] ?? 'pending').toString(),
+      status: (json['order_status'] ?? json['status'] ?? 'pending').toString(),
       paymentStatus: (json['payment_status'] ?? 'pending').toString(),
       customerName: (json['customer_name'] ??
               (customer is Map<String, dynamic> ? customer['name'] : null) ??
@@ -50,7 +50,9 @@ class VendorOrderModel {
       deliveryAddress:
           (json['delivery_address'] ?? json['address'] ?? '').toString(),
       scheduledDeliveryTime: _nullableDate(
-        json['scheduled_delivery_time'] ?? json['scheduled_at'],
+        json['scheduled_delivery_at'] ??
+            json['scheduled_delivery_time'] ??
+            json['scheduled_at'],
       ),
       createdAt:
           DateTime.tryParse((json['created_at'] ?? '').toString()) ??
@@ -111,8 +113,10 @@ class VendorOrderItemModel {
       productName: (json['product_name'] ?? json['name'] ?? '').toString(),
       image: (json['image'] ?? json['image_url'] ?? '').toString(),
       quantity: VendorOrderModel._toInt(json['quantity']),
-      price: VendorOrderModel._toDouble(json['price']),
-      subtotal: VendorOrderModel._toDouble(json['subtotal']),
+      price: VendorOrderModel._toDouble(json['unit_price'] ?? json['price']),
+      subtotal: VendorOrderModel._toDouble(
+        json['total_price'] ?? json['subtotal'],
+      ),
     );
   }
 }

@@ -27,6 +27,27 @@ class ProductResource extends JsonResource
             'status' => $this->status,
             'is_featured' => (bool) $this->is_featured,
             'is_subscription_eligible' => (bool) $this->is_subscription_eligible,
+            'average_rating' => $this->averageRating(),
+            'vendor_name' => $this->vendor?->store_name,
+            'category_name' => $this->category?->name,
+            'is_subscription_eligible' => (bool) $this->is_subscription_eligible,
+            'images' => $this->whenLoaded('images', fn () => $this->images->map(fn ($image) => [
+                'id' => $image->id,
+                'url' => url('storage/'.$image->image_path),
+            ])),
+            'variants' => $this->whenLoaded('variants', fn () => $this->variants->map(fn ($variant) => [
+                'id' => $variant->id,
+                'name' => $variant->name,
+                'value' => $variant->value,
+                'price' => $variant->price === null ? null : (float) $variant->price,
+                'stock_quantity' => (int) ($variant->inventory?->quantity ?? $this->stock_quantity),
+            ])),
+            'reviews' => $this->whenLoaded('reviews', fn () => $this->reviews->map(fn ($review) => [
+                'id' => $review->id,
+                'user_name' => $review->customer?->user?->name ?? 'Customer',
+                'rating' => (float) $review->rating,
+                'comment' => $review->comment,
+            ])),
         ];
     }
 }

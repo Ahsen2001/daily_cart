@@ -32,6 +32,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
   final _stockController = TextEditingController();
   final _expiryController = TextEditingController();
   List<String> _imagePaths = const [];
+  bool _isSubscriptionEligible = false;
 
   @override
   void dispose() {
@@ -81,6 +82,16 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                 expiryController: _expiryController,
               ),
             ),
+          ),
+          const SizedBox(height: 12),
+          SwitchListTile(
+            title: const Text('Allow recurring subscriptions'),
+            subtitle: const Text(
+              'Customers can schedule repeat orders for this product.',
+            ),
+            value: _isSubscriptionEligible,
+            onChanged: (value) =>
+                setState(() => _isSubscriptionEligible = value),
           ),
           const SizedBox(height: 16),
           DailyCartCard(
@@ -146,6 +157,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
       barcode: _barcodeController.text.trim(),
       stockQuantity: int.tryParse(_stockController.text.trim()) ?? 0,
       expiryDate: DateTime.tryParse(_expiryController.text.trim()),
+      isSubscriptionEligible: _isSubscriptionEligible,
     );
   }
 }

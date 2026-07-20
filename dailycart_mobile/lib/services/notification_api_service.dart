@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../models/notification_model.dart';
+import '../config/app_identity.dart';
 import '../networking/api_client.dart';
 import '../utils/secure_storage_helper.dart';
 import 'api_list_parser.dart';
@@ -20,10 +21,16 @@ class NotificationApiService with AuthenticatedApiMixin {
   @override
   SecureStorageHelper get storage => _storage;
 
+  String get _prefix => AppIdentity.isVendor
+      ? '/vendor'
+      : AppIdentity.isRider
+          ? '/rider'
+          : '';
+
   Future<List<NotificationModel>> getNotifications() async {
     try {
       final response = await _dio.get<dynamic>(
-        '/notifications',
+        '$_prefix/notifications',
         options: await authOptions(),
       );
       return ApiListParser.extractList(response.data, key: 'notifications')
@@ -37,7 +44,7 @@ class NotificationApiService with AuthenticatedApiMixin {
   Future<void> markAsRead(String id) async {
     try {
       await _dio.patch<void>(
-        '/notifications/$id/read',
+        '$_prefix/notifications/$id/read',
         options: await authOptions(),
       );
     } on DioException catch (error) {
@@ -48,7 +55,7 @@ class NotificationApiService with AuthenticatedApiMixin {
   Future<void> markAllAsRead() async {
     try {
       await _dio.patch<void>(
-        '/notifications/read-all',
+        '$_prefix/notifications/read-all',
         options: await authOptions(),
       );
     } on DioException catch (error) {
@@ -59,7 +66,7 @@ class NotificationApiService with AuthenticatedApiMixin {
   Future<void> deleteNotification(String id) async {
     try {
       await _dio.delete<void>(
-        '/notifications/$id',
+        '$_prefix/notifications/$id',
         options: await authOptions(),
       );
     } on DioException catch (error) {
@@ -70,7 +77,7 @@ class NotificationApiService with AuthenticatedApiMixin {
   Future<void> saveDeviceToken(String token) async {
     try {
       await _dio.post<void>(
-        '/notifications/device-token',
+        '$_prefix/notifications/device-token',
         data: {'device_token': token, 'platform': 'flutter'},
         options: await authOptions(),
       );

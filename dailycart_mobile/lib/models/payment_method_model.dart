@@ -7,7 +7,7 @@ enum PaymentMethodType {
   String get apiValue {
     return switch (this) {
       PaymentMethodType.cashOnDelivery => 'cash_on_delivery',
-      PaymentMethodType.payHere => 'payhere',
+      PaymentMethodType.payHere => 'card',
       PaymentMethodType.bankTransfer => 'bank_transfer',
       PaymentMethodType.wallet => 'wallet',
     };

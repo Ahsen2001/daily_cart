@@ -48,6 +48,13 @@ import '../screens/customer/search_screen.dart';
 import '../screens/customer/support_ticket_details_screen.dart';
 import '../screens/customer/support_tickets_screen.dart';
 import '../screens/customer/wishlist_screen.dart';
+import '../screens/customer/wallet_screen.dart';
+import '../screens/customer/refunds_screen.dart';
+import '../screens/customer/subscriptions_screen.dart';
+import '../screens/customer/create_subscription_screen.dart';
+import '../screens/customer/scheduled_orders_screen.dart';
+import '../screens/customer/policy_screen.dart';
+import '../models/product_model.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/splash/splash_screen.dart';
 import '../screens/vendor/add_product_screen.dart';
@@ -65,6 +72,7 @@ import '../screens/vendor/vendor_product_details_screen.dart';
 import '../screens/vendor/vendor_product_list_screen.dart';
 import '../screens/vendor/vendor_profile_screen.dart';
 import '../screens/vendor/vendor_reviews_screen.dart';
+import '../screens/vendor/vendor_business_screen.dart';
 import '../screens/rider/assigned_deliveries_screen.dart';
 import '../screens/rider/delivery_details_screen.dart';
 import '../screens/rider/delivery_proof_screen.dart';
@@ -234,6 +242,70 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       builder: (context, state) => const EditVendorProfileScreen(),
     ),
     GoRoute(
+      path: AppRoutes.vendorWallet,
+      builder: (context, state) => const VendorBusinessScreen(
+        section: VendorBusinessSection.wallet,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.vendorRefunds,
+      builder: (context, state) => const VendorBusinessScreen(
+        section: VendorBusinessSection.refunds,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.vendorCoupons,
+      builder: (context, state) => const VendorBusinessScreen(
+        section: VendorBusinessSection.coupons,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.vendorPromotions,
+      builder: (context, state) => const VendorBusinessScreen(
+        section: VendorBusinessSection.promotions,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.vendorSubscriptions,
+      builder: (context, state) => const VendorBusinessScreen(
+        section: VendorBusinessSection.subscriptions,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.vendorScheduledOrders,
+      builder: (context, state) => const VendorBusinessScreen(
+        section: VendorBusinessSection.scheduledOrders,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.vendorReports,
+      builder: (context, state) => const VendorBusinessScreen(
+        section: VendorBusinessSection.reports,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.vendorNotifications,
+      builder: (context, state) => const NotificationsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.vendorSupportTickets,
+      builder: (context, state) => const SupportTicketsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.vendorChangePassword,
+      builder: (context, state) => const ChangePasswordScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.vendorCreateSupportTicket,
+      builder: (context, state) => const CreateSupportTicketScreen(),
+    ),
+    GoRoute(
+      path: '${AppRoutes.vendorSupportTicketDetails}/:id',
+      builder: (context, state) => SupportTicketDetailsScreen(
+        ticketId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+      ),
+    ),
+    GoRoute(
       path: AppRoutes.riderDashboard,
       name: 'rider-dashboard',
       builder: (context, state) => const RiderDashboardScreen(),
@@ -399,16 +471,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       name: 'order-success',
       builder: (context, state) {
         final extra = state.extra;
+        if (extra is Map && extra['orders'] is List) {
+          final orders = (extra['orders'] as List)
+              .whereType<OrderModel>()
+              .toList(growable: false);
+          return OrderSuccessScreen(
+            orders: orders,
+            payHere: extra['payHere'] == true,
+          );
+        }
         return OrderSuccessScreen(
-          order: extra is OrderModel
-              ? extra
-              : const OrderModel(
+          orders: [
+            extra is OrderModel
+                ? extra
+                : const OrderModel(
                   id: 0,
                   orderNumber: '',
                   status: 'pending',
                   paymentStatus: 'pending',
                   grandTotal: 0,
                 ),
+          ],
         );
       },
     ),
@@ -525,6 +608,49 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return PromotionDetailsScreen(promotionId: promotionId);
       },
     ),
+    GoRoute(
+      path: AppRoutes.wallet,
+      name: 'wallet',
+      builder: (context, state) => const WalletScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.refunds,
+      name: 'refunds',
+      builder: (context, state) => const RefundsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.subscriptions,
+      name: 'subscriptions',
+      builder: (context, state) => const SubscriptionsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.createSubscription,
+      name: 'create-subscription',
+      builder: (context, state) {
+        final extra = state.extra;
+        if (extra is Map && extra['product'] is ProductModel) {
+          return CreateSubscriptionScreen(
+            product: extra['product'] as ProductModel,
+            variant: extra['variant'] is ProductVariantModel
+                ? extra['variant'] as ProductVariantModel
+                : null,
+          );
+        }
+        return const SubscriptionsScreen();
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.scheduledOrders,
+      name: 'scheduled-orders',
+      builder: (context, state) => const ScheduledOrdersScreen(),
+    ),
+    GoRoute(
+      path: '${AppRoutes.policy}/:key',
+      name: 'policy',
+      builder: (context, state) => PolicyScreen(
+        policyKey: state.pathParameters['key'] ?? 'privacy',
+      ),
+    ),
     ],
   );
 });
@@ -613,6 +739,12 @@ UserRole? _requiredRoleFor(String location) {
     '/available-coupons',
     '/promotions',
     '/promotion-details',
+    '/wallet',
+    '/refunds',
+    '/subscriptions',
+    '/create-subscription',
+    '/scheduled-orders',
+    '/policy',
   ];
 
   if (vendorPrefixes.any(location.startsWith)) {

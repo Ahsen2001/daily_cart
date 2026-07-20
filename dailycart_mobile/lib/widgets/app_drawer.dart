@@ -123,6 +123,31 @@ class AppDrawer extends ConsumerWidget {
                       },
                     ),
                     ListTile(
+                      leading:
+                          const Icon(Icons.account_balance_wallet_outlined),
+                      title: const Text('Wallet & Payouts'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.vendorWallet);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.local_offer_outlined),
+                      title: const Text('Promotions'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.vendorPromotions);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.analytics_outlined),
+                      title: const Text('Reports'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.vendorReports);
+                      },
+                    ),
+                    ListTile(
                       leading: const Icon(Icons.storefront_outlined),
                       title: const Text('Vendor Profile'),
                       onTap: () {

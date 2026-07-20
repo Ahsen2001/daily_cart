@@ -33,11 +33,11 @@ class CartItemModel {
       productId: _toInt(json['product_id']),
       name: (json['name'] ?? json['product_name'] ?? '').toString(),
       image: (json['image'] ?? json['image_url'] ?? '').toString(),
-      variant: json['variant']?.toString(),
+      variant: (json['variant'] ?? json['variant_name'])?.toString(),
       variantId: json['variant_id'] == null ? null : _toInt(json['variant_id']),
-      price: _toDouble(json['price']),
+      price: _toDouble(json['price'] ?? json['unit_price']),
       quantity: _toInt(json['quantity']),
-      subtotal: _toDouble(json['subtotal']),
+      subtotal: _toDouble(json['subtotal'] ?? json['total_price']),
       availableStock: _toInt(json['available_stock'] ?? json['stock'] ?? 999),
       status: (json['status'] ?? 'active').toString(),
       approvalStatus: (json['approval_status'] ?? 'approved').toString(),
@@ -45,8 +45,9 @@ class CartItemModel {
   }
 
   bool get canOrder {
-    return status.toLowerCase() == 'active' &&
-        approvalStatus.toLowerCase() == 'approved' &&
+    return const {'active', 'approved'}.contains(status.toLowerCase()) &&
+        !const {'pending', 'rejected', 'inactive'}
+            .contains(approvalStatus.toLowerCase()) &&
         availableStock > 0;
   }
 

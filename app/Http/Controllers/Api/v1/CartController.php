@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CartService;
@@ -21,22 +22,7 @@ class CartController extends Controller
             return response()->json(['message' => 'Customer profile not found.'], 404);
         }
 
-        $cart = $this->cartService->activeCart($customer);
-        $cart->load('items.product', 'items.variant');
-
-        return response()->json([
-            'cart' => $cart->items->map(fn ($item) => [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'product_name' => $item->product->name,
-                'quantity' => (int) $item->quantity,
-                'unit_price' => (float) $item->unit_price,
-                'total_price' => (float) $item->unit_price * $item->quantity,
-                'variant_id' => $item->product_variant_id,
-                'variant_name' => $item->variant?->name,
-            ]),
-            'totals' => $this->cartService->totals($cart),
-        ]);
+        return response()->json($this->cartPayload($customer));
     }
 
     public function add(Request $request): JsonResponse
@@ -59,12 +45,7 @@ class CartController extends Controller
 
         return response()->json([
             'message' => 'Product added to cart successfully.',
-            'item' => [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'quantity' => (int) $item->quantity,
-                'unit_price' => (float) $item->unit_price,
-            ],
+            ...$this->cartPayload($customer),
         ]);
     }
 
@@ -83,6 +64,7 @@ class CartController extends Controller
 
         return response()->json([
             'message' => 'Cart item quantity updated.',
+            ...$this->cartPayload($customer),
         ]);
     }
 
@@ -97,6 +79,7 @@ class CartController extends Controller
 
         return response()->json([
             'message' => 'Item removed from cart.',
+            ...$this->cartPayload($customer),
         ]);
     }
 
@@ -111,6 +94,31 @@ class CartController extends Controller
 
         return response()->json([
             'message' => 'Cart cleared successfully.',
+            ...$this->cartPayload($customer),
         ]);
+    }
+
+    private function cartPayload(Customer $customer): array
+    {
+        $cart = $this->cartService->activeCart($customer);
+        $cart->load('items.product', 'items.variant');
+
+        return [
+            'cart' => $cart->items->map(fn ($item) => [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
+                'product_name' => $item->product->name,
+                'image' => $item->product->image ? url('storage/'.$item->product->image) : null,
+                'quantity' => (int) $item->quantity,
+                'unit_price' => (float) $item->unit_price,
+                'total_price' => (float) $item->unit_price * $item->quantity,
+                'variant_id' => $item->product_variant_id,
+                'variant_name' => $item->variant?->name,
+                'available_stock' => $this->cartService->availableStock($item->product, $item->variant),
+                'status' => $item->product->status,
+                'approval_status' => $item->product->approval_status ?? 'approved',
+            ])->values(),
+            'totals' => $this->cartService->totals($cart),
+        ];
     }
 }
