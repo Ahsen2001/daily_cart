@@ -47,6 +47,7 @@ class CriticalCommerceFlowsTest extends TestCase
             'email' => 'critical-registration@example.com',
             'phone' => '0773000001',
             'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
             'device_name' => 'feature-test',
         ])->assertCreated();
 
@@ -193,8 +194,11 @@ class CriticalCommerceFlowsTest extends TestCase
         $product = $this->createProduct($vendor, $this->createCategory(), price: 250);
         $this->createCart($customer, [[$product, 1]]);
         $order = collect(app(OrderService::class)->createFromCart($customer, $this->checkoutPayload()))->firstOrFail();
-        $rider = Rider::query()->create([
-            'user_id' => User::factory()->create()->id,
+        $riderRole = Role::findOrCreate('Rider', 'web');
+        $riderUser = User::factory()->create(['role_id' => $riderRole->id]);
+        $riderUser->assignRole($riderRole);
+        $rider = $riderUser->rider()->firstOrFail();
+        $rider->update([
             'vehicle_type' => 'motorbike',
             'address' => '1 Rider Street',
             'city' => 'Colombo',
@@ -202,6 +206,7 @@ class CriticalCommerceFlowsTest extends TestCase
             'availability_status' => 'delivering',
             'verification_status' => 'verified',
         ]);
+        $rider = $rider->refresh();
         $delivery = $order->delivery;
         $delivery->update([
             'rider_id' => $rider->id,
@@ -438,26 +443,29 @@ class CriticalCommerceFlowsTest extends TestCase
             'phone' => '076'.str_pad((string) $sequence, 7, '0', STR_PAD_LEFT),
         ]);
         $user->assignRole($role);
-        $customer = Customer::query()->create([
-            'user_id' => $user->id,
+        $customer = $user->customer()->firstOrFail();
+        $customer->update([
             'first_name' => 'Customer '.$sequence,
             'phone' => $user->phone,
             'status' => 'active',
             'wallet_balance' => $walletBalance,
         ]);
 
-        return [$user, $customer];
+        return [$user, $customer->refresh()];
     }
 
     private function createVendor(): Vendor
     {
         $sequence = $this->nextSequence();
+        $role = Role::findOrCreate('Vendor', 'web');
         $user = User::factory()->create([
+            'role_id' => $role->id,
             'phone' => '075'.str_pad((string) $sequence, 7, '0', STR_PAD_LEFT),
         ]);
+        $user->assignRole($role);
 
-        return Vendor::query()->create([
-            'user_id' => $user->id,
+        $vendor = $user->vendor()->firstOrFail();
+        $vendor->update([
             'store_name' => 'Vendor '.$sequence,
             'phone' => $user->phone,
             'address' => '1 Vendor Street',
@@ -465,6 +473,8 @@ class CriticalCommerceFlowsTest extends TestCase
             'district' => 'Colombo',
             'status' => 'approved',
         ]);
+
+        return $vendor->refresh();
     }
 
     private function createCategory(): Category

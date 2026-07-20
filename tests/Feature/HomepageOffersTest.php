@@ -134,8 +134,8 @@ class HomepageOffersTest extends TestCase
         $role = Role::findOrCreate('Customer', 'web');
         $customerUser = User::factory()->create(['role_id' => $role->id, 'phone' => '0771234567']);
         $customerUser->assignRole($role);
-        $customer = Customer::create([
-            'user_id' => $customerUser->id,
+        $customer = $customerUser->customer()->firstOrFail();
+        $customer->update([
             'first_name' => 'Offer Customer',
             'phone' => $customerUser->phone,
             'status' => 'active',

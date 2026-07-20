@@ -80,8 +80,8 @@ class ProfileTest extends TestCase
         $role = Role::findOrCreate('Customer', 'web');
         $user = User::factory()->create(['role_id' => $role->id, 'phone' => '0771000001']);
         $user->assignRole($role);
-        $customer = Customer::query()->create([
-            'user_id' => $user->id,
+        $customer = $user->customer()->firstOrFail();
+        $customer->update([
             'first_name' => 'Profile',
             'phone' => $user->phone,
             'status' => 'active',
@@ -133,8 +133,7 @@ class ProfileTest extends TestCase
         $role = Role::findOrCreate('Customer', 'web');
         $user = User::factory()->create(['role_id' => $role->id, 'phone' => '0772000001']);
         $user->assignRole($role);
-        Customer::query()->create([
-            'user_id' => $user->id,
+        $user->customer()->firstOrFail()->update([
             'first_name' => 'Profile',
             'phone' => $user->phone,
             'status' => 'active',
@@ -168,8 +167,8 @@ class ProfileTest extends TestCase
         $vendorRole = Role::findOrCreate('Vendor', 'web');
         $vendorUser = User::factory()->create(['role_id' => $vendorRole->id, 'phone' => '0773000001']);
         $vendorUser->assignRole($vendorRole);
-        $vendor = Vendor::query()->create([
-            'user_id' => $vendorUser->id,
+        $vendor = $vendorUser->vendor()->firstOrFail();
+        $vendor->update([
             'store_name' => 'Profile Vendor',
             'phone' => $vendorUser->phone,
             'address' => 'Old Store',
@@ -204,8 +203,8 @@ class ProfileTest extends TestCase
         $riderRole = Role::findOrCreate('Rider', 'web');
         $riderUser = User::factory()->create(['role_id' => $riderRole->id, 'phone' => '0774000001']);
         $riderUser->assignRole($riderRole);
-        $rider = Rider::query()->create([
-            'user_id' => $riderUser->id,
+        $rider = $riderUser->rider()->firstOrFail();
+        $rider->update([
             'vehicle_type' => 'motorbike',
             'address' => 'Old Base',
             'city' => 'Colombo',
@@ -256,8 +255,8 @@ class ProfileTest extends TestCase
         $role = Role::findOrCreate('Vendor', 'web');
         $user = User::factory()->create(['role_id' => $role->id]);
         $user->assignRole($role);
-        $vendor = Vendor::query()->create([
-            'user_id' => $user->id,
+        $vendor = $user->vendor()->firstOrFail();
+        $vendor->update([
             'store_name' => 'Deleted Store',
             'phone' => '0775000001',
             'address' => '1 Market Road',
@@ -284,8 +283,8 @@ class ProfileTest extends TestCase
         $customerRole = Role::findOrCreate('Customer', 'web');
         $customerUser = User::factory()->create(['role_id' => $customerRole->id]);
         $customerUser->assignRole($customerRole);
-        $customer = Customer::query()->create([
-            'user_id' => $customerUser->id,
+        $customer = $customerUser->customer()->firstOrFail();
+        $customer->update([
             'first_name' => 'Delete',
             'phone' => '0775000002',
             'status' => 'active',
@@ -294,8 +293,8 @@ class ProfileTest extends TestCase
         $vendorRole = Role::findOrCreate('Vendor', 'web');
         $vendorUser = User::factory()->create(['role_id' => $vendorRole->id]);
         $vendorUser->assignRole($vendorRole);
-        $vendor = Vendor::query()->create([
-            'user_id' => $vendorUser->id,
+        $vendor = $vendorUser->vendor()->firstOrFail();
+        $vendor->update([
             'store_name' => 'Remove Me',
             'phone' => '0775000003',
             'address' => '2 Market Road',
@@ -326,8 +325,8 @@ class ProfileTest extends TestCase
         $vendorRole = Role::findOrCreate('Vendor', 'web');
         $vendorUser = User::factory()->create(['role_id' => $vendorRole->id]);
         $vendorUser->assignRole($vendorRole);
-        $vendor = Vendor::query()->create([
-            'user_id' => $vendorUser->id,
+        $vendor = $vendorUser->vendor()->firstOrFail();
+        $vendor->update([
             'store_name' => 'Legacy Store',
             'phone' => '0775000004',
             'address' => '3 Market Road',

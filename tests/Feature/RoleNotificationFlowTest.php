@@ -23,8 +23,8 @@ class RoleNotificationFlowTest extends TestCase
         $admin = $this->userWithRole('Admin');
         $superAdmin = $this->userWithRole('Super Admin');
         $vendorUser = $this->userWithRole('Vendor');
-        $vendor = Vendor::query()->create([
-            'user_id' => $vendorUser->id,
+        $vendor = $vendorUser->vendor()->firstOrFail();
+        $vendor->update([
             'store_name' => 'Notification Store',
             'phone' => '0771234567',
             'address' => '1 Market Street',

@@ -1,6 +1,6 @@
 # DailyCart Laravel API v1 Contract
 
-Contract version: **1.1.0**  
+Contract version: **1.4.0**  
 Frozen: **2026-07-20**  
 Canonical base path: **`/api/v1`**
 
@@ -236,6 +236,17 @@ filters `min_price`, `max_price`, `rating`, `available`, or `brand`.
 | `POST /email/verification-otp/verify` | `verification` | `code` required six digits | `200 {"message": string, "user": User}` |
 | `POST /phone/verification-otp` | `verification` | empty | `200 {"message": string}` |
 | `POST /phone/verification-otp/verify` | `verification` | `code` required six digits | `200 {"message": string, "user": User}` |
+| `POST /notifications/device-tokens` | role ability | token, installation `device_id`, `app_role`, `android\|ios`, optional version | `201/200 {"device_token": DeviceToken}` |
+| `PATCH /notifications/device-tokens` | role ability | registration fields plus optional `old_device_token` | `200 {"device_token": DeviceToken}` |
+| `DELETE /notifications/device-tokens` | role ability | `device_id` and/or `device_token`, `app_role` | `200 {"revoked_count": integer}` |
+| `GET /notifications/preferences` | role ability | empty | `200 {"preferences": NotificationPreferences}` |
+| `PATCH /notifications/preferences` | role ability | optional preference booleans | `200 {"preferences": NotificationPreferences}` |
+
+Private account, order, payment, and delivery pushes are queued to active
+device tokens for the authenticated user and app role. FCM topics are reserved
+for public promotions and use
+`dailycart_public_promotions_{customer|vendor|rider}`. Notification records
+include structured `data`, `app_role`, and an app-relative `deep_link`.
 
 ## Customer endpoints
 

@@ -123,7 +123,7 @@ class NotificationInfrastructureController extends Controller
 
         $request->request->remove('old_device_token');
 
-        return $this->registerDevice($request);
+        return $this->registerDevice($request)->setStatusCode(200);
     }
 
     public function revokeDevice(Request $request): JsonResponse

@@ -108,8 +108,7 @@ class RegistrationLocationTest extends TestCase
             'phone' => '0771000004',
         ]);
         $user->assignRole($role);
-        Vendor::query()->create([
-            'user_id' => $user->id,
+        $user->vendor()->firstOrFail()->update([
             'store_name' => 'Previous Store',
             'business_registration_no' => 'BR-REJOIN-1',
             'phone' => $user->phone,

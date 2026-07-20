@@ -7,6 +7,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class NotificationPreference extends Model
 {
+    protected $attributes = [
+        'push_enabled' => true,
+        'order_updates' => true,
+        'delivery_updates' => true,
+        'wallet_updates' => true,
+        'support_updates' => true,
+        'promotions' => true,
+    ];
+
     protected $fillable = [
         'user_id',
         'app_role',

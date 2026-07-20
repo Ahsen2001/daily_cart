@@ -51,11 +51,13 @@ Route::prefix('v1')->group(function () {
 
         // Device registration is intentionally available before verification/approval so
         // pending vendor and rider accounts can receive private account-state updates.
-        Route::post('/notifications/device-tokens', [NotificationInfrastructureController::class, 'registerDevice']);
-        Route::patch('/notifications/device-tokens', [NotificationInfrastructureController::class, 'refreshDevice']);
-        Route::delete('/notifications/device-tokens', [NotificationInfrastructureController::class, 'revokeDevice']);
-        Route::get('/notifications/preferences', [NotificationInfrastructureController::class, 'preferences']);
-        Route::patch('/notifications/preferences', [NotificationInfrastructureController::class, 'updatePreferences']);
+        Route::middleware('ability:customer,vendor,rider')->group(function () {
+            Route::post('/notifications/device-tokens', [NotificationInfrastructureController::class, 'registerDevice']);
+            Route::patch('/notifications/device-tokens', [NotificationInfrastructureController::class, 'refreshDevice']);
+            Route::delete('/notifications/device-tokens', [NotificationInfrastructureController::class, 'revokeDevice']);
+            Route::get('/notifications/preferences', [NotificationInfrastructureController::class, 'preferences']);
+            Route::patch('/notifications/preferences', [NotificationInfrastructureController::class, 'updatePreferences']);
+        });
 
         Route::middleware(['ability:verification', 'throttle:api-otp'])->group(function () {
             Route::post('/email/verification-otp', [VerificationController::class, 'sendEmail']);
