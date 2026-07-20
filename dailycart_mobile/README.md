@@ -1,6 +1,17 @@
-# DailyCart Mobile App
+# DailyCart Mobile Apps
 
-Flutter mobile app for DailyCart customers, built for Android and iOS.
+Shared Flutter codebase for the DailyCart Customer, Vendor, and Rider apps on
+Android and iOS.
+
+## Production app identities
+
+| Flavor | Android application ID | iOS bundle ID | Deep-link scheme |
+| --- | --- | --- | --- |
+| `customer` | `com.dailycart.customer` | `com.dailycart.customer` | `dailycart-customer` |
+| `vendor` | `com.dailycart.vendor` | `com.dailycart.vendor` | `dailycart-vendor` |
+| `rider` | `com.dailycart.rider` | `com.dailycart.rider` | `dailycart-rider` |
+
+The old `com.dailycart.app` identity is not a production app identity.
 
 ## Local setup
 
@@ -13,12 +24,42 @@ flutter create --project-name dailycart_mobile --org com.dailycart --platforms=a
 ```
 
 4. Start the Laravel backend.
-5. Run:
+5. Run a role app:
 
 ```bash
 flutter pub get
-flutter run
+flutter run --flavor customer -t lib/main_customer.dart
+flutter run --flavor vendor -t lib/main_vendor.dart
+flutter run --flavor rider -t lib/main_rider.dart
 ```
+
+On Windows, `run_project.bat customer`, `run_project.bat vendor`, and
+`run_project.bat rider` provide the same launch commands.
+
+## Flavor builds
+
+```bash
+flutter build appbundle --flavor customer -t lib/main_customer.dart
+flutter build appbundle --flavor vendor -t lib/main_vendor.dart
+flutter build appbundle --flavor rider -t lib/main_rider.dart
+
+flutter build ipa --flavor customer -t lib/main_customer.dart
+flutter build ipa --flavor vendor -t lib/main_vendor.dart
+flutter build ipa --flavor rider -t lib/main_rider.dart
+```
+
+Each role must be registered as a separate Android and iOS app in the same
+Firebase project. Place the downloaded Android files at:
+
+```text
+android/app/src/customer/google-services.json
+android/app/src/vendor/google-services.json
+android/app/src/rider/google-services.json
+```
+
+Add the matching iOS configuration files to the corresponding Xcode build
+configurations after downloading them from Firebase. Never reuse or rename a
+Firebase configuration registered for a different bundle identifier.
 
 For Android emulator, use `10.0.2.2` to reach Laravel running on your host machine.
 

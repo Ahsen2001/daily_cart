@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'config/app_identity.dart';
 import 'routes/app_router.dart';
 import 'theme/light_theme.dart';
 
@@ -9,7 +10,7 @@ class DailyCartApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'DailyCart',
+      title: AppIdentity.displayName,
       debugShowCheckedModeBanner: false,
       theme: LightTheme.theme,
       routerConfig: appRouter,

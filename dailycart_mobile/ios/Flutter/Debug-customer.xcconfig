@@ -1,0 +1,7 @@
+#include "Debug.xcconfig"
+DART_DEFINES=$(inherited),REFJTFlfQ0FSVF9GTEFWT1I9Y3VzdG9tZXI=
+FLUTTER_TARGET=lib/main_customer.dart
+DAILYCART_FLAVOR=customer
+DAILYCART_APP_NAME=DailyCart Customer
+DAILYCART_BUNDLE_ID=com.dailycart.customer
+DAILYCART_URL_SCHEME=dailycart-customer

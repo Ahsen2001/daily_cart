@@ -52,6 +52,15 @@
 		7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		DC1000010000000000000001 /* Debug-customer.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Debug-customer.xcconfig"; path = "Flutter/Debug-customer.xcconfig"; sourceTree = "<group>"; };
+		DC1000010000000000000002 /* Release-customer.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Release-customer.xcconfig"; path = "Flutter/Release-customer.xcconfig"; sourceTree = "<group>"; };
+		DC1000010000000000000003 /* Profile-customer.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Profile-customer.xcconfig"; path = "Flutter/Profile-customer.xcconfig"; sourceTree = "<group>"; };
+		DC1000010000000000000004 /* Debug-vendor.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Debug-vendor.xcconfig"; path = "Flutter/Debug-vendor.xcconfig"; sourceTree = "<group>"; };
+		DC1000010000000000000005 /* Release-vendor.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Release-vendor.xcconfig"; path = "Flutter/Release-vendor.xcconfig"; sourceTree = "<group>"; };
+		DC1000010000000000000006 /* Profile-vendor.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Profile-vendor.xcconfig"; path = "Flutter/Profile-vendor.xcconfig"; sourceTree = "<group>"; };
+		DC1000010000000000000007 /* Debug-rider.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Debug-rider.xcconfig"; path = "Flutter/Debug-rider.xcconfig"; sourceTree = "<group>"; };
+		DC1000010000000000000008 /* Release-rider.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Release-rider.xcconfig"; path = "Flutter/Release-rider.xcconfig"; sourceTree = "<group>"; };
+		DC1000010000000000000009 /* Profile-rider.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Profile-rider.xcconfig"; path = "Flutter/Profile-rider.xcconfig"; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -88,6 +97,15 @@
 				3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */,
 				9740EEB21CF90195004384FC /* Debug.xcconfig */,
 				7AFA3C8E1D35360C0083082E /* Release.xcconfig */,
+				DC1000010000000000000001 /* Debug-customer.xcconfig */,
+				DC1000010000000000000002 /* Release-customer.xcconfig */,
+				DC1000010000000000000003 /* Profile-customer.xcconfig */,
+				DC1000010000000000000004 /* Debug-vendor.xcconfig */,
+				DC1000010000000000000005 /* Release-vendor.xcconfig */,
+				DC1000010000000000000006 /* Profile-vendor.xcconfig */,
+				DC1000010000000000000007 /* Debug-rider.xcconfig */,
+				DC1000010000000000000008 /* Release-rider.xcconfig */,
+				DC1000010000000000000009 /* Profile-rider.xcconfig */,
 				9740EEB31CF90195004384FC /* Generated.xcconfig */,
 			);
 			name = Flutter;
@@ -382,8 +400,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.dailycartMobile;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				DAILYCART_APP_NAME = "DailyCart Customer";
+				DAILYCART_BUNDLE_ID = com.dailycart.customer;
+				DAILYCART_FLAVOR = customer;
+				DAILYCART_URL_SCHEME = "dailycart-customer";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -398,7 +420,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.dailycartMobile.RunnerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dailycart.customer.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -415,7 +437,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.dailycartMobile.RunnerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dailycart.customer.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
@@ -430,7 +452,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.dailycartMobile.RunnerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dailycart.customer.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
@@ -561,8 +583,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.dailycartMobile;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				DAILYCART_APP_NAME = "DailyCart Customer";
+				DAILYCART_BUNDLE_ID = com.dailycart.customer;
+				DAILYCART_FLAVOR = customer;
+				DAILYCART_URL_SCHEME = "dailycart-customer";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -583,13 +609,287 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.dailycartMobile;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				DAILYCART_APP_NAME = "DailyCart Customer";
+				DAILYCART_BUNDLE_ID = com.dailycart.customer;
+				DAILYCART_FLAVOR = customer;
+				DAILYCART_URL_SCHEME = "dailycart-customer";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
+		};
+		DC2001010000000000000001 /* Debug-customer */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Debug-customer";
+		};
+		DC2001010000000000000002 /* Release-customer */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Release-customer";
+		};
+		DC2001010000000000000003 /* Profile-customer */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Profile-customer";
+		};
+		DC2001010000000000000004 /* Debug-vendor */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Debug-vendor";
+		};
+		DC2001010000000000000005 /* Release-vendor */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Release-vendor";
+		};
+		DC2001010000000000000006 /* Profile-vendor */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Profile-vendor";
+		};
+		DC2001010000000000000007 /* Debug-rider */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Debug-rider";
+		};
+		DC2001010000000000000008 /* Release-rider */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Release-rider";
+		};
+		DC2001010000000000000009 /* Profile-rider */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Profile-rider";
+		};
+		DC2002010000000000000001 /* Debug-customer */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DC1000010000000000000001 /* Debug-customer.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Debug-customer";
+		};
+		DC2002010000000000000002 /* Release-customer */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DC1000010000000000000002 /* Release-customer.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Release-customer";
+		};
+		DC2002010000000000000003 /* Profile-customer */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DC1000010000000000000003 /* Profile-customer.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Profile-customer";
+		};
+		DC2002010000000000000004 /* Debug-vendor */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DC1000010000000000000004 /* Debug-vendor.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Debug-vendor";
+		};
+		DC2002010000000000000005 /* Release-vendor */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DC1000010000000000000005 /* Release-vendor.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Release-vendor";
+		};
+		DC2002010000000000000006 /* Profile-vendor */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DC1000010000000000000006 /* Profile-vendor.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Profile-vendor";
+		};
+		DC2002010000000000000007 /* Debug-rider */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DC1000010000000000000007 /* Debug-rider.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Debug-rider";
+		};
+		DC2002010000000000000008 /* Release-rider */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DC1000010000000000000008 /* Release-rider.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Release-rider";
+		};
+		DC2002010000000000000009 /* Profile-rider */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DC1000010000000000000009 /* Profile-rider.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				PRODUCT_BUNDLE_IDENTIFIER = "$(DAILYCART_BUNDLE_ID)";
+				PRODUCT_NAME = "$(DAILYCART_APP_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Profile-rider";
 		};
 /* End XCBuildConfiguration section */
 
@@ -610,6 +910,15 @@
 				97C147031CF9000F007C117D /* Debug */,
 				97C147041CF9000F007C117D /* Release */,
 				249021D3217E4FDB00AE95B9 /* Profile */,
+				DC2001010000000000000001 /* Debug-customer */,
+				DC2001010000000000000002 /* Release-customer */,
+				DC2001010000000000000003 /* Profile-customer */,
+				DC2001010000000000000004 /* Debug-vendor */,
+				DC2001010000000000000005 /* Release-vendor */,
+				DC2001010000000000000006 /* Profile-vendor */,
+				DC2001010000000000000007 /* Debug-rider */,
+				DC2001010000000000000008 /* Release-rider */,
+				DC2001010000000000000009 /* Profile-rider */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -620,6 +929,15 @@
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+				DC2002010000000000000001 /* Debug-customer */,
+				DC2002010000000000000002 /* Release-customer */,
+				DC2002010000000000000003 /* Profile-customer */,
+				DC2002010000000000000004 /* Debug-vendor */,
+				DC2002010000000000000005 /* Release-vendor */,
+				DC2002010000000000000006 /* Profile-vendor */,
+				DC2002010000000000000007 /* Debug-rider */,
+				DC2002010000000000000008 /* Release-rider */,
+				DC2002010000000000000009 /* Profile-rider */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

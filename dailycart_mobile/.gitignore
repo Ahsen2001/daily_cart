@@ -24,3 +24,6 @@ ios/Runner/GeneratedPluginRegistrant.*
 *.iml
 .idea/
 .vscode/
+
+# Obsolete Firebase configuration retained only as a migration reference.
+android/app/google-services.com.dailycart.app.legacy.json

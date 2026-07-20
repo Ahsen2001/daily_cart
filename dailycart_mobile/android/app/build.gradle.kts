@@ -5,9 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.dailycart_mobile"
+    namespace = "com.dailycart.mobile"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
+    flavorDimensions += "role"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -15,9 +17,12 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
+    buildFeatures {
+        resValues = true
+    }
+
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.dailycart_mobile"
+        applicationId = "com.dailycart.customer"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -26,10 +31,32 @@ android {
         versionName = flutter.versionName
     }
 
+    productFlavors {
+        create("customer") {
+            dimension = "role"
+            applicationId = "com.dailycart.customer"
+            resValue("string", "app_name", "DailyCart Customer")
+            manifestPlaceholders["deepLinkScheme"] = "dailycart-customer"
+        }
+
+        create("vendor") {
+            dimension = "role"
+            applicationId = "com.dailycart.vendor"
+            resValue("string", "app_name", "DailyCart Vendor")
+            manifestPlaceholders["deepLinkScheme"] = "dailycart-vendor"
+        }
+
+        create("rider") {
+            dimension = "role"
+            applicationId = "com.dailycart.rider"
+            resValue("string", "app_name", "DailyCart Rider")
+            manifestPlaceholders["deepLinkScheme"] = "dailycart-rider"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Replace this with the production signing configuration before publishing.
             signingConfig = signingConfigs.getByName("debug")
         }
     }

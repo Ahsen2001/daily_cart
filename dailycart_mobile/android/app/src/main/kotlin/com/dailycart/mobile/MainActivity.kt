@@ -1,4 +1,4 @@
-package com.example.dailycart_mobile
+package com.dailycart.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 
