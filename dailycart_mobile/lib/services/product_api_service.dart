@@ -7,15 +7,16 @@ import 'auth_api_service.dart';
 
 class ProductApiService {
   ProductApiService({Dio? dio})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {'Accept': 'application/json'},
-              ),
-            );
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              baseUrl: AppConfig.apiBaseUrl,
+              connectTimeout: const Duration(seconds: 20),
+              receiveTimeout: const Duration(seconds: 20),
+              headers: const {'Accept': 'application/json'},
+            ),
+          );
 
   final Dio _dio;
 
@@ -54,10 +55,10 @@ class ProductApiService {
     final params = <String, dynamic>{
       'status': 'active',
       'approval_status': 'approved',
-      if (categoryId != null) 'category_id': categoryId,
-      if (minPrice != null) 'min_price': minPrice,
-      if (maxPrice != null) 'max_price': maxPrice,
-      if (rating != null) 'rating': rating,
+      'category_id': ?categoryId,
+      'min_price': ?minPrice,
+      'max_price': ?maxPrice,
+      'rating': ?rating,
       if (available != null) 'available': available ? 1 : 0,
       if (brand != null && brand.isNotEmpty) 'brand': brand,
       if (sort != null && sort.isNotEmpty) 'sort': sort,

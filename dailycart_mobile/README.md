@@ -15,19 +15,26 @@ The old `com.dailycart.app` identity is not a production app identity.
 
 ## Local setup
 
-1. Install Flutter latest stable.
+Validated toolchain baseline:
+
+- Flutter `3.44.6` stable / Dart `3.12.2`
+- JDK `21`
+- Android SDK `36.1`
+- Gradle `9.1.0` / Android Gradle Plugin `9.0.1`
+
+1. Install Flutter stable and confirm `flutter doctor -v` reports no issues.
 2. Copy `.env.example` to `.env`.
-3. Generate Android and iOS platform folders:
+3. Do not run `flutter create .` over this project: the checked-in Android
+   flavors and iOS schemes are the source of truth.
+4. Resolve the locked dependencies:
 
 ```bash
-flutter create --project-name dailycart_mobile --org com.dailycart --platforms=android,ios .
+flutter pub get --enforce-lockfile
 ```
 
-4. Start the Laravel backend.
-5. Run a role app:
+5. Start the Laravel backend, then run one role app:
 
 ```bash
-flutter pub get
 flutter run --flavor customer -t lib/main_customer.dart
 flutter run --flavor vendor -t lib/main_vendor.dart
 flutter run --flavor rider -t lib/main_rider.dart
@@ -47,6 +54,10 @@ flutter build ipa --flavor customer -t lib/main_customer.dart
 flutter build ipa --flavor vendor -t lib/main_vendor.dart
 flutter build ipa --flavor rider -t lib/main_rider.dart
 ```
+
+Android release builds currently use the debug signing key only for local
+validation. Configure `android/key.properties` and a production signing
+configuration before creating a store artifact.
 
 Each role must be registered as a separate Android and iOS app in the same
 Firebase project. Place the downloaded Android files at:

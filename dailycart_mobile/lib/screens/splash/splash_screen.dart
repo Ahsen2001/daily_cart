@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +21,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
+  Timer? _routeTimer;
 
   @override
   void initState() {
@@ -31,14 +34,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       parent: _controller,
       curve: Curves.easeOutCubic,
     );
-    _routeAfterDelay();
+    _routeTimer = Timer(const Duration(seconds: 3), _route);
   }
 
-  Future<void> _routeAfterDelay() async {
-    await Future<void>.delayed(const Duration(seconds: 3));
-
-    final onboardingSeen =
-        await ref.read(onboardingServiceProvider).hasSeenOnboarding;
+  Future<void> _route() async {
+    final onboardingSeen = await ref
+        .read(onboardingServiceProvider)
+        .hasSeenOnboarding;
     final auth = ref.read(authProvider);
     await auth.checkAuthStatus();
 
@@ -61,6 +63,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   void dispose() {
+    _routeTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -79,16 +82,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               Text(
                 AppStrings.appName,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.darkGreen,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  color: AppColors.darkGreen,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 10),
               Text(
                 'Fresh groceries, delivered fast',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.mutedText,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
               ),
               const SizedBox(height: 30),
               const SizedBox(

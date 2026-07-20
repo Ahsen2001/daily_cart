@@ -7,22 +7,21 @@ import 'auth_api_service.dart';
 import 'authenticated_api_mixin.dart';
 
 class CartApiService with AuthenticatedApiMixin {
-  CartApiService({
-    Dio? dio,
-    SecureStorageHelper? storage,
-  })  : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json',
-                },
-              ),
+  CartApiService({Dio? dio, SecureStorageHelper? storage})
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              baseUrl: AppConfig.apiBaseUrl,
+              connectTimeout: const Duration(seconds: 20),
+              receiveTimeout: const Duration(seconds: 20),
+              headers: const {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
             ),
-        _storage = storage ?? SecureStorageHelper();
+          ),
+      _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
   final SecureStorageHelper _storage;
@@ -53,7 +52,7 @@ class CartApiService with AuthenticatedApiMixin {
         data: {
           'product_id': productId,
           'quantity': quantity,
-          if (variantId != null) 'variant_id': variantId,
+          'variant_id': ?variantId,
         },
         options: await authOptions(),
       );

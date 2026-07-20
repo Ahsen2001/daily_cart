@@ -50,10 +50,9 @@ class _CreateSupportTicketScreenState
                     label: 'Subject',
                     controller: _subjectController,
                     icon: Icons.subject_rounded,
-                    validator: (value) =>
-                        value == null || value.trim().isEmpty
-                            ? 'Subject is required.'
-                            : null,
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Subject is required.'
+                        : null,
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
@@ -77,7 +76,7 @@ class _CreateSupportTicketScreenState
                   ),
                   const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
-                    value: _priority,
+                    initialValue: _priority,
                     decoration: const InputDecoration(
                       labelText: 'Priority',
                       prefixIcon: Icon(Icons.priority_high_rounded),
@@ -123,7 +122,9 @@ class _CreateSupportTicketScreenState
       return;
     }
     final orderId = int.tryParse(_orderIdController.text.trim());
-    final ok = await ref.read(supportTicketProvider).createTicket(
+    final ok = await ref
+        .read(supportTicketProvider)
+        .createTicket(
           subject: _subjectController.text.trim(),
           message: _messageController.text.trim(),
           priority: _priority,
@@ -138,7 +139,7 @@ class _CreateSupportTicketScreenState
           ok
               ? 'Support ticket created.'
               : ref.read(supportTicketProvider).errorMessage ??
-                  'Unable to create ticket.',
+                    'Unable to create ticket.',
         ),
       ),
     );

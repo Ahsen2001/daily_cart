@@ -6,18 +6,19 @@ import '../models/user_role.dart';
 
 class AuthApiService {
   AuthApiService({Dio? dio})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json',
-                },
-              ),
-            );
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              baseUrl: AppConfig.apiBaseUrl,
+              connectTimeout: const Duration(seconds: 20),
+              receiveTimeout: const Duration(seconds: 20),
+              headers: const {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
+            ),
+          );
 
   final Dio _dio;
 
@@ -71,10 +72,7 @@ class AuthApiService {
 
   Future<void> logout(String token) async {
     try {
-      await _dio.post<void>(
-        '/logout',
-        options: _authOptions(token),
-      );
+      await _dio.post<void>('/logout', options: _authOptions(token));
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -105,8 +103,8 @@ class AuthApiService {
         '/otp/verify',
         data: {
           'otp': otp,
-          if (email != null) 'email': email,
-          if (phone != null) 'phone': phone,
+          'email': ?email,
+          'phone': ?phone,
           'purpose': purpose,
         },
       );

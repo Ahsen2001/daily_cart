@@ -108,9 +108,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
               onHistory: () => context.push(AppRoutes.loyaltyHistory),
               onRedeem: loyalty.loyaltyBalance > 0
                   ? () => _showPlaceholder(
-                        context,
-                        'Redeem points during checkout placeholder.',
-                      )
+                      context,
+                      'Redeem points during checkout placeholder.',
+                    )
                   : null,
             ),
             if (promotions.promotions.isNotEmpty) ...[
@@ -359,16 +359,16 @@ class _WelcomeBanner extends StatelessWidget {
               children: [
                 Text(
                   'Good day',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.mutedText,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Fresh groceries delivered fast',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
                 ),
               ],
             ),
@@ -435,18 +435,14 @@ class _AdvertisementBanner extends StatelessWidget {
                 Text(
                   'Save more on fresh produce today',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ],
             ),
           ),
-          const Icon(
-            Icons.eco_rounded,
-            color: AppColors.white,
-            size: 56,
-          ),
+          const Icon(Icons.eco_rounded, color: AppColors.white, size: 56),
         ],
       ),
     );
@@ -493,31 +489,35 @@ class _RecentlyPurchasedSection extends ConsumerWidget {
                                   '${AppRoutes.productDetails}/${product.id}',
                                 ),
                                 onAddToCart: () async {
-                                  final ok =
-                                      await ref.read(cartProvider).addToCart(
-                                            product: product,
-                                            quantity: 1,
-                                          );
+                                  final ok = await ref
+                                      .read(cartProvider)
+                                      .addToCart(product: product, quantity: 1);
+                                  if (!context.mounted) {
+                                    return;
+                                  }
                                   _showPlaceholder(
                                     context,
                                     ok
                                         ? '${product.name} added to cart.'
                                         : ref.read(cartProvider).errorMessage ??
-                                            'Unable to add cart item.',
+                                              'Unable to add cart item.',
                                   );
                                 },
                                 onWishlist: () async {
                                   final ok = await ref
                                       .read(wishlistProvider)
                                       .addToWishlist(product);
+                                  if (!context.mounted) {
+                                    return;
+                                  }
                                   _showPlaceholder(
                                     context,
                                     ok
                                         ? '${product.name} added to wishlist.'
                                         : ref
-                                                .read(wishlistProvider)
-                                                .errorMessage ??
-                                            'Unable to add wishlist item.',
+                                                  .read(wishlistProvider)
+                                                  .errorMessage ??
+                                              'Unable to add wishlist item.',
                                   );
                                 },
                               ),
@@ -527,17 +527,18 @@ class _RecentlyPurchasedSection extends ConsumerWidget {
                               width: double.infinity,
                               child: ElevatedButton.icon(
                                 onPressed: () async {
-                                  final ok =
-                                      await ref.read(cartProvider).addToCart(
-                                            product: product,
-                                            quantity: 1,
-                                          );
+                                  final ok = await ref
+                                      .read(cartProvider)
+                                      .addToCart(product: product, quantity: 1);
+                                  if (!context.mounted) {
+                                    return;
+                                  }
                                   _showPlaceholder(
                                     context,
                                     ok
                                         ? '${product.name} added to cart.'
                                         : ref.read(cartProvider).errorMessage ??
-                                            'Unable to reorder item.',
+                                              'Unable to reorder item.',
                                   );
                                 },
                                 icon: const Icon(Icons.refresh_rounded),
@@ -589,52 +590,55 @@ class _ProductSection extends ConsumerWidget {
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : products.isEmpty
-                    ? const EmptyProductsWidget()
-                    : ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                          final product = products[index];
-                          return SizedBox(
-                            width: 190,
-                            child: ProductCard(
-                              product: product,
-                              onTap: () => context.push(
-                                '${AppRoutes.productDetails}/${product.id}',
-                              ),
-                              onAddToCart: () async {
-                                final ok = await ref.read(cartProvider).addToCart(
-                                      product: product,
-                                      quantity: 1,
-                                    );
-                                _showPlaceholder(
-                                  context,
-                                  ok
-                                      ? '${product.name} added to cart.'
-                                      : ref.read(cartProvider).errorMessage ??
-                                          'Unable to add cart item.',
-                                );
-                              },
-                              onWishlist: () async {
-                                final ok = await ref
-                                    .read(wishlistProvider)
-                                    .addToWishlist(product);
-                                _showPlaceholder(
-                                  context,
-                                  ok
-                                      ? '${product.name} added to wishlist.'
-                                      : ref
-                                              .read(wishlistProvider)
-                                              .errorMessage ??
-                                          'Unable to add wishlist item.',
-                                );
-                              },
-                            ),
-                          );
-                        },
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(width: 12),
-                        itemCount: products.length,
-                      ),
+                ? const EmptyProductsWidget()
+                : ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return SizedBox(
+                        width: 190,
+                        child: ProductCard(
+                          product: product,
+                          onTap: () => context.push(
+                            '${AppRoutes.productDetails}/${product.id}',
+                          ),
+                          onAddToCart: () async {
+                            final ok = await ref
+                                .read(cartProvider)
+                                .addToCart(product: product, quantity: 1);
+                            if (!context.mounted) {
+                              return;
+                            }
+                            _showPlaceholder(
+                              context,
+                              ok
+                                  ? '${product.name} added to cart.'
+                                  : ref.read(cartProvider).errorMessage ??
+                                        'Unable to add cart item.',
+                            );
+                          },
+                          onWishlist: () async {
+                            final ok = await ref
+                                .read(wishlistProvider)
+                                .addToWishlist(product);
+                            if (!context.mounted) {
+                              return;
+                            }
+                            _showPlaceholder(
+                              context,
+                              ok
+                                  ? '${product.name} added to wishlist.'
+                                  : ref.read(wishlistProvider).errorMessage ??
+                                        'Unable to add wishlist item.',
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 12),
+                    itemCount: products.length,
+                  ),
           ),
         ],
       ),
@@ -659,9 +663,9 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
         ),
         if (showBadge) ...[
           const SizedBox(width: 8),
@@ -679,17 +683,12 @@ class _SectionHeader extends StatelessWidget {
         ],
         const Spacer(),
         if (onViewAll != null)
-          TextButton(
-            onPressed: onViewAll,
-            child: const Text('View all'),
-          ),
+          TextButton(onPressed: onViewAll, child: const Text('View all')),
       ],
     );
   }
 }
 
 void _showPlaceholder(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message)),
-  );
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }

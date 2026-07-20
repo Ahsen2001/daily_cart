@@ -49,6 +49,7 @@ class ProductImagePicker extends StatelessWidget {
             children: [
               for (final path in imagePaths)
                 Container(
+                  key: ValueKey(path),
                   width: 74,
                   height: 74,
                   alignment: Alignment.center,

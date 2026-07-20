@@ -13,11 +13,7 @@ import '../../widgets/empty_products_widget.dart';
 import '../../widgets/product_card.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
-  const ProductListScreen({
-    this.categoryId,
-    this.categoryName,
-    super.key,
-  });
+  const ProductListScreen({this.categoryId, this.categoryName, super.key});
 
   final int? categoryId;
   final String? categoryName;
@@ -41,7 +37,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   }
 
   Future<void> _loadProducts() {
-    return ref.read(productProvider).getProducts(
+    return ref
+        .read(productProvider)
+        .getProducts(
           categoryId: widget.categoryId,
           minPrice: _priceRange.start,
           maxPrice: _priceRange.end,
@@ -64,7 +62,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           IconButton(
             tooltip: _isGrid ? 'List view' : 'Grid view',
             onPressed: () => setState(() => _isGrid = !_isGrid),
-            icon: Icon(_isGrid ? Icons.view_list_rounded : Icons.grid_view_rounded),
+            icon: Icon(
+              _isGrid ? Icons.view_list_rounded : Icons.grid_view_rounded,
+            ),
           ),
           IconButton(
             tooltip: 'Filters',
@@ -86,63 +86,63 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             child: state.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : state.products.isEmpty
-                    ? const EmptyProductsWidget()
-                    : _isGrid
-                        ? GridView.builder(
-                            padding: const EdgeInsets.all(20),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 14,
-                              crossAxisSpacing: 14,
-                              childAspectRatio: 0.58,
-                            ),
-                            itemCount: state.products.length,
-                            itemBuilder: (context, index) {
-                              final product = state.products[index];
-                              return ProductGridCard(
-                                product: product,
-                                onTap: () => context.push(
-                                  '${AppRoutes.productDetails}/${product.id}',
-                                ),
-                                onAddToCart: () => _showPlaceholder(
-                                  '${product.name} added to cart.',
-                                  product: product,
-                                  isCartAction: true,
-                                ),
-                                onWishlist: () => _showPlaceholder(
-                                  '${product.name} added to wishlist.',
-                                  product: product,
-                                  isWishlistAction: true,
-                                ),
-                              );
-                            },
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.all(20),
-                            itemBuilder: (context, index) {
-                              final product = state.products[index];
-                              return ProductListCard(
-                                product: product,
-                                onTap: () => context.push(
-                                  '${AppRoutes.productDetails}/${product.id}',
-                                ),
-                                onAddToCart: () => _showPlaceholder(
-                                  '${product.name} added to cart.',
-                                  product: product,
-                                  isCartAction: true,
-                                ),
-                                onWishlist: () => _showPlaceholder(
-                                  '${product.name} added to wishlist.',
-                                  product: product,
-                                  isWishlistAction: true,
-                                ),
-                              );
-                            },
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 14),
-                            itemCount: state.products.length,
-                          ),
+                ? const EmptyProductsWidget()
+                : _isGrid
+                ? GridView.builder(
+                    padding: const EdgeInsets.all(20),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 14,
+                          crossAxisSpacing: 14,
+                          childAspectRatio: 0.58,
+                        ),
+                    itemCount: state.products.length,
+                    itemBuilder: (context, index) {
+                      final product = state.products[index];
+                      return ProductGridCard(
+                        product: product,
+                        onTap: () => context.push(
+                          '${AppRoutes.productDetails}/${product.id}',
+                        ),
+                        onAddToCart: () => _showPlaceholder(
+                          '${product.name} added to cart.',
+                          product: product,
+                          isCartAction: true,
+                        ),
+                        onWishlist: () => _showPlaceholder(
+                          '${product.name} added to wishlist.',
+                          product: product,
+                          isWishlistAction: true,
+                        ),
+                      );
+                    },
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.all(20),
+                    itemBuilder: (context, index) {
+                      final product = state.products[index];
+                      return ProductListCard(
+                        product: product,
+                        onTap: () => context.push(
+                          '${AppRoutes.productDetails}/${product.id}',
+                        ),
+                        onAddToCart: () => _showPlaceholder(
+                          '${product.name} added to cart.',
+                          product: product,
+                          isCartAction: true,
+                        ),
+                        onWishlist: () => _showPlaceholder(
+                          '${product.name} added to wishlist.',
+                          product: product,
+                          isWishlistAction: true,
+                        ),
+                      );
+                    },
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 14),
+                    itemCount: state.products.length,
+                  ),
           ),
         ],
       ),
@@ -173,11 +173,13 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   Text(
                     'Filters',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   const SizedBox(height: 18),
-                  Text('Price range: Rs. ${_priceRange.start.round()} - Rs. ${_priceRange.end.round()}'),
+                  Text(
+                    'Price range: Rs. ${_priceRange.start.round()} - Rs. ${_priceRange.end.round()}',
+                  ),
                   RangeSlider(
                     values: _priceRange,
                     min: 0,
@@ -190,7 +192,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<double?>(
-                    value: _rating,
+                    initialValue: _rating,
                     decoration: const InputDecoration(labelText: 'Rating'),
                     items: const [
                       DropdownMenuItem<double?>(
@@ -256,12 +258,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   }) async {
     var finalMessage = message;
     if (isCartAction && product != null) {
-      final ok = await ref.read(cartProvider).addToCart(
-            product: product,
-            quantity: 1,
-          );
-      finalMessage =
-          ok ? message : ref.read(cartProvider).errorMessage ?? 'Cart error.';
+      final ok = await ref
+          .read(cartProvider)
+          .addToCart(product: product, quantity: 1);
+      finalMessage = ok
+          ? message
+          : ref.read(cartProvider).errorMessage ?? 'Cart error.';
     }
     if (isWishlistAction && product != null) {
       final ok = await ref.read(wishlistProvider).addToWishlist(product);
@@ -270,17 +272,17 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           : ref.read(wishlistProvider).errorMessage ?? 'Wishlist error.';
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(finalMessage)),
-    );
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(finalMessage)));
   }
 }
 
 class _SortBar extends StatelessWidget {
-  const _SortBar({
-    required this.selectedSort,
-    required this.onChanged,
-  });
+  const _SortBar({required this.selectedSort, required this.onChanged});
 
   final String selectedSort;
   final ValueChanged<String> onChanged;
@@ -290,16 +292,25 @@ class _SortBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 6, 20, 12),
       child: DropdownButtonFormField<String>(
-        value: selectedSort,
+        initialValue: selectedSort,
         decoration: const InputDecoration(
           labelText: 'Sort by',
           prefixIcon: Icon(Icons.sort_rounded),
         ),
         items: const [
           DropdownMenuItem(value: 'latest', child: Text('Latest')),
-          DropdownMenuItem(value: 'price_low_high', child: Text('Price Low to High')),
-          DropdownMenuItem(value: 'price_high_low', child: Text('Price High to Low')),
-          DropdownMenuItem(value: 'highest_rated', child: Text('Highest Rated')),
+          DropdownMenuItem(
+            value: 'price_low_high',
+            child: Text('Price Low to High'),
+          ),
+          DropdownMenuItem(
+            value: 'price_high_low',
+            child: Text('Price High to Low'),
+          ),
+          DropdownMenuItem(
+            value: 'highest_rated',
+            child: Text('Highest Rated'),
+          ),
           DropdownMenuItem(value: 'most_sold', child: Text('Most Sold')),
         ],
         onChanged: (value) {

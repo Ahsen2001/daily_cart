@@ -9,16 +9,17 @@ import 'authenticated_api_mixin.dart';
 
 class SupportTicketApiService with AuthenticatedApiMixin {
   SupportTicketApiService({Dio? dio, SecureStorageHelper? storage})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {'Accept': 'application/json'},
-              ),
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              baseUrl: AppConfig.apiBaseUrl,
+              connectTimeout: const Duration(seconds: 20),
+              receiveTimeout: const Duration(seconds: 20),
+              headers: const {'Accept': 'application/json'},
             ),
-        _storage = storage ?? SecureStorageHelper();
+          ),
+      _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
   final SecureStorageHelper _storage;
@@ -32,9 +33,10 @@ class SupportTicketApiService with AuthenticatedApiMixin {
         '/support-tickets',
         options: await authOptions(),
       );
-      return ApiListParser.extractList(response.data, key: 'tickets')
-          .map(SupportTicketModel.fromJson)
-          .toList(growable: false);
+      return ApiListParser.extractList(
+        response.data,
+        key: 'tickets',
+      ).map(SupportTicketModel.fromJson).toList(growable: false);
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -53,7 +55,7 @@ class SupportTicketApiService with AuthenticatedApiMixin {
           'subject': subject,
           'message': message,
           'priority': priority,
-          if (orderId != null) 'order_id': orderId,
+          'order_id': ?orderId,
         },
         options: await authOptions(),
       );

@@ -17,10 +17,7 @@ import '../../widgets/product_image_slider.dart';
 import '../../widgets/rating_widget.dart';
 
 class ProductDetailsScreen extends ConsumerStatefulWidget {
-  const ProductDetailsScreen({
-    required this.productId,
-    super.key,
-  });
+  const ProductDetailsScreen({required this.productId, super.key});
 
   final int productId;
 
@@ -64,76 +61,78 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : product == null
-              ? const EmptyProductsWidget()
-              : ListView(
-                  padding: const EdgeInsets.all(20),
+          ? const EmptyProductsWidget()
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                ProductImageSlider(imageUrls: product.imageUrls),
+                const SizedBox(height: 22),
+                _ProductInfo(product: product),
+                const SizedBox(height: 16),
+                _StockAndVendor(product: product),
+                const SizedBox(height: 16),
+                _QuantitySelector(
+                  quantity: _quantity,
+                  onChanged: (value) => setState(() => _quantity = value),
+                ),
+                if (product.variants.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _VariantSelector(
+                    variants: product.variants,
+                    selectedVariant: _selectedVariant,
+                    onChanged: (variant) {
+                      setState(() => _selectedVariant = variant);
+                    },
+                  ),
+                ],
+                const SizedBox(height: 20),
+                Row(
                   children: [
-                    ProductImageSlider(imageUrls: product.imageUrls),
-                    const SizedBox(height: 22),
-                    _ProductInfo(product: product),
-                    const SizedBox(height: 16),
-                    _StockAndVendor(product: product),
-                    const SizedBox(height: 16),
-                    _QuantitySelector(
-                      quantity: _quantity,
-                      onChanged: (value) => setState(() => _quantity = value),
+                    Expanded(
+                      child: CustomButton(
+                        label: 'Add to Cart',
+                        icon: Icons.add_shopping_cart_rounded,
+                        onPressed: () => _addToCart(product),
+                      ),
                     ),
-                    if (product.variants.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      _VariantSelector(
-                        variants: product.variants,
-                        selectedVariant: _selectedVariant,
-                        onChanged: (variant) {
-                          setState(() => _selectedVariant = variant);
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: CustomButton(
+                        label: 'Buy Now',
+                        icon: Icons.flash_on_rounded,
+                        onPressed: () async {
+                          final ok = await _addToCart(product);
+                          if (ok && context.mounted) {
+                            context.push(AppRoutes.checkoutPreparation);
+                          }
                         },
                       ),
-                    ],
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CustomButton(
-                            label: 'Add to Cart',
-                            icon: Icons.add_shopping_cart_rounded,
-                            onPressed: () => _addToCart(product),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: CustomButton(
-                            label: 'Buy Now',
-                            icon: Icons.flash_on_rounded,
-                            onPressed: () async {
-                              final ok = await _addToCart(product);
-                              if (ok && mounted) {
-                                context.push(AppRoutes.checkoutPreparation);
-                              }
-                            },
-                          ),
-                        ),
-                      ],
                     ),
-                    const SizedBox(height: 10),
-                    CustomButton(
-                      label: 'Add to Wishlist',
-                      icon: Icons.favorite_border_rounded,
-                      variant: CustomButtonVariant.secondary,
-                      onPressed: () => _addToWishlist(product),
-                    ),
-                    const SizedBox(height: 24),
-                    _ReviewsSection(
-                      productId: product.id,
-                      reviews: product.reviews,
-                    ),
-                    const SizedBox(height: 24),
-                    _SimilarProducts(products: product.similarProducts),
                   ],
                 ),
+                const SizedBox(height: 10),
+                CustomButton(
+                  label: 'Add to Wishlist',
+                  icon: Icons.favorite_border_rounded,
+                  variant: CustomButtonVariant.secondary,
+                  onPressed: () => _addToWishlist(product),
+                ),
+                const SizedBox(height: 24),
+                _ReviewsSection(
+                  productId: product.id,
+                  reviews: product.reviews,
+                ),
+                const SizedBox(height: 24),
+                _SimilarProducts(products: product.similarProducts),
+              ],
+            ),
     );
   }
 
   Future<bool> _addToCart(ProductModel product) async {
-    final ok = await ref.read(cartProvider).addToCart(
+    final ok = await ref
+        .read(cartProvider)
+        .addToCart(
           product: product,
           quantity: _quantity,
           variantId: _selectedVariant?.id,
@@ -152,14 +151,14 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       ok
           ? '${product.name} added to wishlist.'
           : ref.read(wishlistProvider).errorMessage ??
-              'Unable to add wishlist item.',
+                'Unable to add wishlist item.',
     );
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -176,16 +175,18 @@ class _ProductInfo extends StatelessWidget {
         children: [
           Text(
             product.name,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              _InfoChip(label: product.brand.isEmpty ? 'DailyCart' : product.brand),
+              _InfoChip(
+                label: product.brand.isEmpty ? 'DailyCart' : product.brand,
+              ),
               _InfoChip(
                 label: product.categoryName.isEmpty
                     ? 'Grocery'
@@ -202,17 +203,17 @@ class _ProductInfo extends StatelessWidget {
               Text(
                 CurrencyFormatter.lkr(product.displayPrice),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.darkGreen,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  color: AppColors.darkGreen,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               if (product.hasDiscount)
                 Text(
                   CurrencyFormatter.lkr(product.price),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.mutedText,
-                        decoration: TextDecoration.lineThrough,
-                      ),
+                    color: AppColors.mutedText,
+                    decoration: TextDecoration.lineThrough,
+                  ),
                 ),
             ],
           ),
@@ -222,9 +223,9 @@ class _ProductInfo extends StatelessWidget {
                 ? 'Fresh product from a verified DailyCart vendor.'
                 : product.description,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.mutedText,
-                  height: 1.5,
-                ),
+              color: AppColors.mutedText,
+              height: 1.5,
+            ),
           ),
         ],
       ),
@@ -259,7 +260,10 @@ class _StockAndVendor extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.inventory_2_outlined, color: AppColors.darkGreen),
+              const Icon(
+                Icons.inventory_2_outlined,
+                color: AppColors.darkGreen,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -291,10 +295,7 @@ class _StockAndVendor extends StatelessWidget {
 }
 
 class _QuantitySelector extends StatelessWidget {
-  const _QuantitySelector({
-    required this.quantity,
-    required this.onChanged,
-  });
+  const _QuantitySelector({required this.quantity, required this.onChanged});
 
   final int quantity;
   final ValueChanged<int> onChanged;
@@ -306,9 +307,9 @@ class _QuantitySelector extends StatelessWidget {
         children: [
           Text(
             'Quantity',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const Spacer(),
           IconButton.filledTonal(
@@ -320,9 +321,9 @@ class _QuantitySelector extends StatelessWidget {
             child: Text(
               '$quantity',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
             ),
           ),
           IconButton.filled(
@@ -354,9 +355,9 @@ class _VariantSelector extends StatelessWidget {
         children: [
           Text(
             'Product Variants',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -380,10 +381,7 @@ class _VariantSelector extends StatelessWidget {
 }
 
 class _ReviewsSection extends StatelessWidget {
-  const _ReviewsSection({
-    required this.productId,
-    required this.reviews,
-  });
+  const _ReviewsSection({required this.productId, required this.reviews});
 
   final int productId;
   final List<ReviewModel> reviews;
@@ -400,14 +398,13 @@ class _ReviewsSection extends StatelessWidget {
                 child: Text(
                   'Customer Reviews',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
               TextButton(
-                onPressed: () => context.push(
-                  '${AppRoutes.productReviews}/$productId',
-                ),
+                onPressed: () =>
+                    context.push('${AppRoutes.productReviews}/$productId'),
                 child: const Text('View all'),
               ),
             ],
@@ -416,9 +413,9 @@ class _ReviewsSection extends StatelessWidget {
           if (reviews.isEmpty)
             Text(
               'No reviews yet.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.mutedText,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
             )
           else
             for (final review in reviews.take(3)) ...[
@@ -454,9 +451,9 @@ class _SimilarProducts extends StatelessWidget {
       children: [
         Text(
           'Similar Products',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -469,9 +466,8 @@ class _SimilarProducts extends StatelessWidget {
                 width: 190,
                 child: ProductCard(
                   product: product,
-                  onTap: () => context.push(
-                    '${AppRoutes.productDetails}/${product.id}',
-                  ),
+                  onTap: () =>
+                      context.push('${AppRoutes.productDetails}/${product.id}'),
                   onAddToCart: () {},
                   onWishlist: () {},
                 ),
