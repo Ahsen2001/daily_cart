@@ -1,22 +1,15 @@
 import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
 import '../models/product_model.dart';
+import '../networking/api_client.dart';
+import '../networking/api_exception.dart';
+import '../networking/api_response.dart';
 import 'api_list_parser.dart';
 import 'auth_api_service.dart';
 
 class ProductApiService {
   ProductApiService({Dio? dio})
-    : _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              baseUrl: AppConfig.apiBaseUrl,
-              connectTimeout: const Duration(seconds: 20),
-              receiveTimeout: const Duration(seconds: 20),
-              headers: const {'Accept': 'application/json'},
-            ),
-          );
+    : _dio = dio ?? ApiClient.shared.dio;
 
   final Dio _dio;
 
@@ -71,7 +64,12 @@ class ProductApiService {
   Future<ProductModel> getProductDetails(int productId) async {
     try {
       final response = await _dio.get<dynamic>('/products/$productId');
-      return ProductModel.fromJson(ApiListParser.extractObject(response.data));
+      return _parseProduct(
+        ApiResponseParser.requireObject(
+          ApiResponseParser.requireMap(response.data),
+          key: 'product',
+        ),
+      );
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -88,12 +86,28 @@ class ProductApiService {
       );
       // Keep customer screens clean by hiding inactive, rejected, or pending
       // products even if an API response accidentally includes them.
-      return ApiListParser.extractList(response.data, key: 'products')
-          .map(ProductModel.fromJson)
+      return ApiPage<ProductModel>.fromJson(
+        response.data,
+        key: 'products',
+        decoder: _parseProduct,
+      )
+          .items
           .where((product) => product.isVisibleForCustomer)
           .toList(growable: false);
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
+  }
+
+  ProductModel _parseProduct(Map<String, dynamic> json) {
+    if (json['id'] == null ||
+        json['name'] == null ||
+        json['name'].toString().trim().isEmpty ||
+        json['price'] == null) {
+      throw ApiException.parsing(
+        'A product is missing its id, name, or price.',
+      );
+    }
+    return ProductModel.fromJson(json);
   }
 }

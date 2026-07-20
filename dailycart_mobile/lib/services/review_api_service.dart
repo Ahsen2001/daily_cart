@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
 import '../models/review_model.dart';
+import '../networking/api_client.dart';
 import '../utils/secure_storage_helper.dart';
 import 'api_list_parser.dart';
 import 'auth_api_service.dart';
@@ -9,15 +9,7 @@ import 'authenticated_api_mixin.dart';
 
 class ReviewApiService with AuthenticatedApiMixin {
   ReviewApiService({Dio? dio, SecureStorageHelper? storage})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {'Accept': 'application/json'},
-              ),
-            ),
+      : _dio = dio ?? ApiClient.shared.dio,
         _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
@@ -62,14 +54,18 @@ class ReviewApiService with AuthenticatedApiMixin {
     String? imagePath,
   }) async {
     try {
-      final data = FormData.fromMap({
-        'order_id': orderId,
-        'product_id': productId,
-        'rating': rating,
-        'comment': comment,
-        if (imagePath != null && imagePath.isNotEmpty)
-          'image': await MultipartFile.fromFile(imagePath),
-      });
+      final data = await ApiClient.shared.multipart(
+        fields: {
+          'order_id': orderId,
+          'product_id': productId,
+          'rating': rating,
+          'comment': comment,
+        },
+        files: [
+          if (imagePath != null && imagePath.isNotEmpty)
+            ApiUploadFile(field: 'image', path: imagePath),
+        ],
+      );
       final response = await _dio.post<dynamic>(
         '/reviews',
         data: data,
@@ -88,12 +84,16 @@ class ReviewApiService with AuthenticatedApiMixin {
     String? imagePath,
   }) async {
     try {
-      final data = FormData.fromMap({
-        'rating': rating,
-        'comment': comment,
-        if (imagePath != null && imagePath.isNotEmpty)
-          'image': await MultipartFile.fromFile(imagePath),
-      });
+      final data = await ApiClient.shared.multipart(
+        fields: {
+          'rating': rating,
+          'comment': comment,
+        },
+        files: [
+          if (imagePath != null && imagePath.isNotEmpty)
+            ApiUploadFile(field: 'image', path: imagePath),
+        ],
+      );
       final response = await _dio.post<dynamic>(
         '/reviews/$reviewId',
         data: data,

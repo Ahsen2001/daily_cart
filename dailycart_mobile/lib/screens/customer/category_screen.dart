@@ -7,6 +7,7 @@ import '../../routes/app_routes.dart';
 import '../../widgets/category_card.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
+import '../../widgets/error_widget.dart';
 import '../../widgets/loading_widget.dart';
 
 class CategoryScreen extends ConsumerStatefulWidget {
@@ -31,6 +32,13 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
       appBar: const CustomAppBar(title: 'Categories'),
       body: state.isLoading
           ? const LoadingWidget(message: 'Loading categories...')
+          : state.errorMessage != null
+              ? DailyCartErrorWidget(
+                  title: 'Unable to load categories',
+                  message: state.errorMessage!,
+                  onRetry: () =>
+                      ref.read(categoryProvider).getCategories(),
+                )
           : state.categories.isEmpty
               ? const EmptyStateWidget(
                   title: 'No categories found',

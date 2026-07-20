@@ -10,6 +10,7 @@ import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/empty_products_widget.dart';
+import '../../widgets/error_widget.dart';
 import '../../widgets/product_card.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
@@ -85,6 +86,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           Expanded(
             child: state.isLoading
                 ? const Center(child: CircularProgressIndicator())
+                : state.errorMessage != null
+                ? DailyCartErrorWidget(
+                    title: 'Unable to load products',
+                    message: state.errorMessage!,
+                    onRetry: _loadProducts,
+                  )
                 : state.products.isEmpty
                 ? const EmptyProductsWidget()
                 : _isGrid

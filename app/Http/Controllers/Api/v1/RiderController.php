@@ -82,6 +82,7 @@ class RiderController extends Controller
 
         return response()->json([
             'message' => 'Delivery status updated successfully.',
+            'delivery' => $delivery->refresh()->load(['order.customer.user', 'order.vendor', 'proofs']),
         ]);
     }
 

@@ -12,6 +12,7 @@ import '../../utils/currency_formatter.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/dailycart_card.dart';
 import '../../widgets/empty_products_widget.dart';
+import '../../widgets/error_widget.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/product_image_slider.dart';
 import '../../widgets/rating_widget.dart';
@@ -60,6 +61,13 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       ),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
+          : state.errorMessage != null
+          ? DailyCartErrorWidget(
+              title: 'Unable to load product',
+              message: state.errorMessage!,
+              onRetry: () =>
+                  ref.read(productProvider).getProductDetails(widget.productId),
+            )
           : product == null
           ? const EmptyProductsWidget()
           : ListView(

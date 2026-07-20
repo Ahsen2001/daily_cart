@@ -1,98 +1,71 @@
+import '../networking/api_exception.dart';
+import '../networking/api_response.dart';
+
 class ApiListParser {
+  const ApiListParser._();
+
   static List<Map<String, dynamic>> extractList(
     Object? responseData, {
     String? key,
   }) {
-    final data = responseData;
-
-    if (data is List) {
-      return data.whereType<Map<String, dynamic>>().toList(growable: false);
+    if (responseData is List) {
+      return ApiResponseParser.requireMapList(
+        responseData,
+        context: key ?? 'data',
+      );
     }
 
-    if (data is Map<String, dynamic>) {
-      if (key != null && data[key] is List) {
-        return (data[key] as List)
-            .whereType<Map<String, dynamic>>()
-            .toList(growable: false);
-      }
-
-      final keyedValue = key == null ? null : data[key];
-      if (keyedValue is Map<String, dynamic> && keyedValue['data'] is List) {
-        return (keyedValue['data'] as List)
-            .whereType<Map<String, dynamic>>()
-            .toList(growable: false);
-      }
-
-      if (data['data'] is List) {
-        return (data['data'] as List)
-            .whereType<Map<String, dynamic>>()
-            .toList(growable: false);
-      }
-
-      if (data['data'] is Map<String, dynamic> &&
-          (data['data'] as Map<String, dynamic>)['data'] is List) {
-        return ((data['data'] as Map<String, dynamic>)['data'] as List)
-            .whereType<Map<String, dynamic>>()
-            .toList(growable: false);
-      }
+    final root = ApiResponseParser.requireMap(responseData);
+    Object? value = key == null ? root['data'] : root[key];
+    if (value is Map<String, dynamic>) {
+      value = value['data'];
     }
-
-    return const [];
+    return ApiResponseParser.requireMapList(
+      value,
+      context: key ?? 'data',
+    );
   }
 
-  static Map<String, dynamic> extractObject(Object? responseData) {
-    final data = responseData;
-    if (data is Map<String, dynamic>) {
-      if (data['data'] is Map<String, dynamic>) {
-        return extractObject(data['data'] as Map<String, dynamic>);
-      }
-      if (data['product'] is Map<String, dynamic>) {
-        return data['product'] as Map<String, dynamic>;
-      }
-      if (data['address'] is Map<String, dynamic>) {
-        return data['address'] as Map<String, dynamic>;
-      }
-      if (data['order'] is Map<String, dynamic>) {
-        return data['order'] as Map<String, dynamic>;
-      }
-      if (data['payment'] is Map<String, dynamic>) {
-        return data['payment'] as Map<String, dynamic>;
-      }
-      if (data['review'] is Map<String, dynamic>) {
-        return data['review'] as Map<String, dynamic>;
-      }
-      if (data['ticket'] is Map<String, dynamic>) {
-        return data['ticket'] as Map<String, dynamic>;
-      }
-      if (data['coupon'] is Map<String, dynamic>) {
-        return data['coupon'] as Map<String, dynamic>;
-      }
-      if (data['promotion'] is Map<String, dynamic>) {
-        return data['promotion'] as Map<String, dynamic>;
-      }
-      if (data['profile'] is Map<String, dynamic>) {
-        return data['profile'] as Map<String, dynamic>;
-      }
-      if (data['dashboard'] is Map<String, dynamic>) {
-        return data['dashboard'] as Map<String, dynamic>;
-      }
-      if (data['vendor'] is Map<String, dynamic>) {
-        return data['vendor'] as Map<String, dynamic>;
-      }
-      if (data['earning'] is Map<String, dynamic>) {
-        return data['earning'] as Map<String, dynamic>;
-      }
-      if (data['rider'] is Map<String, dynamic>) {
-        return data['rider'] as Map<String, dynamic>;
-      }
-      if (data['delivery'] is Map<String, dynamic>) {
-        return data['delivery'] as Map<String, dynamic>;
-      }
-      if (data['earnings'] is Map<String, dynamic>) {
-        return data['earnings'] as Map<String, dynamic>;
-      }
-      return data;
+  static Map<String, dynamic> extractObject(
+    Object? responseData, {
+    String? key,
+  }) {
+    final root = ApiResponseParser.requireMap(responseData);
+    if (key != null) {
+      return ApiResponseParser.requireObject(root, key: key);
     }
-    return const {};
+
+    const objectKeys = [
+      'data',
+      'product',
+      'address',
+      'order',
+      'payment',
+      'review',
+      'ticket',
+      'coupon',
+      'promotion',
+      'profile',
+      'user',
+      'dashboard',
+      'summary',
+      'vendor',
+      'wallet',
+      'earning',
+      'rider',
+      'delivery',
+      'earnings',
+    ];
+    for (final candidate in objectKeys) {
+      final value = root[candidate];
+      if (value is Map) {
+        return ApiResponseParser.requireMap(value);
+      }
+    }
+
+    if (root.isNotEmpty) {
+      return root;
+    }
+    throw ApiException.parsing('The server returned an empty object.');
   }
 }

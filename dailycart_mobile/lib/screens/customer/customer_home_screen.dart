@@ -19,6 +19,7 @@ import '../../widgets/coupon_card.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/dailycart_card.dart';
 import '../../widgets/empty_products_widget.dart';
+import '../../widgets/error_widget.dart';
 import '../../widgets/loyalty_balance_card.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/promotion_banner.dart';
@@ -102,6 +103,21 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             ),
             const SizedBox(height: 18),
             _DashboardActions(),
+            if (categories.errorMessage != null ||
+                products.errorMessage != null) ...[
+              const SizedBox(height: 18),
+              DailyCartErrorWidget(
+                title: 'Unable to refresh the catalog',
+                message:
+                    products.errorMessage ??
+                    categories.errorMessage ??
+                    'Please try again.',
+                onRetry: () {
+                  ref.read(categoryProvider).getCategories();
+                  ref.read(productProvider).loadHomeProducts();
+                },
+              ),
+            ],
             const SizedBox(height: 18),
             LoyaltyBalanceCard(
               points: loyalty.loyaltyBalance,

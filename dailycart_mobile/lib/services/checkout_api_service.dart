@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
 import '../models/checkout_request_model.dart';
 import '../models/checkout_response_model.dart';
+import '../networking/api_client.dart';
+import '../networking/api_response.dart';
 import '../utils/secure_storage_helper.dart';
 import 'api_list_parser.dart';
 import 'auth_api_service.dart';
@@ -12,18 +13,7 @@ class CheckoutApiService with AuthenticatedApiMixin {
   CheckoutApiService({
     Dio? dio,
     SecureStorageHelper? storage,
-  })  : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json',
-                },
-              ),
-            ),
+  })  : _dio = dio ?? ApiClient.shared.dio,
         _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
@@ -41,7 +31,9 @@ class CheckoutApiService with AuthenticatedApiMixin {
         data: request.toJson(),
         options: await authOptions(),
       );
-      return CheckoutResponseModel.fromJson(response.data ?? {});
+      return CheckoutResponseModel.fromJson(
+        ApiResponseParser.requireMap(response.data),
+      );
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }

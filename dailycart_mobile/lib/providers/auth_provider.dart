@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/app_identity.dart';
 import '../models/user_model.dart';
 import '../models/user_role.dart';
+import '../networking/api_client.dart';
 import '../routes/app_routes.dart';
 import '../services/auth_api_service.dart';
 import '../services/onboarding_service.dart';
@@ -34,7 +35,7 @@ class AuthProvider extends ChangeNotifier {
     required SecureStorageHelper storage,
   }) : _apiService = apiService,
        _storage = storage {
-    ApiException.setUnauthorizedHandler(_handleUnauthorized);
+    ApiClient.shared.setUnauthorizedHandler(_handleUnauthorized);
   }
 
   final AuthApiService _apiService;

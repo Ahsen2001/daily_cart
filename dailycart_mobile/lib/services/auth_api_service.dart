@@ -1,26 +1,16 @@
-import 'dart:async';
-
 import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
 import '../models/user_model.dart';
 import '../models/user_role.dart';
+import '../networking/api_client.dart';
+import '../networking/api_exception.dart';
+import '../networking/api_response.dart';
+
+export '../networking/api_exception.dart' show ApiException;
 
 class AuthApiService {
   AuthApiService({Dio? dio})
-    : _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              baseUrl: AppConfig.apiBaseUrl,
-              connectTimeout: const Duration(seconds: 20),
-              receiveTimeout: const Duration(seconds: 20),
-              headers: const {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-              },
-            ),
-          );
+    : _dio = dio ?? ApiClient.shared.dio;
 
   final Dio _dio;
 
@@ -38,7 +28,9 @@ class AuthApiService {
         },
       );
 
-      return AuthResponse.fromJson(response.data ?? {});
+      return AuthResponse.fromJson(
+        ApiResponseParser.requireMap(response.data),
+      );
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -67,7 +59,9 @@ class AuthApiService {
         },
       );
 
-      return AuthResponse.fromJson(response.data ?? {});
+      return AuthResponse.fromJson(
+        ApiResponseParser.requireMap(response.data),
+      );
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -145,7 +139,7 @@ class AuthApiService {
         data: {'code': code},
         options: _authOptions(token),
       );
-      final data = response.data ?? {};
+      final data = ApiResponseParser.requireMap(response.data);
       final userJson = data['user'];
 
       if (userJson is! Map<String, dynamic>) {
@@ -165,7 +159,7 @@ class AuthApiService {
         options: _authOptions(token),
       );
 
-      final data = response.data ?? {};
+      final data = ApiResponseParser.requireMap(response.data);
       final userJson = data['user'];
       if (userJson is! Map<String, dynamic>) {
         throw const ApiException('Invalid profile response from server.');
@@ -241,82 +235,4 @@ class AuthResponse {
       user: user,
     );
   }
-}
-
-class ApiException implements Exception {
-  const ApiException(this.message, {this.statusCode});
-
-  static Future<void> Function()? _unauthorizedHandler;
-
-  final String message;
-  final int? statusCode;
-
-  bool get isUnauthorized => statusCode == 401;
-
-  static void setUnauthorizedHandler(Future<void> Function()? handler) {
-    _unauthorizedHandler = handler;
-  }
-
-  factory ApiException.fromDio(DioException error) {
-    if (error.type == DioExceptionType.connectionTimeout ||
-        error.type == DioExceptionType.receiveTimeout ||
-        error.type == DioExceptionType.sendTimeout ||
-        error.type == DioExceptionType.connectionError) {
-      return const ApiException('Network error. Please check your connection.');
-    }
-
-    final statusCode = error.response?.statusCode;
-    if (statusCode == 401) {
-      final handler = _unauthorizedHandler;
-      if (handler != null) {
-        unawaited(handler());
-      }
-      return const ApiException(
-        'Your session has expired. Please sign in again.',
-        statusCode: 401,
-      );
-    }
-
-    final data = error.response?.data;
-    if (data is Map<String, dynamic>) {
-      final validationMessage = _validationMessage(data['errors']);
-      if (validationMessage != null) {
-        return ApiException(validationMessage, statusCode: statusCode);
-      }
-
-      final message = data['message'];
-      if (message is String && message.isNotEmpty) {
-        return ApiException(message, statusCode: statusCode);
-      }
-    }
-
-    if (statusCode == 500) {
-      return const ApiException(
-        'Server error. Please try again later.',
-        statusCode: 500,
-      );
-    }
-
-    return ApiException(
-      'Something went wrong. Please try again.',
-      statusCode: statusCode,
-    );
-  }
-
-  static String? _validationMessage(Object? errors) {
-    if (errors is Map<String, dynamic>) {
-      for (final value in errors.values) {
-        if (value is List && value.isNotEmpty) {
-          return value.first.toString();
-        }
-        if (value is String && value.isNotEmpty) {
-          return value;
-        }
-      }
-    }
-    return null;
-  }
-
-  @override
-  String toString() => message;
 }

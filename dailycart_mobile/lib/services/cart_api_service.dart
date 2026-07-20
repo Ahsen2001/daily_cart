@@ -1,26 +1,15 @@
 import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
 import '../models/cart_model.dart';
+import '../networking/api_client.dart';
+import '../networking/api_response.dart';
 import '../utils/secure_storage_helper.dart';
 import 'auth_api_service.dart';
 import 'authenticated_api_mixin.dart';
 
 class CartApiService with AuthenticatedApiMixin {
   CartApiService({Dio? dio, SecureStorageHelper? storage})
-    : _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              baseUrl: AppConfig.apiBaseUrl,
-              connectTimeout: const Duration(seconds: 20),
-              receiveTimeout: const Duration(seconds: 20),
-              headers: const {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-              },
-            ),
-          ),
+    : _dio = dio ?? ApiClient.shared.dio,
       _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
@@ -35,7 +24,7 @@ class CartApiService with AuthenticatedApiMixin {
         '/cart',
         options: await authOptions(),
       );
-      return CartModel.fromJson(response.data as Map<String, dynamic>? ?? {});
+      return CartModel.fromJson(ApiResponseParser.requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -56,7 +45,7 @@ class CartApiService with AuthenticatedApiMixin {
         },
         options: await authOptions(),
       );
-      return CartModel.fromJson(response.data as Map<String, dynamic>? ?? {});
+      return CartModel.fromJson(ApiResponseParser.requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -72,7 +61,7 @@ class CartApiService with AuthenticatedApiMixin {
         data: {'quantity': quantity},
         options: await authOptions(),
       );
-      return CartModel.fromJson(response.data as Map<String, dynamic>? ?? {});
+      return CartModel.fromJson(ApiResponseParser.requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -84,7 +73,7 @@ class CartApiService with AuthenticatedApiMixin {
         '/cart/items/$cartItemId',
         options: await authOptions(),
       );
-      return CartModel.fromJson(response.data as Map<String, dynamic>? ?? {});
+      return CartModel.fromJson(ApiResponseParser.requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -96,7 +85,7 @@ class CartApiService with AuthenticatedApiMixin {
         '/cart',
         options: await authOptions(),
       );
-      return CartModel.fromJson(response.data as Map<String, dynamic>? ?? {});
+      return CartModel.fromJson(ApiResponseParser.requireMap(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }

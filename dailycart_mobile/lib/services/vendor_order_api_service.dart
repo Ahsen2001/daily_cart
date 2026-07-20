@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
 import '../models/vendor_order_model.dart';
+import '../networking/api_client.dart';
+import '../networking/api_response.dart';
 import '../utils/secure_storage_helper.dart';
 import 'api_list_parser.dart';
 import 'auth_api_service.dart';
@@ -9,15 +10,7 @@ import 'authenticated_api_mixin.dart';
 
 class VendorOrderApiService with AuthenticatedApiMixin {
   VendorOrderApiService({Dio? dio, SecureStorageHelper? storage})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {'Accept': 'application/json'},
-              ),
-            ),
+      : _dio = dio ?? ApiClient.shared.dio,
         _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
@@ -27,15 +20,23 @@ class VendorOrderApiService with AuthenticatedApiMixin {
   SecureStorageHelper get storage => _storage;
 
   Future<List<VendorOrderModel>> getVendorOrders({String? status}) async {
+    return (await getVendorOrdersPage(status: status)).items;
+  }
+
+  Future<ApiPage<VendorOrderModel>> getVendorOrdersPage({
+    String? status,
+  }) async {
     try {
       final response = await _dio.get<dynamic>(
         '/vendor/orders',
         queryParameters: {if (status != null && status != 'all') 'status': status},
         options: await authOptions(),
       );
-      return ApiListParser.extractList(response.data, key: 'orders')
-          .map(VendorOrderModel.fromJson)
-          .toList(growable: false);
+      return ApiPage<VendorOrderModel>.fromJson(
+        response.data,
+        key: 'orders',
+        decoder: VendorOrderModel.fromJson,
+      );
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }

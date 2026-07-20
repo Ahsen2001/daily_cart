@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
 import '../models/vendor_dashboard_model.dart';
 import '../models/vendor_profile_model.dart';
+import '../networking/api_client.dart';
 import '../utils/secure_storage_helper.dart';
 import 'api_list_parser.dart';
 import 'auth_api_service.dart';
@@ -10,15 +10,7 @@ import 'authenticated_api_mixin.dart';
 
 class VendorApiService with AuthenticatedApiMixin {
   VendorApiService({Dio? dio, SecureStorageHelper? storage})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {'Accept': 'application/json'},
-              ),
-            ),
+      : _dio = dio ?? ApiClient.shared.dio,
         _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;

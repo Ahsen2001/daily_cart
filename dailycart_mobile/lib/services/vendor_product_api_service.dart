@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
 import '../models/vendor_product_model.dart';
+import '../networking/api_client.dart';
 import '../utils/secure_storage_helper.dart';
 import 'api_list_parser.dart';
 import 'auth_api_service.dart';
@@ -9,15 +9,7 @@ import 'authenticated_api_mixin.dart';
 
 class VendorProductApiService with AuthenticatedApiMixin {
   VendorProductApiService({Dio? dio, SecureStorageHelper? storage})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {'Accept': 'application/json'},
-              ),
-            ),
+      : _dio = dio ?? ApiClient.shared.dio,
         _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
@@ -103,13 +95,14 @@ class VendorProductApiService with AuthenticatedApiMixin {
     required List<String> imagePaths,
   }) async {
     try {
-      final files = <MultipartFile>[];
-      for (final path in imagePaths) {
-        files.add(await MultipartFile.fromFile(path));
-      }
       final response = await _dio.post<dynamic>(
         '/vendor/products/$productId/images',
-        data: FormData.fromMap({'images[]': files}),
+        data: await ApiClient.shared.multipart(
+          files: [
+            for (final path in imagePaths)
+              ApiUploadFile(field: 'images[]', path: path),
+          ],
+        ),
         options: await authOptions(),
       );
       return VendorProductModel.fromJson(

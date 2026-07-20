@@ -298,7 +298,7 @@ role, and an approved Rider profile.
 | --- | --- | --- |
 | `GET /rider/deliveries` | optional `page` | `200 {"deliveries": LaravelPaginator<Delivery>}` |
 | `GET /rider/deliveries/{delivery}` | integer route ID | `200 {"delivery": Delivery}` |
-| `PATCH /rider/deliveries/{delivery}/status` | status payload below | `200 {"message": string}` |
+| `PATCH /rider/deliveries/{delivery}/status` | status payload below | `200 {"message": string, "delivery": Delivery}` |
 | `POST /rider/location` | `latitude` and `longitude` required numbers | `200 {"message": string}` |
 
 Status values are `accepted`, `picked_up`, `on_the_way`, `delivered`, and

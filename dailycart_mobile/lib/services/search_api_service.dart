@@ -1,21 +1,13 @@
 import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
 import '../models/product_model.dart';
+import '../networking/api_client.dart';
 import 'api_list_parser.dart';
 import 'auth_api_service.dart';
 
 class SearchApiService {
   SearchApiService({Dio? dio})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {'Accept': 'application/json'},
-              ),
-            );
+      : _dio = dio ?? ApiClient.shared.dio;
 
   final Dio _dio;
 

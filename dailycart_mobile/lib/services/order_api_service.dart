@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
 import '../models/order_model.dart';
+import '../networking/api_client.dart';
+import '../networking/api_response.dart';
 import '../utils/secure_storage_helper.dart';
 import 'api_list_parser.dart';
 import 'auth_api_service.dart';
@@ -11,15 +12,7 @@ class OrderApiService with AuthenticatedApiMixin {
   OrderApiService({
     Dio? dio,
     SecureStorageHelper? storage,
-  })  : _dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.apiBaseUrl,
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 20),
-                headers: const {'Accept': 'application/json'},
-              ),
-            ),
+  })  : _dio = dio ?? ApiClient.shared.dio,
         _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
@@ -29,6 +22,10 @@ class OrderApiService with AuthenticatedApiMixin {
   SecureStorageHelper get storage => _storage;
 
   Future<List<OrderModel>> getOrders({String? filter}) async {
+    return (await getOrdersPage(filter: filter)).items;
+  }
+
+  Future<ApiPage<OrderModel>> getOrdersPage({String? filter}) async {
     try {
       final response = await _dio.get<dynamic>(
         '/orders',
@@ -37,9 +34,11 @@ class OrderApiService with AuthenticatedApiMixin {
         },
         options: await authOptions(),
       );
-      return ApiListParser.extractList(response.data, key: 'orders')
-          .map(OrderModel.fromJson)
-          .toList(growable: false);
+      return ApiPage<OrderModel>.fromJson(
+        response.data,
+        key: 'orders',
+        decoder: OrderModel.fromJson,
+      );
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }

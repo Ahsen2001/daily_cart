@@ -44,22 +44,20 @@ class ProductProvider extends ChangeNotifier {
         _apiService.getRecommendedProducts(),
       ]);
 
-      featuredProducts = _orFallback(results[0]);
-      bestSellingProducts = _orFallback(results[1]);
-      newArrivals = _orFallback(results[2]);
-      flashDeals = _orFallback(results[3]);
-      recommendedProducts = _orFallback(results[4]);
+      featuredProducts = results[0];
+      bestSellingProducts = results[1];
+      newArrivals = results[2];
+      flashDeals = results[3];
+      recommendedProducts = results[4];
       recentlyViewedProducts = featuredProducts.take(4).toList(growable: false);
     } catch (error) {
       errorMessage = error.toString();
-      // Fallback data keeps the UI testable while backend endpoints are being
-      // connected or if the development API is temporarily unavailable.
-      featuredProducts = _fallbackProducts;
-      bestSellingProducts = _fallbackProducts.reversed.toList(growable: false);
-      newArrivals = _fallbackProducts.take(3).toList(growable: false);
-      flashDeals = _fallbackProducts.skip(1).take(3).toList(growable: false);
-      recommendedProducts = _fallbackProducts;
-      recentlyViewedProducts = _fallbackProducts.take(2).toList(growable: false);
+      featuredProducts = const [];
+      bestSellingProducts = const [];
+      newArrivals = const [];
+      flashDeals = const [];
+      recommendedProducts = const [];
+      recentlyViewedProducts = const [];
     } finally {
       isLoading = false;
       notifyListeners();
@@ -92,10 +90,10 @@ class ProductProvider extends ChangeNotifier {
         sort: selectedSort,
         query: query,
       );
-      products = _orFallback(apiProducts);
+      products = apiProducts;
     } catch (error) {
       errorMessage = error.toString();
-      products = _fallbackProducts;
+      products = const [];
     } finally {
       isLoading = false;
       notifyListeners();
@@ -112,10 +110,7 @@ class ProductProvider extends ChangeNotifier {
       selectedProduct = await _apiService.getProductDetails(productId);
     } catch (error) {
       errorMessage = error.toString();
-      selectedProduct = _fallbackProducts.firstWhere(
-        (product) => product.id == productId,
-        orElse: () => _fallbackProducts.first,
-      );
+      selectedProduct = null;
     } finally {
       isLoading = false;
       notifyListeners();
@@ -131,60 +126,4 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<ProductModel> _orFallback(List<ProductModel> items) {
-    return items.isEmpty ? _fallbackProducts : items;
-  }
-
-  static const _fallbackProducts = [
-    ProductModel(
-      id: 1,
-      name: 'Fresh Carrot',
-      price: 250,
-      discountPrice: 200,
-      image: '',
-      rating: 4.8,
-      vendorName: 'DailyCart Fresh',
-      brand: 'DailyCart',
-      categoryName: 'Vegetables',
-      description: 'Fresh carrots selected from trusted vendors.',
-      stockQuantity: 40,
-    ),
-    ProductModel(
-      id: 2,
-      name: 'Green Apples',
-      price: 1500,
-      discountPrice: 1350,
-      image: '',
-      rating: 4.7,
-      vendorName: 'Fruit House',
-      brand: 'Fruit House',
-      categoryName: 'Fruits',
-      description: 'Crisp green apples packed for freshness.',
-      stockQuantity: 25,
-    ),
-    ProductModel(
-      id: 3,
-      name: 'Wholemeal Bread',
-      price: 520,
-      image: '',
-      rating: 4.5,
-      vendorName: 'Daily Bakery',
-      brand: 'Daily Bakery',
-      categoryName: 'Bakery',
-      description: 'Soft wholemeal bread baked daily.',
-      stockQuantity: 18,
-    ),
-    ProductModel(
-      id: 4,
-      name: 'Fresh Milk 1L',
-      price: 430,
-      image: '',
-      rating: 4.6,
-      vendorName: 'Lanka Dairy',
-      brand: 'Lanka Dairy',
-      categoryName: 'Beverages',
-      description: 'Fresh milk for daily family use.',
-      stockQuantity: 32,
-    ),
-  ];
 }
