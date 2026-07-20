@@ -8,6 +8,7 @@ import '../networking/api_client.dart';
 import '../routes/app_routes.dart';
 import '../services/auth_api_service.dart';
 import '../services/onboarding_service.dart';
+import '../services/notification_service.dart';
 import '../utils/secure_storage_helper.dart';
 
 final authApiServiceProvider = Provider<AuthApiService>((ref) {
@@ -159,6 +160,11 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       if (currentToken != null) {
+        try {
+          await NotificationService.revokeDevice();
+        } catch (_) {
+          // Server logout must still run and local credentials must still clear.
+        }
         await _apiService.logout(currentToken);
       }
     } catch (_) {
@@ -193,6 +199,7 @@ class AuthProvider extends ChangeNotifier {
       role = refreshedUser.role;
       isSessionValidated = true;
       await _storage.saveUser(refreshedUser);
+      await _syncNotificationDevice();
     } on ApiException catch (error) {
       errorMessage = error.message;
       await clearToken();
@@ -260,6 +267,7 @@ class AuthProvider extends ChangeNotifier {
     user = responseUser;
     role = responseUser.role;
     isSessionValidated = true;
+    await _syncNotificationDevice();
 
     if (response.requiresVerification || responseUser.requiresVerification) {
       return AuthActionResult.verificationRequired(
@@ -289,6 +297,11 @@ class AuthProvider extends ChangeNotifier {
     }
 
     errorMessage = 'Your session has expired. Please sign in again.';
+    try {
+      await NotificationService.disableLocalDevice();
+    } catch (_) {
+      // Session cleanup must not depend on Firebase availability.
+    }
     await clearToken();
     isInitialized = true;
     notifyListeners();
@@ -302,6 +315,14 @@ class AuthProvider extends ChangeNotifier {
         'used in the DailyCart ${authenticatedUser.role.label} app.',
         statusCode: 403,
       );
+    }
+  }
+
+  Future<void> _syncNotificationDevice() async {
+    try {
+      await NotificationService.syncDevice();
+    } catch (_) {
+      // Token sync is retried by startup validation and Firebase refresh events.
     }
   }
 

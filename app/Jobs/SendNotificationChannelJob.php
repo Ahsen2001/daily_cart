@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\User;
-use App\Services\ExternalPushService;
 use App\Services\ExternalSmsService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -24,13 +23,12 @@ class SendNotificationChannelJob implements ShouldQueue
         $this->afterCommit();
     }
 
-    public function handle(ExternalSmsService $sms, ExternalPushService $push): void
+    public function handle(ExternalSmsService $sms): void
     {
         $user = User::findOrFail($this->userId);
 
         match ($this->channel) {
             'sms' => filled($user->phone) ? $sms->send($user->phone, $this->message) : null,
-            'push' => $push->send($user, $this->title, $this->message),
             'whatsapp' => Log::notice('WhatsApp notification provider is not configured.', [
                 'user_id' => $user->id,
             ]),

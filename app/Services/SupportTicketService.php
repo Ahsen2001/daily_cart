@@ -61,7 +61,8 @@ class SupportTicketService
                     'Support ticket reply',
                     'A reply was added to ticket: '.$ticket->subject,
                     'support_ticket_reply',
-                    ['database', 'mail']
+                    ['database', 'mail', 'push'],
+                    ['support_ticket_id' => $ticket->id],
                 );
             }
 

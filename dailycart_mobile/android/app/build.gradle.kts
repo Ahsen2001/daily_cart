@@ -36,6 +36,7 @@ android {
             dimension = "role"
             applicationId = "com.dailycart.customer"
             resValue("string", "app_name", "DailyCart Customer")
+            resValue("string", "notification_channel_id", "dailycart_customer")
             manifestPlaceholders["deepLinkScheme"] = "dailycart-customer"
         }
 
@@ -43,6 +44,7 @@ android {
             dimension = "role"
             applicationId = "com.dailycart.vendor"
             resValue("string", "app_name", "DailyCart Vendor")
+            resValue("string", "notification_channel_id", "dailycart_vendor")
             manifestPlaceholders["deepLinkScheme"] = "dailycart-vendor"
         }
 
@@ -50,6 +52,7 @@ android {
             dimension = "role"
             applicationId = "com.dailycart.rider"
             resValue("string", "app_name", "DailyCart Rider")
+            resValue("string", "notification_channel_id", "dailycart_rider")
             manifestPlaceholders["deepLinkScheme"] = "dailycart-rider"
         }
     }

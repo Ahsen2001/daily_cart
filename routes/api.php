@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\v1\CustomerAccountController;
 use App\Http\Controllers\Api\v1\CustomerExtendedCommerceController;
 use App\Http\Controllers\Api\v1\DeliveryPricingController;
 use App\Http\Controllers\Api\v1\OrderController;
+use App\Http\Controllers\Api\v1\NotificationInfrastructureController;
 use App\Http\Controllers\Api\v1\PasswordRecoveryController;
 use App\Http\Controllers\Api\v1\PayHereMobileController;
 use App\Http\Controllers\Api\v1\ProductController;
@@ -47,6 +48,14 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->middleware('ability:auth');
         Route::get('/profile', [AuthController::class, 'profile'])->middleware('ability:profile');
+
+        // Device registration is intentionally available before verification/approval so
+        // pending vendor and rider accounts can receive private account-state updates.
+        Route::post('/notifications/device-tokens', [NotificationInfrastructureController::class, 'registerDevice']);
+        Route::patch('/notifications/device-tokens', [NotificationInfrastructureController::class, 'refreshDevice']);
+        Route::delete('/notifications/device-tokens', [NotificationInfrastructureController::class, 'revokeDevice']);
+        Route::get('/notifications/preferences', [NotificationInfrastructureController::class, 'preferences']);
+        Route::patch('/notifications/preferences', [NotificationInfrastructureController::class, 'updatePreferences']);
 
         Route::middleware(['ability:verification', 'throttle:api-otp'])->group(function () {
             Route::post('/email/verification-otp', [VerificationController::class, 'sendEmail']);
@@ -119,11 +128,11 @@ Route::prefix('v1')->group(function () {
             Route::patch('/profile/password', [CustomerAccountController::class, 'changePassword']);
             Route::delete('/profile', [CustomerAccountController::class, 'destroyAccount']);
 
-            Route::get('/notifications', [CustomerAccountController::class, 'notifications']);
-            Route::patch('/notifications/read-all', [CustomerAccountController::class, 'readAllNotifications']);
-            Route::post('/notifications/device-token', [CustomerAccountController::class, 'saveDeviceToken']);
-            Route::patch('/notifications/{notification}/read', [CustomerAccountController::class, 'readNotification']);
-            Route::delete('/notifications/{notification}', [CustomerAccountController::class, 'deleteNotification']);
+            Route::get('/notifications', [NotificationInfrastructureController::class, 'index']);
+            Route::patch('/notifications/read-all', [NotificationInfrastructureController::class, 'markAllRead']);
+            Route::post('/notifications/device-token', [NotificationInfrastructureController::class, 'registerDevice']);
+            Route::patch('/notifications/{notification}/read', [NotificationInfrastructureController::class, 'markRead']);
+            Route::delete('/notifications/{notification}', [NotificationInfrastructureController::class, 'destroy']);
 
             Route::get('/support-tickets', [CustomerAccountController::class, 'tickets']);
             Route::post('/support-tickets', [CustomerAccountController::class, 'createTicket']);
@@ -150,11 +159,16 @@ Route::prefix('v1')->group(function () {
             Route::get('/earnings', [RiderController::class, 'earnings']);
             Route::get('/reports', [RiderController::class, 'reports']);
 
-            Route::get('/notifications', [CustomerAccountController::class, 'notifications']);
-            Route::patch('/notifications/read-all', [CustomerAccountController::class, 'readAllNotifications']);
-            Route::post('/notifications/device-token', [CustomerAccountController::class, 'saveDeviceToken']);
-            Route::patch('/notifications/{notification}/read', [CustomerAccountController::class, 'readNotification']);
-            Route::delete('/notifications/{notification}', [CustomerAccountController::class, 'deleteNotification']);
+            Route::get('/notifications', [NotificationInfrastructureController::class, 'index']);
+            Route::patch('/notifications/read-all', [NotificationInfrastructureController::class, 'markAllRead']);
+            Route::post('/notifications/device-token', [NotificationInfrastructureController::class, 'registerDevice']);
+            Route::post('/notifications/device-tokens', [NotificationInfrastructureController::class, 'registerDevice']);
+            Route::patch('/notifications/device-tokens', [NotificationInfrastructureController::class, 'refreshDevice']);
+            Route::delete('/notifications/device-tokens', [NotificationInfrastructureController::class, 'revokeDevice']);
+            Route::get('/notifications/preferences', [NotificationInfrastructureController::class, 'preferences']);
+            Route::patch('/notifications/preferences', [NotificationInfrastructureController::class, 'updatePreferences']);
+            Route::patch('/notifications/{notification}/read', [NotificationInfrastructureController::class, 'markRead']);
+            Route::delete('/notifications/{notification}', [NotificationInfrastructureController::class, 'destroy']);
             Route::get('/support-tickets', [CustomerAccountController::class, 'tickets']);
             Route::post('/support-tickets', [CustomerAccountController::class, 'createTicket']);
             Route::get('/support-tickets/{ticket}', [CustomerAccountController::class, 'ticket']);
@@ -209,11 +223,16 @@ Route::prefix('v1')->group(function () {
             Route::get('/scheduled-orders', [VendorBusinessController::class, 'scheduledOrders']);
             Route::get('/reports', [VendorBusinessController::class, 'reports']);
 
-            Route::get('/notifications', [CustomerAccountController::class, 'notifications']);
-            Route::patch('/notifications/read-all', [CustomerAccountController::class, 'readAllNotifications']);
-            Route::post('/notifications/device-token', [CustomerAccountController::class, 'saveDeviceToken']);
-            Route::patch('/notifications/{notification}/read', [CustomerAccountController::class, 'readNotification']);
-            Route::delete('/notifications/{notification}', [CustomerAccountController::class, 'deleteNotification']);
+            Route::get('/notifications', [NotificationInfrastructureController::class, 'index']);
+            Route::patch('/notifications/read-all', [NotificationInfrastructureController::class, 'markAllRead']);
+            Route::post('/notifications/device-token', [NotificationInfrastructureController::class, 'registerDevice']);
+            Route::post('/notifications/device-tokens', [NotificationInfrastructureController::class, 'registerDevice']);
+            Route::patch('/notifications/device-tokens', [NotificationInfrastructureController::class, 'refreshDevice']);
+            Route::delete('/notifications/device-tokens', [NotificationInfrastructureController::class, 'revokeDevice']);
+            Route::get('/notifications/preferences', [NotificationInfrastructureController::class, 'preferences']);
+            Route::patch('/notifications/preferences', [NotificationInfrastructureController::class, 'updatePreferences']);
+            Route::patch('/notifications/{notification}/read', [NotificationInfrastructureController::class, 'markRead']);
+            Route::delete('/notifications/{notification}', [NotificationInfrastructureController::class, 'destroy']);
             Route::get('/support-tickets', [CustomerAccountController::class, 'tickets']);
             Route::post('/support-tickets', [CustomerAccountController::class, 'createTicket']);
             Route::get('/support-tickets/{ticket}', [CustomerAccountController::class, 'ticket']);

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/notification_model.dart';
 import '../services/auth_api_service.dart';
 import '../services/notification_api_service.dart';
+import '../services/notification_service.dart';
 
 final notificationApiServiceProvider = Provider<NotificationApiService>((ref) {
   return NotificationApiService();
@@ -19,6 +20,7 @@ class NotificationProvider extends ChangeNotifier {
   final NotificationApiService _apiService;
 
   List<NotificationModel> notifications = const [];
+  NotificationPreferences preferences = const NotificationPreferences();
   bool isLoading = false;
   String? errorMessage;
 
@@ -29,6 +31,7 @@ class NotificationProvider extends ChangeNotifier {
   Future<void> getNotifications() async {
     await _run(() async {
       notifications = await _apiService.getNotifications();
+      preferences = await _apiService.getPreferences();
     });
   }
 
@@ -59,8 +62,13 @@ class NotificationProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> saveDeviceToken(String token) async {
-    await _apiService.saveDeviceToken(token);
+  Future<bool> updatePreferences(
+    NotificationPreferences updated,
+  ) async {
+    return _run(() async {
+      preferences = await _apiService.updatePreferences(updated);
+      await NotificationService.applyPreferences(preferences);
+    });
   }
 
   Future<bool> _run(Future<void> Function() action) async {

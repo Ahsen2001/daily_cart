@@ -55,8 +55,7 @@ class CheckoutApiService with AuthenticatedApiMixin {
           if (loyaltyPoints > 0) 'loyalty_points': loyaltyPoints,
           if (deliveryDistrict != null && deliveryDistrict.isNotEmpty)
             'delivery_district': deliveryDistrict,
-          if (deliveryDistanceMeters != null)
-            'delivery_distance_meters': deliveryDistanceMeters,
+          'delivery_distance_meters': ?deliveryDistanceMeters,
         },
         options: await authOptions(),
       );

@@ -108,13 +108,21 @@ class OrderService
                 }
 
                 $this->paymentService->createPlaceholder($order, $data['payment_method']);
-                $this->notificationService->send($order->customer->user, 'Order placed', 'Order '.$order->order_number.' has been placed.', 'order_placed');
+                $this->notificationService->send(
+                    $order->customer->user,
+                    'Order placed',
+                    'Order '.$order->order_number.' has been placed.',
+                    'order_placed',
+                    ['database', 'push'],
+                    ['order_id' => $order->id, 'status' => 'placed'],
+                );
                 $this->notificationService->send(
                     $order->vendor->user,
                     'New order received',
                     'New order '.$order->order_number.' is waiting for action.',
                     'new_order',
-                    ['database', 'mail', 'sms'],
+                    ['database', 'mail', 'sms', 'push'],
+                    ['order_id' => $order->id, 'status' => 'placed'],
                 );
                 $this->emails->orderPlaced($order->loadMissing('customer.user'));
                 $order->delivery()->create([

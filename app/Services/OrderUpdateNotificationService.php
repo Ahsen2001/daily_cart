@@ -25,7 +25,12 @@ class OrderUpdateNotificationService
                 $title,
                 $message,
                 'order_update:'.$order->id.':'.$status,
-                array_merge(['database', 'mail'], in_array($user->id, $smsRecipientIds, true) ? ['sms'] : []),
+                array_merge(['database', 'mail', 'push'], in_array($user->id, $smsRecipientIds, true) ? ['sms'] : []),
+                [
+                    'order_id' => $order->id,
+                    'delivery_id' => $order->delivery?->id,
+                    'status' => $status,
+                ],
             );
         });
     }
@@ -45,7 +50,12 @@ class OrderUpdateNotificationService
                 $title,
                 $message,
                 'rider_assigned:'.$order->id,
-                array_merge(['database', 'mail'], in_array($user->id, $smsRecipientIds, true) ? ['sms'] : []),
+                array_merge(['database', 'mail', 'push'], in_array($user->id, $smsRecipientIds, true) ? ['sms'] : []),
+                [
+                    'order_id' => $order->id,
+                    'delivery_id' => $order->delivery?->id,
+                    'status' => 'rider_assigned',
+                ],
             );
         });
     }

@@ -15,12 +15,16 @@ class Notification extends Model
         'title',
         'message',
         'type',
+        'app_role',
+        'data',
+        'deep_link',
         'read_at',
     ];
 
     protected function casts(): array
     {
         return [
+            'data' => 'array',
             'read_at' => 'datetime',
         ];
     }

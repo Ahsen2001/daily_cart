@@ -32,7 +32,7 @@ class OrderSuccessScreen extends ConsumerWidget {
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: orders.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final order = orders[index];
                       return Column(

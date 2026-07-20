@@ -54,9 +54,10 @@ return [
         'sender' => env('SMS_SENDER_ID', 'DailyCart'),
     ],
 
-    'push' => [
-        'endpoint' => env('PUSH_GATEWAY_URL'),
-        'token' => env('PUSH_GATEWAY_TOKEN'),
+    'firebase' => [
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+        // Absolute service-account JSON path, or the JSON document itself.
+        'credentials' => env('FIREBASE_CREDENTIALS'),
     ],
 
 ];

@@ -4,7 +4,6 @@ import '../models/category_model.dart';
 import '../networking/api_client.dart';
 import '../networking/api_exception.dart';
 import '../networking/api_response.dart';
-import 'api_list_parser.dart';
 import 'auth_api_service.dart';
 
 class CategoryApiService {

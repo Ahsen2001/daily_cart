@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
-use App\Models\DeviceToken;
 use App\Models\Notification;
 use App\Models\SupportTicket;
 use App\Services\AccountDeletionService;
@@ -112,20 +111,6 @@ class CustomerAccountController extends Controller
         $notification->delete();
 
         return response()->json(['message' => 'Notification deleted.']);
-    }
-
-    public function saveDeviceToken(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'device_token' => ['required', 'string', 'max:4096'],
-            'platform' => ['required', 'string', 'in:flutter,android,ios'],
-        ]);
-        DeviceToken::updateOrCreate(
-            ['token' => $validated['device_token']],
-            ['user_id' => $request->user()->id, 'platform' => $validated['platform']],
-        );
-
-        return response()->json(['message' => 'Device token saved.']);
     }
 
     public function tickets(Request $request): JsonResponse

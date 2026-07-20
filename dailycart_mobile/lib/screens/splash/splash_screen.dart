@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_logo.dart';
 
@@ -68,7 +69,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return;
     }
 
-    context.go(auth.role?.homeRoute ?? AppRoutes.login);
+    final pendingDeepLink = NotificationService.takePendingDeepLink();
+    context.go(pendingDeepLink ?? auth.role?.homeRoute ?? AppRoutes.login);
   }
 
   @override
