@@ -71,25 +71,7 @@ class ApiClient {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    try {
-      final connectivity = await _connectivity.checkConnectivity();
-      if (connectivity.isNotEmpty &&
-          connectivity.every((result) => result == ConnectivityResult.none)) {
-        handler.reject(
-          DioException(
-            requestOptions: options,
-            type: DioExceptionType.connectionError,
-            error: const ApiException(
-              'No internet connection. Check your connection and try again.',
-              kind: ApiErrorKind.connectivity,
-            ),
-          ),
-        );
-        return;
-      }
-    } catch (_) {
-      // A platform connectivity probe is advisory; Dio remains authoritative.
-    }
+    // A platform connectivity probe is advisory; Dio remains authoritative for actual network calls.
 
     final token = await _storage.getToken();
     if (token != null && token.isNotEmpty) {
