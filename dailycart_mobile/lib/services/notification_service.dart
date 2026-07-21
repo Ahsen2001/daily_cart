@@ -22,9 +22,7 @@ class NotificationService {
 
   static Future<void> disableLocalDevice() => _firebase.disableLocalDevice();
 
-  static Future<void> applyPreferences(
-    NotificationPreferences preferences,
-  ) {
+  static Future<void> applyPreferences(NotificationPreferences preferences) {
     return _firebase.applyPreferences(preferences);
   }
 

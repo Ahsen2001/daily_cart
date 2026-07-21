@@ -18,10 +18,7 @@ class CartModel {
         ? json['cart'] as List
         : cartJson['items'] is List
             ? cartJson['items'] as List
-            : null;
-    if (itemList == null) {
-      throw const FormatException('Cart response is missing the cart items.');
-    }
+            : const [];
     final items = itemList
         .whereType<Map<String, dynamic>>()
         .map(CartItemModel.fromJson)

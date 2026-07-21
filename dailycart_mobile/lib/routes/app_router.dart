@@ -737,6 +737,7 @@ UserRole? _requiredRoleFor(String location) {
   ];
   const riderPrefixes = [
     '/rider-',
+    '/edit-rider-profile',
     '/assigned-deliveries',
     '/delivery-details',
     '/delivery-proof',

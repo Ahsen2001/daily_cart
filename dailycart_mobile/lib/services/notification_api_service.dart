@@ -9,11 +9,9 @@ import 'auth_api_service.dart';
 import 'authenticated_api_mixin.dart';
 
 class NotificationApiService with AuthenticatedApiMixin {
-  NotificationApiService({
-    Dio? dio,
-    SecureStorageHelper? storage,
-  })  : _dio = dio ?? ApiClient.shared.dio,
-        _storage = storage ?? SecureStorageHelper();
+  NotificationApiService({Dio? dio, SecureStorageHelper? storage})
+    : _dio = dio ?? ApiClient.shared.dio,
+      _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
   final SecureStorageHelper _storage;
@@ -24,8 +22,8 @@ class NotificationApiService with AuthenticatedApiMixin {
   String get _prefix => AppIdentity.isVendor
       ? '/vendor'
       : AppIdentity.isRider
-          ? '/rider'
-          : '';
+      ? '/rider'
+      : '';
 
   Future<List<NotificationModel>> getNotifications() async {
     try {
@@ -165,10 +163,7 @@ class NotificationApiService with AuthenticatedApiMixin {
     try {
       final response = await _dio.patch<dynamic>(
         '/notifications/preferences',
-        data: {
-          ...preferences.toJson(),
-          'app_role': AppIdentity.flavor.name,
-        },
+        data: {...preferences.toJson(), 'app_role': AppIdentity.flavor.name},
         options: await authOptions(),
       );
       final json = ApiResponseParser.requireObject(

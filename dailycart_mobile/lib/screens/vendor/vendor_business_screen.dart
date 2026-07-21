@@ -45,21 +45,20 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       VendorBusinessSection.coupons => provider.loadCoupons(),
       VendorBusinessSection.promotions => provider.loadPromotions(),
       VendorBusinessSection.subscriptions => provider.loadSubscriptions(),
-      VendorBusinessSection.scheduledOrders =>
-        provider.loadScheduledOrders(),
+      VendorBusinessSection.scheduledOrders => provider.loadScheduledOrders(),
       VendorBusinessSection.reports => provider.loadReport(),
     };
   }
 
   String get _title => switch (widget.section) {
-        VendorBusinessSection.wallet => 'Wallet & Payouts',
-        VendorBusinessSection.refunds => 'Refund Handling',
-        VendorBusinessSection.coupons => 'Coupons',
-        VendorBusinessSection.promotions => 'Promotions',
-        VendorBusinessSection.subscriptions => 'Subscriptions',
-        VendorBusinessSection.scheduledOrders => 'Scheduled Orders',
-        VendorBusinessSection.reports => 'Reports',
-      };
+    VendorBusinessSection.wallet => 'Wallet & Payouts',
+    VendorBusinessSection.refunds => 'Refund Handling',
+    VendorBusinessSection.coupons => 'Coupons',
+    VendorBusinessSection.promotions => 'Promotions',
+    VendorBusinessSection.subscriptions => 'Subscriptions',
+    VendorBusinessSection.scheduledOrders => 'Scheduled Orders',
+    VendorBusinessSection.reports => 'Reports',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -69,31 +68,28 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       body: state.isLoading && !_hasData(state)
           ? LoadingWidget(message: 'Loading ${_title.toLowerCase()}...')
           : state.errorMessage != null && !_hasData(state)
-              ? DailyCartErrorWidget(
-                  title: 'Unable to load $_title',
-                  message: state.errorMessage!,
-                  onRetry: _load,
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: _body(state),
-                ),
+          ? DailyCartErrorWidget(
+              title: 'Unable to load $_title',
+              message: state.errorMessage!,
+              onRetry: _load,
+            )
+          : RefreshIndicator(onRefresh: _load, child: _body(state)),
       floatingActionButton: switch (widget.section) {
         VendorBusinessSection.wallet => FloatingActionButton.extended(
-            onPressed: _requestPayout,
-            icon: const Icon(Icons.payments_outlined),
-            label: const Text('Request payout'),
-          ),
+          onPressed: _requestPayout,
+          icon: const Icon(Icons.payments_outlined),
+          label: const Text('Request payout'),
+        ),
         VendorBusinessSection.coupons => FloatingActionButton.extended(
-            onPressed: _createCoupon,
-            icon: const Icon(Icons.add),
-            label: const Text('Coupon'),
-          ),
+          onPressed: _createCoupon,
+          icon: const Icon(Icons.add),
+          label: const Text('Coupon'),
+        ),
         VendorBusinessSection.promotions => FloatingActionButton.extended(
-            onPressed: _createPromotion,
-            icon: const Icon(Icons.add),
-            label: const Text('Promotion'),
-          ),
+          onPressed: _createPromotion,
+          icon: const Icon(Icons.add),
+          label: const Text('Promotion'),
+        ),
         _ => null,
       },
     );
@@ -145,10 +141,12 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       padding: const EdgeInsets.all(20),
       children: [
         if (state.refunds.isEmpty)
-          const Center(child: Padding(
-            padding: EdgeInsets.all(30),
-            child: Text('No refund requests.'),
-          )),
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(30),
+              child: Text('No refund requests.'),
+            ),
+          ),
         for (final refund in state.refunds)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -182,10 +180,12 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       padding: const EdgeInsets.all(20),
       children: [
         if (state.coupons.isEmpty)
-          const Center(child: Padding(
-            padding: EdgeInsets.all(30),
-            child: Text('No coupons.'),
-          )),
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(30),
+              child: Text('No coupons.'),
+            ),
+          ),
         for (final coupon in state.coupons)
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -209,10 +209,12 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       padding: const EdgeInsets.all(20),
       children: [
         if (state.promotions.isEmpty)
-          const Center(child: Padding(
-            padding: EdgeInsets.all(30),
-            child: Text('No promotions.'),
-          )),
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(30),
+              child: Text('No promotions.'),
+            ),
+          ),
         for (final promotion in state.promotions)
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -237,10 +239,12 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       padding: const EdgeInsets.all(20),
       children: [
         if (state.subscriptions.isEmpty)
-          const Center(child: Padding(
-            padding: EdgeInsets.all(30),
-            child: Text('No active subscriptions.'),
-          )),
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(30),
+              child: Text('No active subscriptions.'),
+            ),
+          ),
         for (final item in state.subscriptions)
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -259,16 +263,17 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       padding: const EdgeInsets.all(20),
       children: [
         if (state.scheduledOrders.isEmpty)
-          const Center(child: Padding(
-            padding: EdgeInsets.all(30),
-            child: Text('No scheduled orders.'),
-          )),
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(30),
+              child: Text('No scheduled orders.'),
+            ),
+          ),
         for (final order in state.scheduledOrders)
           ListTile(
             contentPadding: EdgeInsets.zero,
-            onTap: () => context.push(
-              '${AppRoutes.vendorOrderDetails}/${order.id}',
-            ),
+            onTap: () =>
+                context.push('${AppRoutes.vendorOrderDetails}/${order.id}'),
             title: Text(order.orderNumber),
             subtitle: Text(
               order.scheduledDeliveryTime?.toLocal().toString() ?? '-',
@@ -287,7 +292,9 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
         DailyCartCard(
           child: Column(
             children: [
-              for (final entry in report?.summary.entries ?? const [])
+              for (final entry
+                  in report?.summary.entries.toList() ??
+                      <MapEntry<String, dynamic>>[])
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(entry.key.replaceAll('_', ' ')),

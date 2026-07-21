@@ -99,7 +99,8 @@ class CheckoutProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    if (selectedDeliveryTime!.isBefore(minimumDeliveryTime)) {
+    final cutoff = DateTime.now().add(const Duration(minutes: 25));
+    if (selectedDeliveryTime!.isBefore(cutoff)) {
       errorMessage =
           'Delivery time must be at least 30 minutes after placing the order.';
       notifyListeners();

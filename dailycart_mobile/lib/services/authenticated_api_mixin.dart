@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../utils/secure_storage_helper.dart';
 import 'auth_api_service.dart';
 
@@ -17,4 +19,3 @@ mixin AuthenticatedApiMixin {
     return Options();
   }
 }
-import 'package:dio/dio.dart';

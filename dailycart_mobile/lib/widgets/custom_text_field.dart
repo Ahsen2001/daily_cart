@@ -10,6 +10,7 @@ class CustomTextField extends StatelessWidget {
     this.textInputAction,
     this.validator,
     this.maxLength,
+    this.maxLines = 1,
     this.onChanged,
     this.hintText,
     this.helperText,
@@ -28,6 +29,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final String? Function(String?)? validator;
   final int? maxLength;
+  final int maxLines;
   final ValueChanged<String>? onChanged;
   final String? hintText;
   final String? helperText;
@@ -45,6 +47,7 @@ class CustomTextField extends StatelessWidget {
       textInputAction: textInputAction,
       validator: validator,
       maxLength: maxLength,
+      maxLines: obscureText ? 1 : maxLines,
       onChanged: onChanged,
       enabled: enabled,
       autofillHints: autofillHints,

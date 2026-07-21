@@ -46,14 +46,14 @@ class ApiException implements Exception {
 
   factory ApiException.fromDio(DioException error) {
     final requestId = error.requestOptions.headers['X-Request-ID']?.toString();
-    if (error.error is ApiException) {
-      final exception = error.error! as ApiException;
+    final innerError = error.error;
+    if (innerError is ApiException) {
       return ApiException(
-        exception.message,
-        statusCode: exception.statusCode,
-        kind: exception.kind,
-        requestId: exception.requestId ?? requestId,
-        validationErrors: exception.validationErrors,
+        innerError.message,
+        statusCode: innerError.statusCode,
+        kind: innerError.kind,
+        requestId: innerError.requestId ?? requestId,
+        validationErrors: innerError.validationErrors,
       );
     }
 
@@ -78,16 +78,18 @@ class ApiException implements Exception {
     final responseData = error.response?.data;
     final message = _messageFrom(responseData);
     final validationErrors = _validationErrorsFrom(responseData);
-    final kind = switch (statusCode) {
-      401 => ApiErrorKind.unauthorized,
-      403 => ApiErrorKind.forbidden,
-      404 => ApiErrorKind.notFound,
-      409 => ApiErrorKind.conflict,
-      422 => ApiErrorKind.validation,
-      429 => ApiErrorKind.rateLimited,
-      >= 500 => ApiErrorKind.server,
-      _ => ApiErrorKind.unknown,
-    };
+    final kind = statusCode == null
+        ? ApiErrorKind.unknown
+        : switch (statusCode) {
+            401 => ApiErrorKind.unauthorized,
+            403 => ApiErrorKind.forbidden,
+            404 => ApiErrorKind.notFound,
+            409 => ApiErrorKind.conflict,
+            422 => ApiErrorKind.validation,
+            429 => ApiErrorKind.rateLimited,
+            >= 500 => ApiErrorKind.server,
+            _ => ApiErrorKind.unknown,
+          };
 
     return ApiException(
       message ?? _defaultMessage(kind),
@@ -108,9 +110,7 @@ class ApiException implements Exception {
     return null;
   }
 
-  static Map<String, List<String>> _validationErrorsFrom(
-    Object? responseData,
-  ) {
+  static Map<String, List<String>> _validationErrorsFrom(Object? responseData) {
     if (responseData is! Map || responseData['errors'] is! Map) {
       return const {};
     }
@@ -118,8 +118,9 @@ class ApiException implements Exception {
     final result = <String, List<String>>{};
     (responseData['errors'] as Map).forEach((key, value) {
       if (value is List) {
-        result[key.toString()] =
-            value.map((item) => item.toString()).toList(growable: false);
+        result[key.toString()] = value
+            .map((item) => item.toString())
+            .toList(growable: false);
       } else if (value != null) {
         result[key.toString()] = [value.toString()];
       }

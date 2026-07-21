@@ -15,16 +15,15 @@ class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref.read(notificationProvider).getNotifications(),
-    );
+    Future.microtask(() => ref.read(notificationProvider).getNotifications());
   }
 
   @override
@@ -52,46 +51,47 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       body: state.isLoading && state.notifications.isEmpty
           ? const LoadingWidget(message: 'Loading notifications...')
           : state.notifications.isEmpty
-              ? const EmptyStateWidget(
-                  title: 'No notifications',
-                  message: 'Order, payment, promotion, and system alerts appear here.',
-                  icon: Icons.notifications_none_rounded,
-                )
-              : RefreshIndicator(
-                  onRefresh: () =>
-                      ref.read(notificationProvider).getNotifications(),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(20),
-                    itemBuilder: (context, index) {
-                      final notification = state.notifications[index];
-                      return NotificationCard(
-                        notification: notification,
-                        onTap: () {
-                          if (!notification.isRead) {
-                            ref
-                                .read(notificationProvider)
-                                .markAsRead(notification.id);
-                          }
-                          final deepLink = notification.deepLink;
-                          if (deepLink != null && deepLink.startsWith('/')) {
-                            context.push(deepLink);
-                          } else if (notification.orderId != null) {
-                            context.push(_orderRoute(notification.orderId!));
-                          }
-                        },
-                        onMarkRead: () => ref
+          ? const EmptyStateWidget(
+              title: 'No notifications',
+              message:
+                  'Order, payment, promotion, and system alerts appear here.',
+              icon: Icons.notifications_none_rounded,
+            )
+          : RefreshIndicator(
+              onRefresh: () =>
+                  ref.read(notificationProvider).getNotifications(),
+              child: ListView.separated(
+                padding: const EdgeInsets.all(20),
+                itemBuilder: (context, index) {
+                  final notification = state.notifications[index];
+                  return NotificationCard(
+                    notification: notification,
+                    onTap: () {
+                      if (!notification.isRead) {
+                        ref
                             .read(notificationProvider)
-                            .markAsRead(notification.id),
-                        onDelete: () => ref
-                            .read(notificationProvider)
-                            .deleteNotification(notification.id),
-                      );
+                            .markAsRead(notification.id);
+                      }
+                      final deepLink = notification.deepLink;
+                      if (deepLink != null && deepLink.startsWith('/')) {
+                        context.push(deepLink);
+                      } else if (notification.orderId != null) {
+                        context.push(_orderRoute(notification.orderId!));
+                      }
                     },
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 14),
-                    itemCount: state.notifications.length,
-                  ),
-                ),
+                    onMarkRead: () => ref
+                        .read(notificationProvider)
+                        .markAsRead(notification.id),
+                    onDelete: () => ref
+                        .read(notificationProvider)
+                        .deleteNotification(notification.id),
+                  );
+                },
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 14),
+                itemCount: state.notifications.length,
+              ),
+            ),
     );
   }
 

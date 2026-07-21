@@ -10,7 +10,9 @@ final notificationApiServiceProvider = Provider<NotificationApiService>((ref) {
   return NotificationApiService();
 });
 
-final notificationProvider = ChangeNotifierProvider<NotificationProvider>((ref) {
+final notificationProvider = ChangeNotifierProvider<NotificationProvider>((
+  ref,
+) {
   return NotificationProvider(ref.watch(notificationApiServiceProvider));
 });
 
@@ -62,9 +64,7 @@ class NotificationProvider extends ChangeNotifier {
     });
   }
 
-  Future<bool> updatePreferences(
-    NotificationPreferences updated,
-  ) async {
+  Future<bool> updatePreferences(NotificationPreferences updated) async {
     return _run(() async {
       preferences = await _apiService.updatePreferences(updated);
       await NotificationService.applyPreferences(preferences);

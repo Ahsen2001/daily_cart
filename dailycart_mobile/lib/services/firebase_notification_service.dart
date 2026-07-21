@@ -21,10 +21,10 @@ class FirebaseNotificationService {
     FirebaseMessaging? firebaseMessaging,
     FlutterLocalNotificationsPlugin? localNotifications,
     NotificationApiService? apiService,
-  })  : _firebaseMessaging = firebaseMessaging ?? FirebaseMessaging.instance,
-        _localNotifications =
-            localNotifications ?? FlutterLocalNotificationsPlugin(),
-        _apiService = apiService ?? NotificationApiService();
+  }) : _firebaseMessaging = firebaseMessaging ?? FirebaseMessaging.instance,
+       _localNotifications =
+           localNotifications ?? FlutterLocalNotificationsPlugin(),
+       _apiService = apiService ?? NotificationApiService();
 
   final FirebaseMessaging _firebaseMessaging;
   final FlutterLocalNotificationsPlugin _localNotifications;
@@ -34,11 +34,9 @@ class FirebaseNotificationService {
 
   String get _channelId => 'dailycart_${AppIdentity.flavor.name}';
 
-  String get _channelName =>
-      '${AppIdentity.displayName} Notifications';
+  String get _channelName => '${AppIdentity.displayName} Notifications';
 
-  String get _tokenStorageKey =>
-      'firebase_token_${AppIdentity.flavor.name}';
+  String get _tokenStorageKey => 'firebase_token_${AppIdentity.flavor.name}';
 
   Future<void> initialize({
     required void Function(String deepLink) onDeepLinkOpened,
@@ -57,7 +55,9 @@ class FirebaseNotificationService {
       sound: true,
     );
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings();
     const settings = InitializationSettings(
       android: androidSettings,
@@ -75,7 +75,8 @@ class FirebaseNotificationService {
 
     final android = _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await android?.createNotificationChannel(
       AndroidNotificationChannel(
         _channelId,
@@ -102,10 +103,7 @@ class FirebaseNotificationService {
     }
   }
 
-  Future<void> syncDeviceToken({
-    String? token,
-    bool isRefresh = false,
-  }) async {
+  Future<void> syncDeviceToken({String? token, bool isRefresh = false}) async {
     final currentToken = token ?? await _firebaseMessaging.getToken();
     if (currentToken == null || currentToken.isEmpty) {
       return;
@@ -141,7 +139,8 @@ class FirebaseNotificationService {
   Future<void> revokeCurrentDevice() async {
     final preferences = await SharedPreferences.getInstance();
     final deviceId = await _deviceId(preferences);
-    final token = preferences.getString(_tokenStorageKey) ??
+    final token =
+        preferences.getString(_tokenStorageKey) ??
         await _firebaseMessaging.getToken();
 
     await _apiService.revokeDeviceToken(deviceId: deviceId, token: token);
@@ -156,9 +155,7 @@ class FirebaseNotificationService {
     await preferences.remove(_tokenStorageKey);
   }
 
-  Future<void> applyPreferences(
-    NotificationPreferences preferences,
-  ) async {
+  Future<void> applyPreferences(NotificationPreferences preferences) async {
     if (preferences.pushEnabled && preferences.promotions) {
       await _firebaseMessaging.subscribeToTopic(_promotionTopic);
     } else {
@@ -178,8 +175,7 @@ class FirebaseNotificationService {
       android: AndroidNotificationDetails(
         _channelId,
         _channelName,
-        channelDescription:
-            'Private account updates and public promotions.',
+        channelDescription: 'Private account updates and public promotions.',
         importance: Importance.high,
         priority: Priority.high,
       ),
@@ -209,8 +205,9 @@ class FirebaseNotificationService {
     }
 
     final orderId = int.tryParse(message.data['order_id']?.toString() ?? '');
-    final deliveryId =
-        int.tryParse(message.data['delivery_id']?.toString() ?? '');
+    final deliveryId = int.tryParse(
+      message.data['delivery_id']?.toString() ?? '',
+    );
     if (AppIdentity.isVendor && orderId != null) {
       return '/vendor-order-details/$orderId';
     }

@@ -60,7 +60,8 @@ class NotificationModel {
       type: NotificationType.fromName(
         (data['type'] ?? json['type'])?.toString(),
       ),
-      createdAt: DateTime.tryParse(
+      createdAt:
+          DateTime.tryParse(
             (json['created_at'] ?? data['created_at'] ?? '').toString(),
           ) ??
           DateTime.now(),
@@ -122,13 +123,13 @@ class NotificationPreferences {
   }
 
   Map<String, dynamic> toJson() => {
-        'push_enabled': pushEnabled,
-        'order_updates': orderUpdates,
-        'delivery_updates': deliveryUpdates,
-        'wallet_updates': walletUpdates,
-        'support_updates': supportUpdates,
-        'promotions': promotions,
-      };
+    'push_enabled': pushEnabled,
+    'order_updates': orderUpdates,
+    'delivery_updates': deliveryUpdates,
+    'wallet_updates': walletUpdates,
+    'support_updates': supportUpdates,
+    'promotions': promotions,
+  };
 
   NotificationPreferences copyWith({
     bool? pushEnabled,
