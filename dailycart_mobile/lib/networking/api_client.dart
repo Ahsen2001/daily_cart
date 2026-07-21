@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
@@ -11,9 +10,7 @@ import 'api_exception.dart';
 class ApiClient {
   ApiClient._({
     SecureStorageHelper? storage,
-    Connectivity? connectivity,
-  })  : _storage = storage ?? SecureStorageHelper(),
-        _connectivity = connectivity ?? Connectivity() {
+  })  : _storage = storage ?? SecureStorageHelper() {
     dio = Dio(
       BaseOptions(
         baseUrl: AppConfig.apiBaseUrl,
@@ -38,7 +35,6 @@ class ApiClient {
   static final ApiClient shared = ApiClient._();
 
   final SecureStorageHelper _storage;
-  final Connectivity _connectivity;
   late final Dio dio;
   Future<void> Function()? _unauthorizedHandler;
   bool _handlingUnauthorized = false;
