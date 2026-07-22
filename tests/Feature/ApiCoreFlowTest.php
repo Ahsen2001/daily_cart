@@ -149,6 +149,49 @@ class ApiCoreFlowTest extends TestCase
         $this->getJson('/api/v1/products/'.$hiddenProduct->id)->assertNotFound();
     }
 
+    public function test_mobile_catalog_matches_storefront_visibility_and_shelf_filters(): void
+    {
+        $category = Category::create([
+            'name' => 'Mobile Catalog',
+            'slug' => 'mobile-catalog',
+            'status' => 'active',
+        ]);
+        $vendor = $this->createVendor('catalog');
+        $featured = $this->createProduct($vendor, $category, 'Featured Mobile Product');
+        $featured->update(['is_featured' => true]);
+        $discounted = $this->createProduct($vendor, $category, 'Discounted Mobile Product');
+        $discounted->update(['discount_price' => 80]);
+        $this->createProduct($vendor, $category, 'Hidden Mobile Product', 'rejected');
+
+        $this->getJson('/api/v1/categories')
+            ->assertOk()
+            ->assertJsonPath('categories.0.id', $category->id)
+            ->assertJsonPath('categories.0.products_count', 2)
+            ->assertJsonStructure(['categories' => [['id', 'name', 'slug', 'image', 'products_count']]]);
+
+        $this->getJson('/api/v1/products?featured=1&sort=latest')
+            ->assertOk()
+            ->assertJsonCount(1, 'products')
+            ->assertJsonPath('products.0.id', $featured->id);
+
+        $this->getJson('/api/v1/products?discounted=1&sort=latest')
+            ->assertOk()
+            ->assertJsonCount(1, 'products')
+            ->assertJsonPath('products.0.id', $discounted->id)
+            ->assertJsonPath('products.0.discount_price', 80);
+
+        $this->getJson('/api/v1/catalog/home')
+            ->assertOk()
+            ->assertJsonStructure([
+                'featured',
+                'best_selling',
+                'new_arrivals',
+                'flash_deals',
+                'recommended',
+            ])
+            ->assertJsonPath('featured.0.id', $featured->id);
+    }
+
     /** @return array{User, Customer} */
     private function createCustomer(string $suffix): array
     {

@@ -38,13 +38,20 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(categoryProvider).getCategories();
-      ref.read(productProvider).loadHomeProducts();
-      ref.read(loyaltyProvider).getBalance();
-      ref.read(couponProvider).getAvailableCoupons();
-      ref.read(promotionProvider).getPromotions();
-    });
+    Future.microtask(_loadHomeData);
+  }
+
+  Future<void> _loadHomeData() async {
+    // The PHP development server is single-worker on Windows. Stage the
+    // catalog before account extras so queued requests cannot time each other
+    // out. Production servers also benefit from the smaller startup burst.
+    await ref.read(categoryProvider).getCategories();
+    await ref.read(productProvider).loadHomeProducts();
+    await Future.wait([
+      ref.read(loyaltyProvider).getBalance(),
+      ref.read(couponProvider).getAvailableCoupons(),
+      ref.read(promotionProvider).getPromotions(),
+    ]);
   }
 
   @override
@@ -82,15 +89,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       ),
       drawer: const AppDrawer(roleName: 'Customer'),
       body: RefreshIndicator(
-        onRefresh: () async {
-          await Future.wait([
-            ref.read(categoryProvider).getCategories(),
-            ref.read(productProvider).loadHomeProducts(),
-            ref.read(loyaltyProvider).getBalance(),
-            ref.read(couponProvider).getAvailableCoupons(),
-            ref.read(promotionProvider).getPromotions(),
-          ]);
-        },
+        onRefresh: _loadHomeData,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
           children: [
@@ -103,6 +102,38 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             ),
             const SizedBox(height: 18),
             _DashboardActions(),
+            const SizedBox(height: 24),
+            _SectionHeader(
+              title: 'Categories',
+              onViewAll: () => context.push(AppRoutes.categories),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 176,
+              child: categories.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (context, index) {
+                        final category = categories.categories[index];
+                        return CategoryCard(
+                          category: category,
+                          onTap: () => context.push(
+                            '${AppRoutes.products}?categoryId=${category.id}&categoryName=${Uri.encodeComponent(category.name)}',
+                          ),
+                        );
+                      },
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 12),
+                      itemCount: categories.categories.length,
+                    ),
+            ),
+            const SizedBox(height: 24),
+            _ProductSection(
+              title: 'Latest Products',
+              products: products.newArrivals,
+              isLoading: products.isLoading,
+            ),
             if (categories.errorMessage != null ||
                 products.errorMessage != null) ...[
               const SizedBox(height: 18),
@@ -169,33 +200,6 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                 ),
               ),
             ],
-            const SizedBox(height: 24),
-            _SectionHeader(
-              title: 'Categories',
-              onViewAll: () => context.push(AppRoutes.categories),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 176,
-              child: categories.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (context, index) {
-                        final category = categories.categories[index];
-                        return CategoryCard(
-                          category: category,
-                          onTap: () => context.push(
-                            '${AppRoutes.products}?categoryId=${category.id}&categoryName=${Uri.encodeComponent(category.name)}',
-                          ),
-                        );
-                      },
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 12),
-                      itemCount: categories.categories.length,
-                    ),
-            ),
-            const SizedBox(height: 24),
             _AdvertisementBanner(),
             const SizedBox(height: 24),
             _ProductSection(
@@ -206,11 +210,6 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             _ProductSection(
               title: 'Best Selling Products',
               products: products.bestSellingProducts,
-              isLoading: products.isLoading,
-            ),
-            _ProductSection(
-              title: 'New Arrivals',
-              products: products.newArrivals,
               isLoading: products.isLoading,
             ),
             _ProductSection(
@@ -262,7 +261,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           NavigationDestination(
             icon: Icon(Icons.category_outlined),
             selectedIcon: Icon(Icons.category_rounded),
-            label: 'Categories',
+            label: 'Shop',
           ),
           NavigationDestination(
             icon: Icon(Icons.favorite_border_rounded),
@@ -591,6 +590,10 @@ class _ProductSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!isLoading && products.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(

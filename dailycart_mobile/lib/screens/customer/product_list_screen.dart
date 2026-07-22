@@ -26,8 +26,9 @@ class ProductListScreen extends ConsumerStatefulWidget {
 class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   bool _isGrid = true;
   RangeValues _priceRange = const RangeValues(0, 5000);
+  bool _priceFilterEnabled = false;
   double? _rating;
-  bool _availableOnly = true;
+  bool _availableOnly = false;
   String _brand = '';
   String _sort = 'latest';
 
@@ -42,8 +43,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         .read(productProvider)
         .getProducts(
           categoryId: widget.categoryId,
-          minPrice: _priceRange.start,
-          maxPrice: _priceRange.end,
+          minPrice: _priceFilterEnabled ? _priceRange.start : null,
+          maxPrice: _priceFilterEnabled ? _priceRange.end : null,
           rating: _rating,
           available: _availableOnly,
           brand: _brand,
@@ -242,7 +243,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   const SizedBox(height: 18),
                   FilledButton(
                     onPressed: () {
-                      setState(() => _brand = brandController.text.trim());
+                      setState(() {
+                        _brand = brandController.text.trim();
+                        _priceFilterEnabled = true;
+                      });
                       Navigator.of(context).pop();
                       _loadProducts();
                     },

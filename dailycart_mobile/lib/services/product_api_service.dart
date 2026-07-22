@@ -12,24 +12,55 @@ class ProductApiService {
 
   final Dio _dio;
 
+  Future<HomeCatalog> getHomeCatalog() async {
+    try {
+      final response = await _dio.get<dynamic>('/catalog/home');
+      final root = ApiResponseParser.requireMap(response.data);
+      return HomeCatalog(
+        featured: _parseShelf(root, 'featured'),
+        bestSelling: _parseShelf(root, 'best_selling'),
+        newArrivals: _parseShelf(root, 'new_arrivals'),
+        flashDeals: _parseShelf(root, 'flash_deals'),
+        recommended: _parseShelf(root, 'recommended'),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
   Future<List<ProductModel>> getFeaturedProducts() {
-    return _getProductList('/products/featured');
+    return _getProductList(
+      '/products',
+      queryParameters: const {'featured': 1, 'sort': 'latest'},
+    );
   }
 
   Future<List<ProductModel>> getBestSellingProducts() {
-    return _getProductList('/products/best-selling');
+    return _getProductList(
+      '/products',
+      queryParameters: const {'sort': 'most_sold'},
+    );
   }
 
   Future<List<ProductModel>> getNewArrivals() {
-    return _getProductList('/products/new-arrivals');
+    return _getProductList(
+      '/products',
+      queryParameters: const {'sort': 'latest'},
+    );
   }
 
   Future<List<ProductModel>> getFlashDeals() {
-    return _getProductList('/products/flash-deals');
+    return _getProductList(
+      '/products',
+      queryParameters: const {'discounted': 1, 'sort': 'latest'},
+    );
   }
 
   Future<List<ProductModel>> getRecommendedProducts() {
-    return _getProductList('/products/recommended');
+    return _getProductList(
+      '/products',
+      queryParameters: const {'sort': 'highest_rated'},
+    );
   }
 
   Future<List<ProductModel>> getProducts({
@@ -98,6 +129,13 @@ class ProductApiService {
     }
   }
 
+  List<ProductModel> _parseShelf(Map<String, dynamic> root, String key) {
+    return ApiResponseParser.requireMapList(root[key], context: key)
+        .map(_parseProduct)
+        .where((product) => product.isVisibleForCustomer)
+        .toList(growable: false);
+  }
+
   ProductModel _parseProduct(Map<String, dynamic> json) {
     if (json['id'] == null ||
         json['name'] == null ||
@@ -109,4 +147,20 @@ class ProductApiService {
     }
     return ProductModel.fromJson(json);
   }
+}
+
+class HomeCatalog {
+  const HomeCatalog({
+    required this.featured,
+    required this.bestSelling,
+    required this.newArrivals,
+    required this.flashDeals,
+    required this.recommended,
+  });
+
+  final List<ProductModel> featured;
+  final List<ProductModel> bestSelling;
+  final List<ProductModel> newArrivals;
+  final List<ProductModel> flashDeals;
+  final List<ProductModel> recommended;
 }

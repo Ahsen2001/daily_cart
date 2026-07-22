@@ -68,9 +68,17 @@ android/app/src/vendor/google-services.json
 android/app/src/rider/google-services.json
 ```
 
-Add the matching iOS configuration files to the corresponding Xcode build
-configurations after downloading them from Firebase. Never reuse or rename a
-Firebase configuration registered for a different bundle identifier.
+Place the matching iOS files at:
+
+```text
+ios/Runner/Firebase/customer/GoogleService-Info.plist
+ios/Runner/Firebase/vendor/GoogleService-Info.plist
+ios/Runner/Firebase/rider/GoogleService-Info.plist
+```
+
+The Android plugin and iOS copy phase select the configuration for the active
+role automatically. Never reuse a Firebase configuration registered for a
+different application or bundle identifier.
 
 For Android emulator, use `10.0.2.2` to reach Laravel running on your host machine.
 

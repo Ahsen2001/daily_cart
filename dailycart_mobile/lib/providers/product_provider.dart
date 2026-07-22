@@ -35,20 +35,26 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Load the home shelves together so the first screen feels quick.
-      final results = await Future.wait([
-        _apiService.getFeaturedProducts(),
-        _apiService.getBestSellingProducts(),
-        _apiService.getNewArrivals(),
-        _apiService.getFlashDeals(),
-        _apiService.getRecommendedProducts(),
-      ]);
-
-      featuredProducts = results[0];
-      bestSellingProducts = results[1];
-      newArrivals = results[2];
-      flashDeals = results[3];
-      recommendedProducts = results[4];
+      final catalog = await _apiService.getHomeCatalog();
+      featuredProducts = catalog.featured;
+      bestSellingProducts = catalog.bestSelling;
+      newArrivals = catalog.newArrivals;
+      flashDeals = catalog.flashDeals;
+      recommendedProducts = catalog.recommended;
+      final catalogFallback = newArrivals.isNotEmpty
+          ? newArrivals
+          : bestSellingProducts.isNotEmpty
+              ? bestSellingProducts
+              : recommendedProducts;
+      if (featuredProducts.isEmpty) {
+        featuredProducts = catalogFallback.take(8).toList(growable: false);
+      }
+      if (bestSellingProducts.isEmpty) {
+        bestSellingProducts = catalogFallback.take(8).toList(growable: false);
+      }
+      if (recommendedProducts.isEmpty) {
+        recommendedProducts = catalogFallback.take(8).toList(growable: false);
+      }
       recentlyViewedProducts = featuredProducts.take(4).toList(growable: false);
     } catch (error) {
       errorMessage = error.toString();

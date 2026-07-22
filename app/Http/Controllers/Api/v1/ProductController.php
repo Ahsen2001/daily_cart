@@ -13,10 +13,60 @@ class ProductController extends Controller
 {
     public function categories(): JsonResponse
     {
-        $categories = Category::query()->where('status', 'active')->orderBy('name')->get();
+        $categories = Category::active()
+            ->withCount([
+                'products as products_count' => fn ($query) => $query->visibleToCustomers(),
+            ])
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Category $category) => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
+                'description' => $category->description,
+                'image' => $category->display_image_url,
+                'products_count' => (int) $category->products_count,
+            ]);
 
         return response()->json([
             'categories' => $categories,
+        ]);
+    }
+
+    public function home(): JsonResponse
+    {
+        $catalogQuery = fn () => Product::visibleToCustomers()
+            ->with(['category', 'vendor', 'images', 'brandRelation'])
+            ->withAvg([
+                'reviews as visible_reviews_avg_rating' => fn ($reviews) => $reviews->where('status', 'visible'),
+            ], 'rating');
+
+        $latest = $catalogQuery()->latest()->limit(12)->get();
+        $featured = $catalogQuery()->where('is_featured', true)->latest()->limit(8)->get();
+        $flashDeals = $catalogQuery()
+            ->whereNotNull('discount_price')
+            ->where('discount_price', '>', 0)
+            ->whereColumn('discount_price', '<', 'price')
+            ->latest()
+            ->limit(8)
+            ->get();
+        $bestSelling = $catalogQuery()
+            ->withSum('orderItems as sold_quantity', 'quantity')
+            ->orderByDesc('sold_quantity')
+            ->limit(8)
+            ->get();
+        $recommended = $catalogQuery()
+            ->orderByDesc('visible_reviews_avg_rating')
+            ->latest()
+            ->limit(8)
+            ->get();
+
+        return response()->json([
+            'featured' => ProductResource::collection($featured),
+            'best_selling' => ProductResource::collection($bestSelling),
+            'new_arrivals' => ProductResource::collection($latest),
+            'flash_deals' => ProductResource::collection($flashDeals),
+            'recommended' => ProductResource::collection($recommended),
         ]);
     }
 
@@ -30,11 +80,17 @@ class ProductController extends Controller
             'rating' => ['nullable', 'numeric', 'between:0,5'],
             'available' => ['nullable', 'boolean'],
             'brand' => ['nullable', 'string', 'max:255'],
+            'featured' => ['nullable', 'boolean'],
+            'discounted' => ['nullable', 'boolean'],
             'sort' => ['nullable', 'string', 'in:price_low_high,price_high_low,latest,highest_rated,most_sold'],
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $query = Product::visibleToCustomers();
+        $query = Product::visibleToCustomers()
+            ->with(['category', 'vendor', 'images', 'brandRelation'])
+            ->withAvg([
+                'reviews as visible_reviews_avg_rating' => fn ($reviews) => $reviews->where('status', 'visible'),
+            ], 'rating');
 
         if (isset($validated['category_id'])) {
             $query->where('category_id', $validated['category_id']);
@@ -58,7 +114,7 @@ class ProductController extends Controller
         if (isset($validated['max_price'])) {
             $query->where('price', '<=', $validated['max_price']);
         }
-        if (($validated['available'] ?? false) === true) {
+        if ($request->boolean('available')) {
             $query->where('stock_quantity', '>', 0);
         }
         if (filled($validated['brand'] ?? null)) {
@@ -67,6 +123,14 @@ class ProductController extends Controller
                 $builder->where('brand', $brand)
                     ->orWhereHas('brandRelation', fn ($relation) => $relation->where('name', $brand));
             });
+        }
+        if ($request->boolean('featured')) {
+            $query->where('is_featured', true);
+        }
+        if ($request->boolean('discounted')) {
+            $query->whereNotNull('discount_price')
+                ->where('discount_price', '>', 0)
+                ->whereColumn('discount_price', '<', 'price');
         }
         if (isset($validated['rating']) || ($validated['sort'] ?? null) === 'highest_rated') {
             $query->withAvg(['reviews as visible_reviews_avg_rating' => fn ($reviews) => $reviews->where('status', 'visible')], 'rating');

@@ -37,6 +37,7 @@ Route::prefix('v1')->group(function () {
         ->middleware('signed')->name('api.v1.payhere.cancel');
 
     Route::get('/categories', [ProductController::class, 'categories']);
+    Route::get('/catalog/home', [ProductController::class, 'home']);
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{product}', [ProductController::class, 'show']);
     Route::get('/delivery/zones', [DeliveryPricingController::class, 'zones']);

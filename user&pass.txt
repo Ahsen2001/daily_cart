@@ -1,25 +1,13 @@
-*Super Admin*
+| Role | Email |
+|---|---|
+| Super Admin | `uahsens1@gmail.com` |
+| Admin | `uahsens2@gmail.com` |
+| Vendor | `uahsens2001@gmail.com` |
+| Customer | `rifkabanu870@gmail.com` |
+| Rider | `ofnaaa@gmai.com` |
 
-Email: superadmin@dailycart.lk
-Password: Password@123
+Temporary password for every account: Password@123
 
-*Admin*
-
-Email: admin@dailycart.lk
-Password: Password@123
-
-*vendor*
-Email:afrijhaque@gmail.com
-Password: Password@123
-
-
-*Customer*
-Email:uahsens1@gmail.com
-Password: Password@123
-
-*Rider*
-Email:uahsens2001@gmail.com
-Password: Password@123
 
 *Run*
 php artisan serve

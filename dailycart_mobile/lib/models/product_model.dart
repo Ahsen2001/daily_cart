@@ -22,6 +22,7 @@ class ProductModel {
     this.reviews = const [],
     this.similarProducts = const [],
     this.isSubscriptionEligible = false,
+    this.isFeatured = false,
   });
 
   final int id;
@@ -44,6 +45,7 @@ class ProductModel {
   final List<ReviewModel> reviews;
   final List<ProductModel> similarProducts;
   final bool isSubscriptionEligible;
+  final bool isFeatured;
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     final category = json['category'];
@@ -87,6 +89,8 @@ class ProductModel {
           .toList(growable: false),
       isSubscriptionEligible: json['is_subscription_eligible'] == true ||
           json['is_subscription_eligible']?.toString() == '1',
+      isFeatured: json['is_featured'] == true ||
+          json['is_featured']?.toString() == '1',
     );
   }
 

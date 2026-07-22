@@ -58,6 +58,7 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
                     final category = state.categories[index];
                     return CategoryCard(
                       category: category,
+                      width: double.infinity,
                       onTap: () => context.push(
                         '${AppRoutes.products}?categoryId=${category.id}&categoryName=${Uri.encodeComponent(category.name)}',
                       ),

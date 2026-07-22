@@ -8,11 +8,13 @@ class CategoryCard extends StatelessWidget {
   const CategoryCard({
     required this.category,
     required this.onTap,
+    this.width = 132,
     super.key,
   });
 
   final CategoryModel category;
   final VoidCallback onTap;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class CategoryCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(22),
       onTap: onTap,
       child: Container(
-        width: 132,
+        width: width,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.white,

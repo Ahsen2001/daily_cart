@@ -207,13 +207,18 @@ Invalid credentials return `422`; suspended users return `403`.
 | Method and path | Query | Success |
 | --- | --- | --- |
 | `GET /categories` | none | `200 {"categories": Category[]}` |
-| `GET /products` | `page`; optional `category_id`, `search`, `sort` | `200 {"products": Product[], "pagination": Pagination}` |
+| `GET /catalog/home` | none | `200` with the five mobile home product shelves |
+| `GET /products` | `page`; optional catalog filters and `sort` | `200 {"products": Product[], "pagination": Pagination}` |
 | `GET /products/{product}` | integer route ID | `200 {"product": Product}` |
 
-Supported `sort` values are `price_low_high`, `price_high_low`, and `latest`.
-Any other supplied value falls back to name ascending. Only customer-visible
-products are returned. The current backend does not implement the mobile
-filters `min_price`, `max_price`, `rating`, `available`, or `brand`.
+Supported `sort` values are `price_low_high`, `price_high_low`, `latest`,
+`highest_rated`, and `most_sold`. Catalog filters are `category_id`, `search`,
+`min_price`, `max_price`, `rating`, `available`, `brand`, `featured`, and
+`discounted`. Only customer-visible products are returned. Category entries
+include a customer-visible `products_count` and a display-ready image URL.
+`GET /catalog/home` returns `featured`, `best_selling`, `new_arrivals`,
+`flash_deals`, and `recommended` arrays in one request to avoid mobile startup
+request fan-out.
 
 ### Delivery pricing
 

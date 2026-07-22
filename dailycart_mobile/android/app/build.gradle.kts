@@ -4,6 +4,29 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firebase is optional for local builds, but is enabled automatically for a
+// requested role as soon as its Firebase Console file is present. Keeping this
+// conditional lets developers run the API/UI without committing Firebase app
+// credentials, while production builds process the correct flavor file.
+val firebaseRoles = listOf("customer", "vendor", "rider")
+val requestedTasks = gradle.startParameter.taskNames.joinToString(" ").lowercase()
+val requestedRoles = firebaseRoles.filter(requestedTasks::contains)
+val allFirebaseConfigsPresent = firebaseRoles.all {
+    file("src/$it/google-services.json").isFile
+}
+val requestedFirebaseConfigPresent = requestedRoles.any {
+    file("src/$it/google-services.json").isFile
+}
+
+if (allFirebaseConfigsPresent || requestedFirebaseConfigPresent) {
+    pluginManager.apply("com.google.gms.google-services")
+} else {
+    logger.warn(
+        "Firebase disabled: add google-services.json under " +
+            "android/app/src/<customer|vendor|rider>/ for the requested flavor.",
+    )
+}
+
 android {
     namespace = "com.dailycart.mobile"
     compileSdk = flutter.compileSdkVersion

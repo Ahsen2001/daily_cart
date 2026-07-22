@@ -1,6 +1,6 @@
 # DailyCart Mobile to Laravel API v1 Gap Matrix
 
-Reviewed: **2026-07-20**
+Reviewed: **2026-07-22**
 
 This matrix compares the Flutter services in `dailycart_mobile/lib/services`
 with the frozen Laravel v1 contract. A Flutter service method is not evidence
@@ -29,19 +29,22 @@ still using `/api` must update its `API_BASE_URL`.
 - Flutter validates stored sessions at startup, centrally clears sessions on
   `401`, and guards routes by authentication and role.
 
-## Implemented but currently mismatched
+## Contract mismatches corrected
 
-| Area | Flutter call | Frozen Laravel v1 | Required correction |
-| --- | --- | --- | --- |
-| Add cart variant | request key `variant_id` | request key `product_variant_id` | Rename Flutter payload key. |
-| Update cart item | `PATCH /cart/items/{id}` | `PATCH /cart-items/{id}` | Change Flutter path. |
-| Remove cart item | `DELETE /cart/items/{id}` | `DELETE /cart-items/{id}` | Change Flutter path. |
-| Clear cart | `DELETE /cart` | `DELETE /cart/clear` | Change Flutter path. |
-| Checkout | `POST /checkout` | `POST /orders` | Change Flutter endpoint and parse an order array. |
-| Rider delivered proof | `POST /rider/deliveries/{id}/delivered` | multipart `PATCH /rider/deliveries/{id}/status` with `status=delivered` | Consolidate Flutter delivery status submission. |
-| Vendor dashboard | `GET /vendor/dashboard` | `GET /vendor/overview` | Change Flutter path and map `summary`. |
-| Vendor earnings | `GET /vendor/earnings` | `GET /vendor/wallet` | Use wallet only if its four totals satisfy the screen; otherwise add a contracted earnings endpoint. |
-| Product filters | sends price, rating, availability and brand filters | only category, search and sort are implemented | Either remove unsupported filters from requests or implement them server-side before enabling the UI. |
+- Cart variant keys, item paths, clear-cart, and checkout/order parsing now use
+  the Laravel v1 contract.
+- Vendor dashboard, products, earnings, reviews, payouts, refunds, promotions,
+  subscriptions, scheduled orders, and reports have contracted backend routes
+  with matching Flutter services.
+- Rider explicitly accepts a delivery, submits `failed_reason`, uses multipart
+  proof on the status route, and parses the returned `delivery` envelope.
+- Customer price, rating, availability, brand, featured, and discounted filters
+  are implemented by Laravel. Mobile price and availability filters are opt-in
+  so the default list matches the web storefront.
+- Home shelves use the combined `GET /catalog/home` response. The former uncontracted
+  `/products/featured`, `/best-selling`, `/new-arrivals`, `/flash-deals`, and
+  `/recommended` calls have been removed.
+- Category responses expose visible product counts and display image URLs.
 
 ## Matching implemented capabilities
 
