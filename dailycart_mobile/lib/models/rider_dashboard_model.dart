@@ -21,7 +21,8 @@ class RiderDashboardModel {
   final String approvalStatus;
   final String availabilityStatus;
 
-  bool get isApproved => approvalStatus.toLowerCase() == 'approved';
+  bool get isApproved =>
+      const {'approved', 'verified'}.contains(approvalStatus.toLowerCase());
 
   factory RiderDashboardModel.fromJson(Map<String, dynamic> json) {
     return RiderDashboardModel(
