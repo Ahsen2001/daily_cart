@@ -73,6 +73,7 @@ class VendorProductProvider extends ChangeNotifier {
         productId: productId,
         imagePaths: imagePaths,
       );
+      _replaceSelected();
     });
   }
 

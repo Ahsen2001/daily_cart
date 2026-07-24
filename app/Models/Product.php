@@ -97,6 +97,10 @@ class Product extends Model
 
     public function getDisplayImageUrlAttribute(): string
     {
+        if ($this->image && filter_var($this->image, FILTER_VALIDATE_URL)) {
+            return $this->image;
+        }
+
         if ($this->image && Storage::disk('public')->exists($this->image)) {
             return asset('storage/'.$this->image);
         }

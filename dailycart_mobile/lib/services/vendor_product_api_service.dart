@@ -103,7 +103,14 @@ class VendorProductApiService with AuthenticatedApiMixin {
               ApiUploadFile(field: 'images[]', path: path),
           ],
         ),
-        options: await authOptions(),
+        // Image processing can take noticeably longer than an ordinary API
+        // request, particularly on a local development server or a slow
+        // mobile connection. Keep the regular client defaults for all other
+        // calls, but allow this request enough time to complete.
+        options: (await authOptions()).copyWith(
+          sendTimeout: const Duration(minutes: 2),
+          receiveTimeout: const Duration(minutes: 2),
+        ),
       );
       return VendorProductModel.fromJson(
         ApiListParser.extractObject(response.data),

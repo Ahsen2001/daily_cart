@@ -21,3 +21,5 @@ flutter run -d emulator-5554
 *ngrok*
 (https://joylessly-entity-onstage.ngrok-free.dev/)
 
+-rider mobile app nevigations not prperly working once nevigated to earning then back to the dashboard still nevigation on earning.(check this issue in vendor, customer also)
+-in mobile app customer add a product to his cart then  the cart not showing the added product number like (1,2,3)

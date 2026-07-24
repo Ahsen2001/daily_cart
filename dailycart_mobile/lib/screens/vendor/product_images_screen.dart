@@ -105,8 +105,17 @@ class _ProductImagesScreenState extends ConsumerState<ProductImagesScreen> {
     if (!mounted) {
       return;
     }
+    final errorMessage = ref.read(vendorProductProvider).errorMessage;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'Images uploaded.' : 'Unable to upload images.')),
+      SnackBar(
+        content: Text(
+          ok
+              ? 'Images uploaded.'
+              : (errorMessage?.trim().isNotEmpty ?? false)
+                  ? errorMessage!
+                  : 'Unable to upload images. Please try again.',
+        ),
+      ),
     );
     if (ok) {
       setState(() => _imagePaths = const []);

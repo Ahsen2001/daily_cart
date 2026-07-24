@@ -360,7 +360,7 @@ class VendorCatalogController extends Controller
             'status' => $product->status,
             'rejection_reason' => $product->rejection_reason,
             'is_subscription_eligible' => (bool) $product->is_subscription_eligible,
-            'image' => $product->image ? url('storage/'.$product->image) : null,
+            'image' => $product->display_image_url,
             'images' => $product->images->map(fn (ProductImage $image) => [
                 'id' => $image->id,
                 'url' => url('storage/'.$image->image_path),
