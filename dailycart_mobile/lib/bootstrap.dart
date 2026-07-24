@@ -18,10 +18,14 @@ Future<void> bootstrap(DailyCartAppFlavor flavor) async {
   }
 
   try {
-    await Firebase.initializeApp();
-    await NotificationService.initialize();
+    await Firebase.initializeApp().timeout(const Duration(seconds: 5));
+    await NotificationService.initialize().timeout(
+      const Duration(seconds: 5),
+    );
   } catch (_) {
     // Firebase is configured independently for each native app identity.
+    // A missing or unreachable flavor configuration must never prevent the
+    // application UI from starting.
   }
 
   runApp(const ProviderScope(child: DailyCartApp()));

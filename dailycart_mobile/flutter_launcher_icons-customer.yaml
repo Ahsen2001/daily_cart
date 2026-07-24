@@ -1,0 +1,6 @@
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: customer.png
+  adaptive_icon_background: "#F4FFF7"
+  adaptive_icon_foreground: customer.png

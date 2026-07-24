@@ -11,10 +11,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/dailycart_card.dart';
 
 class PendingApprovalScreen extends ConsumerWidget {
-  const PendingApprovalScreen({
-    required this.message,
-    super.key,
-  });
+  const PendingApprovalScreen({required this.message, super.key});
 
   final String message;
 
@@ -43,7 +40,9 @@ class PendingApprovalScreen extends ConsumerWidget {
                           width: 68,
                           height: 68,
                           decoration: BoxDecoration(
-                            color: AppColors.accentOrange.withValues(alpha: 0.12),
+                            color: AppColors.accentOrange.withValues(
+                              alpha: 0.12,
+                            ),
                             borderRadius: BorderRadius.circular(22),
                           ),
                           child: const Icon(
@@ -56,22 +55,27 @@ class PendingApprovalScreen extends ConsumerWidget {
                         Text(
                           'Pending Approval',
                           textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           message,
                           textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.mutedText,
-                                    height: 1.5,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: AppColors.mutedText,
+                                height: 1.5,
+                              ),
                         ),
                         const SizedBox(height: 24),
+                        CustomButton(
+                          label: 'Check approval status',
+                          icon: Icons.refresh_rounded,
+                          variant: CustomButtonVariant.secondary,
+                          onPressed: () => _refreshApproval(context, ref),
+                        ),
+                        const SizedBox(height: 12),
                         CustomButton(
                           label: 'Sign Out',
                           icon: Icons.logout_rounded,
@@ -89,6 +93,38 @@ class PendingApprovalScreen extends ConsumerWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _refreshApproval(BuildContext context, WidgetRef ref) async {
+    await ref.read(authProvider).checkAuthStatus();
+
+    if (!context.mounted) {
+      return;
+    }
+
+    final auth = ref.read(authProvider);
+    if (!auth.isAuthenticated) {
+      context.go(AppRoutes.login);
+      return;
+    }
+
+    if (auth.requiresVerification) {
+      context.go(AppRoutes.otpVerification);
+      return;
+    }
+
+    if (!auth.requiresApproval) {
+      context.go(auth.role?.homeRoute ?? AppRoutes.login);
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          auth.errorMessage ?? 'Your account is still waiting for approval.',
         ),
       ),
     );
