@@ -23,3 +23,117 @@ flutter run -d emulator-5554
 
 -rider mobile app nevigations not prperly working once nevigated to earning then back to the dashboard still nevigation on earning.(check this issue in vendor, customer also)
 -in mobile app customer add a product to his cart then  the cart not showing the added product number like (1,2,3)
+
+## DailyCart mobile apps: run guide
+
+### 1. Start the Laravel API
+
+Open a terminal:
+
+```powershell
+cd D:\FullStack\DailyCart1
+C:\xampp\php\php.exe -S 0.0.0.0:8000 -t public public/index.php
+```
+
+Keep this terminal running while testing the mobile apps.
+
+### 2. Connect your phone
+
+Enable on the phone:
+
+- Developer options
+- USB debugging
+- Accept the USB-debugging permission prompt
+
+Check the connection:
+
+```powershell
+C:\Users\USER\AppData\Local\Android\Sdk\platform-tools\adb.exe devices
+```
+
+You should see your device ending with `device`, for example:
+
+```text
+jvskylcq7hj7scuo    device
+```
+
+### 3. Forward the local API to your USB-connected phone
+
+Run this once after connecting the phone:
+
+```powershell
+C:\Users\USER\AppData\Local\Android\Sdk\platform-tools\adb.exe -s jvskylcq7hj7scuo reverse tcp:8000 tcp:8000
+```
+
+The mobile `.env` is configured for this:
+
+```env
+API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
+
+Do not use `localhost` on the phone; use `127.0.0.1` with `adb reverse`.
+
+### 4. Run an app from Flutter
+
+Open another terminal:
+
+```powershell
+cd D:\FullStack\DailyCart1\dailycart_mobile
+flutter pub get
+```
+
+Run the app you need:
+
+```powershell
+flutter run --flavor customer -t lib/main_customer.dart
+```
+
+```powershell
+flutter run --flavor vendor -t lib/main_vendor.dart
+```
+
+```powershell
+flutter run --flavor rider -t lib/main_rider.dart
+```
+
+Each app has its own Android identity:
+
+| App | Package |
+|---|---|
+| Customer | `com.dailycart.customer` |
+| Vendor | `com.dailycart.vendor` |
+| Rider | `com.dailycart.rider` |
+
+### Build and install without live Flutter debugging
+
+```powershell
+flutter build apk --debug --split-per-abi --target-platform android-arm64 --flavor vendor -t lib/main_vendor.dart
+```
+
+Then install:
+
+```powershell
+adb -s jvskylcq7hj7scuo install -r build\app\outputs\flutter-apk\app-arm64-v8a-vendor-debug.apk
+```
+
+Replace `vendor` with `customer` or `rider` as needed.
+
+### If the phone says “No internet connection”
+
+Usually the USB forwarding was lost. Run again:
+
+```powershell
+adb -s jvskylcq7hj7scuo reverse tcp:8000 tcp:8000
+```
+
+Also verify the Laravel terminal is still running.
+
+### If using Wi‑Fi instead of USB
+
+Set `API_BASE_URL` to your PC’s LAN address, for example:
+
+```env
+API_BASE_URL=http://192.168.1.20:8000/api/v1
+```
+
+Then rebuild/reinstall the app. Both the PC and phone must be on the same Wi‑Fi, and Windows Firewall must allow port `8000`.
