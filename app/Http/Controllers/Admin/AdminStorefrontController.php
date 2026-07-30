@@ -10,10 +10,14 @@ use Illuminate\View\View;
 
 class AdminStorefrontController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $featured = $request->boolean('featured');
+
         return view('admin.stores.index', [
+            'featured' => $featured,
             'stores' => VendorProfile::query()
+                ->when($featured, fn ($query) => $query->where('is_featured', true))
                 ->with(['vendor' => fn ($vendor) => $vendor->withCount([
                     'products as approved_products_count' => fn ($products) => $products->visibleToCustomers(),
                 ])])
@@ -25,6 +29,17 @@ class AdminStorefrontController extends Controller
 
     public function approve(Request $request, VendorProfile $store): RedirectResponse
     {
+        $store->loadMissing('vendor.user');
+        $vendor = $store->vendor;
+
+        if ($vendor?->status === 'pending') {
+            $vendor->update([
+                'status' => 'approved',
+                'approved_at' => now(),
+            ]);
+            $vendor->user?->update(['status' => 'active']);
+        }
+
         $store->update([
             'profile_status' => 'approved',
             'is_enabled' => true,
@@ -32,7 +47,7 @@ class AdminStorefrontController extends Controller
             'reviewed_by' => $request->user()->id,
         ]);
 
-        return back()->with('status', 'Store profile approved.');
+        return back()->with('status', 'Store profile and vendor account approved.');
     }
 
     public function toggleFeatured(VendorProfile $store): RedirectResponse
