@@ -13,6 +13,7 @@ use App\Http\Controllers\Vendor\VendorRefundController;
 use App\Http\Controllers\Vendor\VendorReportController;
 use App\Http\Controllers\Vendor\VendorReviewController;
 use App\Http\Controllers\Vendor\VendorSubscriptionController;
+use App\Http\Controllers\Vendor\StoreProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:Vendor'])->prefix('vendor')->name('vendor.')->group(function () {
@@ -20,6 +21,12 @@ Route::middleware(['auth', 'verified', 'role:Vendor'])->prefix('vendor')->name('
 
     Route::middleware('vendor.approved')->group(function () {
         Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/store', [StoreProfileController::class, 'edit'])->name('store.edit');
+        Route::put('/store', [StoreProfileController::class, 'update'])->name('store.update');
+        Route::get('/store/banners', [StoreProfileController::class, 'banners'])->name('store.banners.index');
+        Route::post('/store/banners', [StoreProfileController::class, 'storeBanner'])->name('store.banners.store');
+        Route::delete('/store/banners/{banner}', [StoreProfileController::class, 'destroyBanner'])->name('store.banners.destroy');
+        Route::get('/store/analytics', [StoreProfileController::class, 'analytics'])->name('store.analytics');
         Route::get('/reports', [VendorReportController::class, 'index'])->name('reports.index');
         Route::get('/subscriptions', [VendorSubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::get('/scheduled-orders', [VendorSubscriptionController::class, 'scheduledOrders'])->name('scheduled-orders.index');

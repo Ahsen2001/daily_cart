@@ -13,6 +13,7 @@ use App\Http\Controllers\Customer\RefundController;
 use App\Http\Controllers\Customer\ReviewController;
 use App\Http\Controllers\Customer\ScheduledOrderController;
 use App\Http\Controllers\Customer\SubscriptionController;
+use App\Http\Controllers\Customer\StoreFollowController;
 use App\Http\Controllers\Customer\WalletController;
 use App\Http\Controllers\Customer\WishlistController;
 use App\Http\Controllers\DashboardController;
@@ -23,6 +24,8 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
     Route::get('/dashboard', [DashboardController::class, 'customer'])->name('dashboard');
     Route::get('/products', [ProductBrowseController::class, 'index'])->name('products.index');
     Route::get('/products/{product}', [ProductBrowseController::class, 'show'])->name('products.show');
+    Route::post('/stores/{store:slug}/follow', [StoreFollowController::class, 'store'])->name('stores.follow');
+    Route::delete('/stores/{store:slug}/follow', [StoreFollowController::class, 'destroy'])->name('stores.unfollow');
 
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/{product}', [CartController::class, 'store'])->name('cart.store');

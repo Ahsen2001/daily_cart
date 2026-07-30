@@ -27,6 +27,8 @@
                     @endif
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.customers.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.customers.index') }}">{{ __('Customers') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.vendors.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.vendors.index') }}">{{ __('Vendors') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.stores.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.stores.index') }}">{{ __('Stores') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.stores.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.stores.index') }}">{{ __('Featured Stores') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.reports.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.reports.sales') }}">{{ __('Reports') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.subscriptions.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.subscriptions.index') }}">{{ __('Subscriptions') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.scheduled-orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.scheduled-orders.index') }}">{{ __('Scheduled Orders') }}</a>
@@ -46,6 +48,11 @@
                 @endif
 
                 @if (Auth::user()->hasPrimaryRole('Vendor'))
+                    <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.edit') }}">{{ __('My Store') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.edit') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.edit') }}">{{ __('Store Settings') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.banners.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.banners.index') }}">{{ __('Store Banner') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.edit') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.edit') }}">{{ __('Store Profile') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.analytics') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.analytics') }}">{{ __('Store Analytics') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('vendor.products.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.products.index') }}">{{ __('My Products') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('vendor.orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.orders.index') }}">{{ __('Orders') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('vendor.promotions.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.promotions.index') }}">{{ __('Promotions & Offers') }}</a>
@@ -60,6 +67,7 @@
 
                 @if (Auth::user()->hasPrimaryRole('Customer'))
                     <a class="dc-sidebar-link {{ request()->routeIs('customer.products.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('customer.products.index') }}">{{ __('Shop Products') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('stores.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('stores.index') }}">{{ __('Browse Stores') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('customer.cart.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('customer.cart.index') }}">{{ __('Cart') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('customer.orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('customer.orders.index') }}">{{ __('Orders') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('customer.subscriptions.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('customer.subscriptions.index') }}">{{ __('Subscriptions') }}</a>

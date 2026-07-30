@@ -20,6 +20,9 @@
                 <p class="font-bold text-brand-dark">{{ \App\Services\CurrencyService::formatLkr($price) }}</p>
                 <p class="inline-flex items-center gap-1 text-sm font-bold text-brand-orange" aria-label="{{ __('Rating :rating out of 5', ['rating' => number_format($rating, 1)]) }}"><span aria-hidden="true">★</span>{{ number_format($rating, 1) }}</p>
             </div>
+            @if ($product->vendor?->storeProfile)
+                <p class="text-xs text-brand-text/60">{{ __('Sold by:') }} <a href="{{ route('stores.show', $product->vendor->storeProfile) }}" class="font-bold text-brand-dark hover:underline">{{ $product->vendor->store_name }}</a></p>
+            @endif
         </div>
     </a>
     <div class="px-5 pb-5">

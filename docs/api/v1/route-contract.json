@@ -11,6 +11,7 @@
     {"method": "POST", "path": "/api/v1/password/forgot", "access": "public"},
     {"method": "POST", "path": "/api/v1/password/reset", "access": "public"},
     {"method": "GET", "path": "/api/v1/categories", "access": "public"},
+    {"method": "GET", "path": "/api/v1/catalog/home", "access": "public"},
     {"method": "GET", "path": "/api/v1/products", "access": "public"},
     {"method": "GET", "path": "/api/v1/products/{product}", "access": "public"},
     {"method": "GET", "path": "/api/v1/delivery/zones", "access": "public"},

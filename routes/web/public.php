@@ -3,6 +3,7 @@
 use App\Http\Controllers\Integrations\PayHereController;
 use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\StorefrontController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -17,6 +18,8 @@ Route::get('/offers', [PageController::class, 'offers'])->name('pages.offers');
 Route::get('/categories', [PageController::class, 'categories'])->name('categories.index');
 Route::get('/products', [PageController::class, 'products'])->name('products.index');
 Route::get('/products/{product}', [PageController::class, 'product'])->name('products.show');
+Route::get('/stores', [StorefrontController::class, 'index'])->name('stores.index');
+Route::get('/stores/{store:slug}', [StorefrontController::class, 'show'])->name('stores.show');
 
 Route::post('/newsletter', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
 Route::post('/payment/payhere/notify', [PayHereController::class, 'notify'])->name('payhere.notify');

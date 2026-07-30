@@ -2,9 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\DeliverNotificationChannelJob;
 use App\Jobs\SendPublicPromotionPushJob;
-use App\Jobs\SendPushNotificationJob;
 use App\Models\Notification;
+use App\Models\NotificationDeliveryLog;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\NotificationService;
@@ -171,16 +172,43 @@ class ApiNotificationInfrastructureTest extends TestCase
             'Your order is on the way.',
             'order_update:42:on_the_way',
             ['database', 'push'],
-            ['order_id' => 42, 'status' => 'on_the_way'],
+            ['status' => 'on_the_way'],
+            '/order-details/42',
         );
 
         $this->assertSame('customer', $notification->app_role);
         $this->assertSame('/order-details/42', $notification->deep_link);
+        $delivery = NotificationDeliveryLog::query()
+            ->where('notification_id', $notification->id)
+            ->where('channel', 'firebase')
+            ->firstOrFail();
+
+        $this->assertDatabaseHas('notification_delivery_logs', [
+            'notification_id' => $notification->id,
+            'order_id' => null,
+            'user_id' => $customer->id,
+            'channel' => 'database',
+            'status' => 'sent',
+        ]);
         Queue::assertPushed(
-            SendPushNotificationJob::class,
-            fn (SendPushNotificationJob $job) => $job->notificationId === $notification->id,
+            DeliverNotificationChannelJob::class,
+            fn (DeliverNotificationChannelJob $job) => $job->deliveryLogId === $delivery->id,
         );
         Queue::assertNotPushed(SendPublicPromotionPushJob::class);
+
+        $duplicate = $notifications->send(
+            $customer,
+            'Order update',
+            'Your order is on the way.',
+            'order_update:42:on_the_way',
+            ['database', 'push'],
+            ['status' => 'on_the_way'],
+            '/order-details/42',
+        );
+
+        $this->assertSame($notification->id, $duplicate->id);
+        $this->assertSame(1, Notification::query()->count());
+        $this->assertSame(2, NotificationDeliveryLog::query()->count());
 
         $notifications->sendPublicPromotion(
             'Weekend savings',

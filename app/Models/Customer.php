@@ -96,6 +96,11 @@ class Customer extends Model
         return $this->belongsToMany(Vendor::class, 'favorite_vendors');
     }
 
+    public function followedStores(): BelongsToMany
+    {
+        return $this->belongsToMany(VendorProfile::class, 'store_followers')->withTimestamps();
+    }
+
     public function supportTickets(): HasMany
     {
         return $this->hasMany(SupportTicket::class, 'user_id', 'user_id');

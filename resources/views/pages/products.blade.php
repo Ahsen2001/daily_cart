@@ -60,6 +60,9 @@
                                     <div>
                                         <p class="text-xs font-medium text-brand-dark">{{ $product->category?->name }}</p>
                                         <h2 class="mt-1 line-clamp-2 text-base font-bold text-brand-text">{{ $product->name }}</h2>
+                                        @if ($product->vendor?->storeProfile)
+                                            <p class="mt-1 text-xs text-brand-text/60">{{ __('Sold by:') }} <a href="{{ route('stores.show', $product->vendor->storeProfile) }}" class="font-bold text-brand-dark hover:underline">{{ $product->vendor->store_name }}</a></p>
+                                        @endif
                                         @if ($product->brand)
                                             <p class="mt-1 text-xs text-brand-text/55">{{ $product->brand }}</p>
                                         @endif

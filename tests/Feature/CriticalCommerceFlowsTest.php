@@ -2,18 +2,17 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\SendNotificationChannelJob;
-use App\Mail\GenericNotificationMail;
+use App\Jobs\DeliverNotificationChannelJob;
 use App\Mail\OrderInvoiceMail;
 use App\Models\Cart;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\DeliveryFee;
+use App\Models\NotificationDeliveryLog;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use App\Models\Rider;
 use App\Models\Role;
 use App\Models\Setting;
 use App\Models\User;
@@ -174,13 +173,24 @@ class CriticalCommerceFlowsTest extends TestCase
 
         app(OrderService::class)->createFromCart($customer, $this->checkoutPayload());
 
-        Mail::assertQueued(GenericNotificationMail::class, fn (GenericNotificationMail $mail) => $mail->title === 'New order received'
-            && $mail->hasTo($vendor->user->email));
+        $emailDeliveryId = NotificationDeliveryLog::query()
+            ->where('user_id', $vendor->user->id)
+            ->where('channel', 'email')
+            ->value('id');
+        $smsDeliveryId = NotificationDeliveryLog::query()
+            ->where('user_id', $vendor->user->id)
+            ->where('channel', 'sms')
+            ->value('id');
+
+        $this->assertNotNull($emailDeliveryId);
+        $this->assertNotNull($smsDeliveryId);
         Bus::assertDispatched(
-            SendNotificationChannelJob::class,
-            fn (SendNotificationChannelJob $job) => $job->userId === $vendor->user->id
-                && $job->channel === 'sms'
-                && $job->title === 'New order received',
+            DeliverNotificationChannelJob::class,
+            fn (DeliverNotificationChannelJob $job) => in_array(
+                $job->deliveryLogId,
+                [$emailDeliveryId, $smsDeliveryId],
+                true,
+            ),
         );
     }
 

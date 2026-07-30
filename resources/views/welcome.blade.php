@@ -27,6 +27,7 @@
                     <nav class="flex items-center rounded-full border border-brand-border bg-brand-light/70 p-1" aria-label="{{ __('Primary navigation') }}">
                         <a class="dc-public-nav-link" href="{{ route('pages.about') }}">{{ __('About') }}</a>
                         <a class="dc-public-nav-link" href="{{ route('pages.offers') }}">{{ __('Offers') }}</a>
+                        <a class="dc-public-nav-link" href="{{ route('stores.index') }}">{{ __('Stores') }}</a>
                         <a class="dc-public-nav-link" href="{{ route('pages.contact') }}">{{ __('Contact') }}</a>
                     </nav>
                     <a class="dc-button-secondary px-5" href="{{ route('login') }}">
@@ -198,6 +199,22 @@
                         @endforeach
                     </div>
 
+                    @if ($featuredStores->isNotEmpty() || $popularStores->isNotEmpty())
+                        <div class="mt-12 space-y-10">
+                            @if ($featuredStores->isNotEmpty())
+                                <section>
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p class="font-semibold text-brand-dark">{{ __('Featured Stores') }}</p><h3 class="mt-2 text-2xl font-extrabold">{{ __('Shop trusted local vendors') }}</h3></div><a class="dc-button-secondary" href="{{ route('stores.index', ['featured' => 1]) }}">{{ __('View All Stores') }}</a></div>
+                                    <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">@foreach ($featuredStores as $store)<x-store-card :store="$store" />@endforeach</div>
+                                </section>
+                            @endif
+                            @if ($popularStores->isNotEmpty())
+                                <section>
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p class="font-semibold text-brand-dark">{{ __('Popular Stores') }}</p><h3 class="mt-2 text-2xl font-extrabold">{{ __('Discover more DailyCart vendors') }}</h3></div><a class="dc-button-secondary" href="{{ route('stores.index') }}">{{ __('Browse Stores') }}</a></div>
+                                    <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">@foreach ($popularStores as $store)<x-store-card :store="$store" />@endforeach</div>
+                                </section>
+                            @endif
+                        </div>
+                    @endif
                     @if ($featuredProducts->isNotEmpty())
                         <div class="mt-12 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                             <div>

@@ -60,4 +60,8 @@ return [
         'credentials' => env('FIREBASE_CREDENTIALS'),
     ],
 
+    'notifications' => [
+        'max_attempts' => env('NOTIFICATION_MAX_ATTEMPTS', 3),
+    ],
+
 ];

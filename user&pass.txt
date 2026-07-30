@@ -118,7 +118,7 @@ adb -s jvskylcq7hj7scuo install -r build\app\outputs\flutter-apk\app-arm64-v8a-v
 
 Replace `vendor` with `customer` or `rider` as needed.
 
-### If the phone says “No internet connection”
+### If the phone says “No internet connection” 
 
 Usually the USB forwarding was lost. Run again:
 

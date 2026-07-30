@@ -8,6 +8,7 @@ use App\Services\AccountDeletionService;
 use App\Services\ExternalEmailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class VendorApprovalController extends Controller
@@ -27,6 +28,17 @@ class VendorApprovalController extends Controller
         ]);
 
         $vendor->user()->update(['status' => 'active']);
+        $vendor->storeProfile()->updateOrCreate([
+            'vendor_id' => $vendor->id,
+        ], [
+            'slug' => Str::slug($vendor->store_name).'-'.$vendor->id,
+            'delivery_estimate' => '30-60 minutes',
+            'contact_phone' => $vendor->phone,
+            'profile_status' => 'approved',
+            'is_enabled' => true,
+            'approved_at' => now(),
+            'reviewed_by' => request()->user()?->id,
+        ]);
         $emails->approval(
             $vendor->user,
             'Congratulations — your vendor account is verified',

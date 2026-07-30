@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\ContactMessage;
 use App\Models\Product;
 use App\Models\Setting;
+use App\Models\VendorProfile;
 use App\Services\PromotionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,11 +24,27 @@ class PageController extends Controller
             'todayOffers' => $todayOffers,
             'featuredProducts' => Cache::remember('storefront:featured-products', now()->addSeconds(30), fn () => Product::query()
                 ->visibleToCustomers()
-                ->with(['category', 'vendor', 'images'])
+                ->with(['category', 'vendor.storeProfile', 'images'])
                 ->withAvg(['reviews as visible_reviews_avg_rating' => fn ($query) => $query->where('status', 'visible')], 'rating')
                 ->latest()
                 ->limit(4)
                 ->get()),
+            'featuredStores' => VendorProfile::query()
+                ->publiclyVisible()
+                ->with('vendor')
+                ->withCount('followers')
+                ->where('is_featured', true)
+                ->latest()
+                ->limit(4)
+                ->get(),
+            'popularStores' => VendorProfile::query()
+                ->publiclyVisible()
+                ->with('vendor')
+                ->withCount('followers')
+                ->orderByDesc('followers_count')
+                ->latest()
+                ->limit(4)
+                ->get(),
         ]);
     }
 
@@ -37,7 +54,7 @@ class PageController extends Controller
 
         $promotions->recordClick($product, $request->integer('promotion'));
 
-        $product->load(['category', 'vendor', 'images', 'variants']);
+        $product->load(['category', 'vendor.storeProfile', 'images', 'variants']);
 
         return view('pages.product', [
             'product' => $product,
@@ -66,7 +83,7 @@ class PageController extends Controller
 
         $products = Product::query()
             ->visibleToCustomers()
-            ->with(['category', 'vendor', 'images'])
+            ->with(['category', 'vendor.storeProfile', 'images'])
             ->withAvg(['reviews as visible_reviews_avg_rating' => fn ($query) => $query->where('status', 'visible')], 'rating')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where(function ($inner) use ($request) {

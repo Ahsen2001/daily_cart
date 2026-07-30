@@ -2,15 +2,13 @@
 
 namespace App\Services;
 
+use App\Jobs\DeliverNotificationChannelJob;
 use App\Jobs\SendPublicPromotionPushJob;
-use App\Jobs\SendPushNotificationJob;
-use App\Jobs\SendNotificationChannelJob;
-use App\Mail\GenericNotificationMail;
 use App\Models\Notification;
+use App\Models\NotificationDeliveryLog;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
@@ -23,10 +21,25 @@ class NotificationService
         array $data = [],
         ?string $deepLink = null,
         ?string $appRole = null,
+        ?string $eventId = null,
     ): Notification {
         $resolvedRole = $appRole ?? $this->appRoleFor($user);
         $resolvedDeepLink = $deepLink ?? $this->deepLinkFor($resolvedRole, $data);
-        $notification = Notification::create([
+        $resolvedEventId = $eventId ?? $this->eventIdFor(
+            $user,
+            $title,
+            $message,
+            $type,
+            $data,
+            $resolvedRole,
+        );
+        $orderId = isset($data['order_id']) ? (int) $data['order_id'] : null;
+
+        $notification = Notification::firstOrCreate([
+            'user_id' => $user->id,
+            'event_id' => $resolvedEventId,
+        ], [
+            'order_id' => $orderId,
             'user_id' => $user->id,
             'title' => $title,
             'message' => $message,
@@ -36,22 +49,20 @@ class NotificationService
             'deep_link' => $resolvedDeepLink,
         ]);
 
-        if (in_array('mail', $channels, true) && filled($user->email)) {
-            Mail::to($user->email)->queue(
-                (new GenericNotificationMail($title, $message))->afterCommit()
-            );
+        if (in_array('database', $channels, true)) {
+            $this->recordDatabaseDelivery($notification, $resolvedEventId, $orderId);
         }
 
-        if (in_array('sms', $channels, true) && filled($user->phone)) {
-            SendNotificationChannelJob::dispatch($user->id, 'sms', $title, $message)->afterCommit();
+        if (in_array('mail', $channels, true)) {
+            $this->queueChannel($notification, $resolvedEventId, $orderId, 'email');
         }
 
-        if (in_array('whatsapp', $channels, true)) {
-            SendNotificationChannelJob::dispatch($user->id, 'whatsapp', $title, $message)->afterCommit();
+        if (in_array('sms', $channels, true)) {
+            $this->queueChannel($notification, $resolvedEventId, $orderId, 'sms');
         }
 
         if (in_array('push', $channels, true)) {
-            SendPushNotificationJob::dispatch($notification->id)->afterCommit();
+            $this->queueChannel($notification, $resolvedEventId, $orderId, 'firebase');
         }
 
         return $notification;
@@ -66,12 +77,36 @@ class NotificationService
         array $data = [],
         ?string $deepLink = null,
         ?string $appRole = null,
+        ?string $eventId = null,
     ): ?Notification {
-        if (Notification::query()->where('user_id', $user->id)->where('type', $type)->exists()) {
+        $resolvedRole = $appRole ?? $this->appRoleFor($user);
+        $resolvedEventId = $eventId ?? $this->eventIdFor(
+            $user,
+            $title,
+            $message,
+            $type,
+            $data,
+            $resolvedRole,
+        );
+
+        if (Notification::query()
+            ->where('user_id', $user->id)
+            ->where('event_id', $resolvedEventId)
+            ->exists()) {
             return null;
         }
 
-        return $this->send($user, $title, $message, $type, $channels, $data, $deepLink, $appRole);
+        return $this->send(
+            $user,
+            $title,
+            $message,
+            $type,
+            $channels,
+            $data,
+            $deepLink,
+            $resolvedRole,
+            $resolvedEventId,
+        );
     }
 
     public function notifyAdmins(
@@ -81,8 +116,7 @@ class NotificationService
         array $channels = ['database', 'push'],
         array $data = [],
         ?string $deepLink = null,
-    ): void
-    {
+    ): void {
         $this->adminUsers()->each(
             fn (User $user) => $this->send($user, $title, $message, $type, $channels, $data, $deepLink)
         );
@@ -173,5 +207,82 @@ class NotificationService
         }
 
         return null;
+    }
+
+    private function recordDatabaseDelivery(Notification $notification, string $eventId, ?int $orderId): void
+    {
+        NotificationDeliveryLog::firstOrCreate([
+            'event_id' => $eventId,
+            'user_id' => $notification->user_id,
+            'channel' => 'database',
+        ], [
+            'notification_id' => $notification->id,
+            'order_id' => $orderId,
+            'status' => NotificationDeliveryLog::STATUS_SENT,
+            'max_attempts' => $this->maxAttempts(),
+            'delivered_at' => now(),
+        ]);
+    }
+
+    private function queueChannel(
+        Notification $notification,
+        string $eventId,
+        ?int $orderId,
+        string $channel,
+    ): void {
+        $delivery = NotificationDeliveryLog::firstOrCreate([
+            'event_id' => $eventId,
+            'user_id' => $notification->user_id,
+            'channel' => $channel,
+        ], [
+            'notification_id' => $notification->id,
+            'order_id' => $orderId,
+            'status' => NotificationDeliveryLog::STATUS_QUEUED,
+            'max_attempts' => $this->maxAttempts(),
+        ]);
+
+        if ($delivery->wasRecentlyCreated) {
+            DeliverNotificationChannelJob::dispatch($delivery->id)->afterCommit();
+        }
+    }
+
+    private function eventIdFor(
+        User $user,
+        string $title,
+        string $message,
+        string $type,
+        array $data,
+        ?string $appRole,
+    ): string {
+        if (filled($data['event_id'] ?? null)) {
+            return substr((string) $data['event_id'], 0, 64);
+        }
+
+        return hash('sha256', json_encode([
+            'user_id' => $user->id,
+            'app_role' => $appRole,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'data' => $this->normalizedData($data),
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    private function normalizedData(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = $this->normalizedData($value);
+            }
+        }
+
+        ksort($data);
+
+        return $data;
+    }
+
+    private function maxAttempts(): int
+    {
+        return max(1, min(10, (int) config('services.notifications.max_attempts', 3)));
     }
 }

@@ -57,7 +57,11 @@
                             @endif
                         </div>
                         <h1 id="product-title" class="mt-4 text-3xl font-extrabold sm:text-4xl">{{ $product->name }}</h1>
-                        <p class="mt-2 text-sm font-semibold text-brand-text/60">{{ $product->vendor?->store_name }}</p>
+                        @if ($product->vendor?->storeProfile)
+                            <p class="mt-2 text-sm font-semibold text-brand-text/60">{{ __('Sold by:') }} <a class="font-bold text-brand-dark hover:underline" href="{{ route('stores.show', $product->vendor->storeProfile) }}">{{ $product->vendor->store_name }}</a></p>
+                        @else
+                            <p class="mt-2 text-sm font-semibold text-brand-text/60">{{ __('Sold by: :store', ['store' => $product->vendor?->store_name]) }}</p>
+                        @endif
 
                         <div class="mt-7 rounded-3xl border border-brand-border bg-brand-light p-5">
                             @if ($pricing['promotion'])

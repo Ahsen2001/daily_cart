@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\AdminPromotionController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminReviewController;
 use App\Http\Controllers\Admin\AdminSubscriptionController;
+use App\Http\Controllers\Admin\AdminStorefrontController;
 use App\Http\Controllers\Admin\AdminSupportTicketController;
 use App\Http\Controllers\Admin\AdvertisementController as AdminAdvertisementController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -49,6 +50,11 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::patch('/vendors/{vendor}/approve', [VendorApprovalController::class, 'approve'])->name('vendors.approve');
     Route::patch('/vendors/{vendor}/reject', [VendorApprovalController::class, 'reject'])->name('vendors.reject');
     Route::delete('/vendors/{vendor}', [VendorApprovalController::class, 'destroy'])->name('vendors.destroy');
+    Route::get('/stores', [AdminStorefrontController::class, 'index'])->name('stores.index');
+    Route::patch('/stores/{store}/approve', [AdminStorefrontController::class, 'approve'])->name('stores.approve');
+    Route::patch('/stores/{store}/featured', [AdminStorefrontController::class, 'toggleFeatured'])->name('stores.featured');
+    Route::patch('/stores/{store}/enabled', [AdminStorefrontController::class, 'toggleEnabled'])->name('stores.enabled');
+    Route::get('/stores/{store}/analytics', [AdminStorefrontController::class, 'analytics'])->name('stores.analytics');
 
     Route::get('/riders', [RiderApprovalController::class, 'index'])->name('riders.index');
     Route::patch('/riders/{rider}/approve', [RiderApprovalController::class, 'approve'])->name('riders.approve');
