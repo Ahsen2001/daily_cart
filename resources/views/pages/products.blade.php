@@ -69,7 +69,7 @@
                                     </div>
                                     <div class="flex items-center justify-between gap-3">
                                         <p class="font-bold text-brand-dark">{{ \App\Services\CurrencyService::formatLkr($price) }}</p>
-                                        <a class="dc-button-secondary px-4 py-2" href="{{ route('products.show', $product) }}">{{ __('View') }}</a>
+                                        <a class="dc-button-secondary px-4 py-2" href="{{ route('products.show', ['product' => $product->slug]) }}">{{ __('View') }}</a>
                                     </div>
                                 </div>
                             </article>

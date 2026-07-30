@@ -7,11 +7,10 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Services\NotificationService;
+use App\Services\ProductIdentityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class VendorCatalogController extends Controller
@@ -42,19 +41,20 @@ class VendorCatalogController extends Controller
         ]);
     }
 
-    public function store(Request $request, NotificationService $notifications): JsonResponse
+    public function store(Request $request, NotificationService $notifications, ProductIdentityService $identity): JsonResponse
     {
         $validated = $this->validateProduct($request);
         $vendor = $request->user()->vendor;
 
-        $product = DB::transaction(function () use ($validated, $vendor, $request) {
+        $product = DB::transaction(function () use ($validated, $vendor, $request, $identity) {
             $product = Product::create([
                 ...$this->productData($validated),
                 'vendor_id' => $vendor->id,
                 'created_by' => $request->user()->id,
-                'slug' => $this->uniqueSlug($validated['slug'] ?? $validated['name'], $vendor->id),
+                'slug' => $identity->uniqueSlug($validated['name']),
                 'status' => (int) $validated['stock_quantity'] > 0 ? 'pending' : 'out_of_stock',
             ]);
+            $product = $identity->assignSku($product);
             $this->syncBaseInventory($product, (int) $validated['stock_quantity']);
 
             return $product;
@@ -85,18 +85,15 @@ class VendorCatalogController extends Controller
     public function update(
         Request $request,
         Product $product,
-        NotificationService $notifications
+        NotificationService $notifications,
     ): JsonResponse {
         $this->ensureOwned($request, $product);
         $validated = $this->validateProduct($request, $product);
+
         DB::transaction(function () use ($product, $validated) {
             $product->update([
                 ...$this->productData($validated),
-                'slug' => $this->uniqueSlug(
-                    $validated['slug'] ?? $validated['name'],
-                    $product->vendor_id,
-                    $product->id,
-                ),
+                'slug' => $product->slug,
                 'status' => (int) $validated['stock_quantity'] > 0 ? 'pending' : 'out_of_stock',
                 'is_featured' => false,
             ]);
@@ -302,14 +299,12 @@ class VendorCatalogController extends Controller
         return $request->validate([
             'category_id' => ['required', 'integer', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255'],
             'brand' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'price' => ['required', 'numeric', 'min:0'],
             'discount_price' => ['nullable', 'numeric', 'min:0', 'lt:price'],
             'unit_type' => ['required', 'string', 'max:50'],
             'weight' => ['nullable', 'string', 'max:50'],
-            'sku' => ['nullable', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($product?->id)],
             'barcode' => ['nullable', 'string', 'max:255', Rule::unique('products', 'barcode')->ignore($product?->id)],
             'stock_quantity' => ['required', 'integer', 'min:0'],
             'expiry_date' => ['nullable', 'date'],
@@ -329,7 +324,6 @@ class VendorCatalogController extends Controller
             'unit_type' => $data['unit_type'],
             'unit' => $data['unit_type'],
             'weight' => $data['weight'] ?? null,
-            'sku' => $data['sku'] ?? null,
             'barcode' => $data['barcode'] ?? null,
             'stock_quantity' => $data['stock_quantity'],
             'expiry_date' => $data['expiry_date'] ?? null,
@@ -402,21 +396,6 @@ class VendorCatalogController extends Controller
         if ($product->status === 'approved') {
             $product->update(['status' => 'pending', 'is_featured' => false]);
         }
-    }
-
-    private function uniqueSlug(string $value, int $vendorId, ?int $ignoreId = null): string
-    {
-        $base = Str::slug($value);
-        $candidate = $base;
-        $counter = 2;
-        while (Product::where('vendor_id', $vendorId)
-            ->where('slug', $candidate)
-            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
-            ->exists()) {
-            $candidate = $base.'-'.$counter++;
-        }
-
-        return $candidate;
     }
 
     private function ensureOwned(Request $request, Product $product): void

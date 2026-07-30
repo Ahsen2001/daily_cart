@@ -38,6 +38,6 @@ class ProductBrowseController extends Controller
     {
         abort_unless(Product::visibleToCustomers()->whereKey($product->getKey())->exists(), 404);
 
-        return redirect()->route('products.show', $product);
+        return redirect()->route('products.show', ['product' => $product->slug]);
     }
 }

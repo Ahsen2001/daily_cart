@@ -14,8 +14,8 @@ use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminPromotionController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminReviewController;
-use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Admin\AdminStorefrontController;
+use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Admin\AdminSupportTicketController;
 use App\Http\Controllers\Admin\AdvertisementController as AdminAdvertisementController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -77,6 +77,7 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::patch('/products/{product}/reject', [AdminProductController::class, 'reject'])->name('products.reject');
     Route::patch('/products/{product}/feature', [AdminProductController::class, 'feature'])->name('products.feature');
     Route::patch('/products/{product}/status', [AdminProductController::class, 'status'])->name('products.status');
+    Route::patch('/products/{product}/identity', [AdminProductController::class, 'updateIdentity'])->name('products.identity');
 
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');

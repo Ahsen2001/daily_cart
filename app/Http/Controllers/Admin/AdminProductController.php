@@ -8,6 +8,9 @@ use App\Models\Product;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AdminProductController extends Controller
@@ -96,6 +99,34 @@ class AdminProductController extends Controller
         );
 
         return back()->with('status', 'Product status updated.');
+    }
+
+    public function updateIdentity(Request $request, Product $product): RedirectResponse
+    {
+        $validated = $request->validate([
+            'sku' => ['required', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($product->id)],
+            'slug' => ['required', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($product->id)],
+        ]);
+
+        $sku = Str::upper(trim($validated['sku']));
+        $slug = Str::slug($validated['slug']);
+
+        if ($sku === '' || $slug === '') {
+            throw ValidationException::withMessages([
+                'sku' => __('Enter a valid SKU.'),
+                'slug' => __('Enter a valid public URL slug.'),
+            ]);
+        }
+
+        if (Product::query()->where('slug', $slug)->whereKeyNot($product->id)->exists()) {
+            throw ValidationException::withMessages([
+                'slug' => __('That public URL is already in use.'),
+            ]);
+        }
+
+        $product->update(['sku' => $sku, 'slug' => $slug]);
+
+        return back()->with('status', 'Product identity updated.');
     }
 
     private function notifyVendorOfReview(Product $product, NotificationService $notifications, string $title, string $message): void

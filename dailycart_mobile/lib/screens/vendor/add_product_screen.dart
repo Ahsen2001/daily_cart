@@ -27,7 +27,6 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
   final _discountController = TextEditingController();
   final _unitController = TextEditingController();
   final _weightController = TextEditingController();
-  final _skuController = TextEditingController();
   final _barcodeController = TextEditingController();
   final _stockController = TextEditingController();
   final _expiryController = TextEditingController();
@@ -45,7 +44,6 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
       _discountController,
       _unitController,
       _weightController,
-      _skuController,
       _barcodeController,
       _stockController,
       _expiryController,
@@ -76,7 +74,6 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                 discountController: _discountController,
                 unitController: _unitController,
                 weightController: _weightController,
-                skuController: _skuController,
                 barcodeController: _barcodeController,
                 stockController: _stockController,
                 expiryController: _expiryController,
@@ -153,7 +150,6 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
       discountPrice: double.tryParse(_discountController.text.trim()),
       unitType: _unitController.text.trim(),
       weight: _weightController.text.trim(),
-      sku: _skuController.text.trim(),
       barcode: _barcodeController.text.trim(),
       stockQuantity: int.tryParse(_stockController.text.trim()) ?? 0,
       expiryDate: DateTime.tryParse(_expiryController.text.trim()),
@@ -172,7 +168,6 @@ class _ProductFormFields extends StatelessWidget {
     required this.discountController,
     required this.unitController,
     required this.weightController,
-    required this.skuController,
     required this.barcodeController,
     required this.stockController,
     required this.expiryController,
@@ -186,7 +181,6 @@ class _ProductFormFields extends StatelessWidget {
   final TextEditingController discountController;
   final TextEditingController unitController;
   final TextEditingController weightController;
-  final TextEditingController skuController;
   final TextEditingController barcodeController;
   final TextEditingController stockController;
   final TextEditingController expiryController;
@@ -251,12 +245,6 @@ class _ProductFormFields extends StatelessWidget {
           label: 'Weight',
           controller: weightController,
           icon: Icons.scale_outlined,
-        ),
-        const SizedBox(height: 12),
-        CustomTextField(
-          label: 'SKU',
-          controller: skuController,
-          icon: Icons.qr_code_2_rounded,
         ),
         const SizedBox(height: 12),
         CustomTextField(

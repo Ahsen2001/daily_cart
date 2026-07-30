@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
-use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Role;
@@ -60,16 +59,16 @@ class HomepageOffersTest extends TestCase
             ->assertSee('DailyCart Admin Special')
             ->assertSee('Rs. 150.00 OFF')
             ->assertSee($product->name)
-            ->assertSee('href="'.route('products.show', ['product' => $product, 'promotion' => $vendorPromotion->id]).'"', false)
-            ->assertSee('href="'.route('products.show', ['product' => $product, 'promotion' => $adminPromotion->id]).'"', false);
+            ->assertSee('href="'.route('products.show', ['product' => $product->slug, 'promotion' => $vendorPromotion->id]).'"', false)
+            ->assertSee('href="'.route('products.show', ['product' => $product->slug, 'promotion' => $adminPromotion->id]).'"', false);
 
         $this->get('/offers')
             ->assertOk()
             ->assertSee('Offers Today')
             ->assertSee('Fresh Mango Weekend Deal')
             ->assertSee('DailyCart Admin Special')
-            ->assertSee('href="'.route('products.show', ['product' => $product, 'promotion' => $vendorPromotion->id]).'"', false)
-            ->assertSee('href="'.route('products.show', ['product' => $product, 'promotion' => $adminPromotion->id]).'"', false);
+            ->assertSee('href="'.route('products.show', ['product' => $product->slug, 'promotion' => $vendorPromotion->id]).'"', false)
+            ->assertSee('href="'.route('products.show', ['product' => $product->slug, 'promotion' => $adminPromotion->id]).'"', false);
     }
 
     public function test_expired_or_unapproved_vendor_offers_are_hidden_from_homepage(): void
@@ -152,7 +151,7 @@ class HomepageOffersTest extends TestCase
             ->assertSee('Offers Today')
             ->assertSee('Customer Dashboard Special');
 
-        $this->get(route('products.show', $product))
+        $this->get(route('products.show', ['product' => $product->slug]))
             ->assertOk()
             ->assertSee('Customer Dashboard Special')
             ->assertSee('Rs. 600.00')

@@ -60,7 +60,7 @@ class StorefrontFeatureTest extends TestCase
             ->assertOk()
             ->assertSee('Fresh Rice')
             ->assertSee('Store products');
-        $this->get(route('products.show', $product))
+        $this->get(route('products.show', ['product' => $product->slug]))
             ->assertOk()
             ->assertSee('Sold by:')
             ->assertSee('Fresh Mart');

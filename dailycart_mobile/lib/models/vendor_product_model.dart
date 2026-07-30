@@ -99,7 +99,6 @@ class VendorProductModel {
       'discount_price': discountPrice,
       'unit_type': unitType,
       'weight': weight,
-      'sku': sku,
       'barcode': barcode,
       'stock_quantity': stockQuantity,
       'expiry_date': expiryDate?.toIso8601String(),

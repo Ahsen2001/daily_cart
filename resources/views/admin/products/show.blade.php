@@ -25,6 +25,26 @@
                     </div>
                 </div>
 
+                <section class="mt-6 rounded-2xl border border-green-100 bg-brand-light p-5">
+                    <h4 class="font-semibold text-brand-text">{{ __('Product identity') }}</h4>
+                    <p class="mt-1 text-sm text-brand-text/70">{{ __('Only Admin and Super Admin accounts can correct a generated SKU or public URL.') }}</p>
+                    <form method="POST" action="{{ route('admin.products.identity', $product) }}" class="mt-4 grid gap-4 md:grid-cols-3 md:items-end">
+                        @csrf
+                        @method('PATCH')
+                        <div>
+                            <x-input-label for="sku" :value="__('SKU')" />
+                            <x-text-input id="sku" name="sku" class="mt-1 block w-full" :value="old('sku', $product->sku)" required />
+                            <x-input-error :messages="$errors->get('sku')" class="mt-1" />
+                        </div>
+                        <div>
+                            <x-input-label for="slug" :value="__('Public URL')" />
+                            <x-text-input id="slug" name="slug" class="mt-1 block w-full" :value="old('slug', $product->slug)" required />
+                            <x-input-error :messages="$errors->get('slug')" class="mt-1" />
+                        </div>
+                        <x-secondary-button type="submit">{{ __('Update identity') }}</x-secondary-button>
+                    </form>
+                </section>
+
                 @if ($product->variants->isNotEmpty())
                     <div class="mt-6 overflow-hidden rounded-2xl border border-green-100">
                         <div class="bg-brand-light px-4 py-3">

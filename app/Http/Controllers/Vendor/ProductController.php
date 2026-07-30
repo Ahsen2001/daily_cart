@@ -8,11 +8,11 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\NotificationService;
+use App\Services\ProductIdentityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -51,22 +51,23 @@ class ProductController extends Controller
         ]);
     }
 
-    public function store(StoreProductRequest $request, NotificationService $notifications): RedirectResponse
+    public function store(StoreProductRequest $request, NotificationService $notifications, ProductIdentityService $identity): RedirectResponse
     {
         $vendor = $request->user()->vendor;
 
-        $product = DB::transaction(function () use ($request, $vendor) {
+        $product = DB::transaction(function () use ($request, $vendor, $identity) {
             $data = $this->productData($request->validated());
             $data['vendor_id'] = $vendor->id;
             $data['created_by'] = $request->user()->id;
             $data['status'] = $data['stock_quantity'] > 0 ? 'pending' : 'out_of_stock';
-            $data['slug'] = $this->uniqueSlug($data['slug'], $vendor->id);
+            $data['slug'] = $identity->uniqueSlug($data['name']);
 
             if ($request->hasFile('image')) {
                 $data['image'] = $request->file('image')->store('products', 'public');
             }
 
             $product = Product::create($data);
+            $product = $identity->assignSku($product);
             $this->syncInventory($product, (int) $data['stock_quantity']);
             $this->storeImages($product, $request);
             $this->storeVariants($product, $request->input('variants', []));
@@ -105,7 +106,7 @@ class ProductController extends Controller
             $data = $this->productData($request->validated());
             $data['status'] = $data['stock_quantity'] > 0 ? 'pending' : 'out_of_stock';
             $data['is_featured'] = false;
-            $data['slug'] = $this->uniqueSlug($data['slug'], $product->vendor_id, $product->id);
+            $data['slug'] = $product->slug;
 
             if ($request->hasFile('image')) {
                 if ($product->image) {
@@ -160,19 +161,15 @@ class ProductController extends Controller
 
     private function productData(array $validated): array
     {
-        $slug = $validated['slug'] ?? Str::slug($validated['name']);
-
         return [
             'category_id' => $validated['category_id'],
             'name' => $validated['name'],
-            'slug' => $slug,
             'brand' => $validated['brand'] ?? null,
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
             'discount_price' => $validated['discount_price'] ?? null,
             'unit_type' => $validated['unit_type'],
             'weight' => $validated['weight'] ?? null,
-            'sku' => $validated['sku'] ?? null,
             'barcode' => $validated['barcode'] ?? null,
             'stock_quantity' => $validated['stock_quantity'],
             'expiry_date' => $validated['expiry_date'] ?? null,
@@ -188,24 +185,6 @@ class ProductController extends Controller
             ['product_variant_id' => null],
             ['quantity' => $quantity, 'low_stock_threshold' => 5]
         );
-    }
-
-    private function uniqueSlug(string $slug, int $vendorId, ?int $ignoreProductId = null): string
-    {
-        $base = Str::slug($slug);
-        $candidate = $base;
-        $counter = 2;
-
-        while (
-            Product::where('vendor_id', $vendorId)
-                ->where('slug', $candidate)
-                ->when($ignoreProductId, fn ($query) => $query->whereKeyNot($ignoreProductId))
-                ->exists()
-        ) {
-            $candidate = $base.'-'.$counter++;
-        }
-
-        return $candidate;
     }
 
     private function storeImages(Product $product, Request $request): void

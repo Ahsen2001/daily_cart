@@ -17,7 +17,7 @@ Route::post('/contact', [PageController::class, 'submitContact'])->name('pages.c
 Route::get('/offers', [PageController::class, 'offers'])->name('pages.offers');
 Route::get('/categories', [PageController::class, 'categories'])->name('categories.index');
 Route::get('/products', [PageController::class, 'products'])->name('products.index');
-Route::get('/products/{product}', [PageController::class, 'product'])->name('products.show');
+Route::get('/products/{product:slug}', [PageController::class, 'product'])->name('products.show');
 Route::get('/stores', [StorefrontController::class, 'index'])->name('stores.index');
 Route::get('/stores/{store:slug}', [StorefrontController::class, 'show'])->name('stores.show');
 

@@ -25,12 +25,15 @@
         <x-input-error :messages="$errors->get('brand')" class="mt-2" />
     </div>
 
-    <div>
-        <x-input-label for="slug" :value="__('Slug')" />
-        <x-text-input id="slug" class="block w-full mt-1" name="slug" :value="old('slug', $product?->slug)" />
-        <x-input-error :messages="$errors->get('slug')" class="mt-2" />
-    </div>
 
+
+    @if ($product)
+        <div class="rounded-2xl border border-brand-border bg-brand-light p-4 sm:col-span-2">
+            <p class="text-xs font-bold uppercase tracking-wide text-brand-text/55">{{ __('System product identity') }}</p>
+            <p class="mt-1 text-sm font-semibold text-brand-text">{{ __('SKU: :sku', ['sku' => $product->sku]) }}</p>
+            <p class="mt-1 text-xs text-brand-text/60">{{ __('SKU and public URL are generated automatically. Only DailyCart Admins can correct them after approval.') }}</p>
+        </div>
+    @endif
     <div>
         <x-input-label for="price" :value="__('Price')" />
         <x-text-input id="price" class="block w-full mt-1" type="number" step="0.01" min="0" name="price" :value="old('price', $product?->price)" required />
@@ -55,11 +58,6 @@
         <x-input-error :messages="$errors->get('weight')" class="mt-2" />
     </div>
 
-    <div>
-        <x-input-label for="sku" :value="__('SKU')" />
-        <x-text-input id="sku" class="block w-full mt-1" name="sku" :value="old('sku', $product?->sku)" />
-        <x-input-error :messages="$errors->get('sku')" class="mt-2" />
-    </div>
 
     <div>
         <x-input-label for="barcode" :value="__('Barcode')" />
