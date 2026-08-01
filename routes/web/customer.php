@@ -52,6 +52,8 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
     Route::get('/orders/{order}/payment', [PaymentController::class, 'show'])->name('payments.show');
     Route::patch('/payments/{payment}/method', [PaymentController::class, 'updateMethod'])->name('payments.method');
     Route::patch('/payments/{payment}/process', [PaymentController::class, 'process'])->name('payments.process');
+    Route::get('/payments/{payment}/bank-transfer', [PaymentController::class, 'bankTransfer'])->name('payments.bank-transfer');
+    Route::post('/payments/{payment}/bank-transfer/slips', [PaymentController::class, 'uploadBankTransferSlip'])->name('payments.bank-transfer.slips.store');
     Route::get('/payments/{payment}/payhere', [PayHereController::class, 'checkout'])->name('payments.payhere');
     Route::get('/payments/{payment}/payhere/return', [PayHereController::class, 'return'])->name('payments.payhere.return');
     Route::get('/payments/{payment}/payhere/cancel', [PayHereController::class, 'cancel'])->name('payments.payhere.cancel');

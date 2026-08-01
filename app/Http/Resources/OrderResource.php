@@ -28,6 +28,11 @@ class OrderResource extends JsonResource
             'order_status' => $this->order_status,
             'payment_status' => $this->payment_status,
             'payment_method' => $this->payment?->payment_method,
+            'bank_transfer' => $this->whenLoaded('payment', fn () => $this->payment?->bankTransferPayment ? [
+                'reference_number' => $this->payment->bankTransferPayment->reference_number,
+                'status' => $this->payment->bankTransferPayment->status,
+                'requires_slip' => in_array($this->payment->bankTransferPayment->status, ['pending_upload', 'rejected'], true),
+            ] : null),
             'placed_at' => $this->placed_at,
             'created_at' => $this->created_at,
             'scheduled_delivery_at' => $this->scheduled_delivery_at,

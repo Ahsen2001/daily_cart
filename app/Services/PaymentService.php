@@ -50,6 +50,10 @@ class PaymentService
             app(WalletService::class)->payForOrder($order, $payment);
         }
 
+        if ($method === 'bank_transfer') {
+            app(BankTransferService::class)->createFor($payment);
+        }
+
         return $payment->refresh();
     }
 
@@ -78,6 +82,10 @@ class PaymentService
 
             if ($method === 'wallet') {
                 app(WalletService::class)->payForOrder($payment->order, $payment);
+            }
+
+            if ($method === 'bank_transfer') {
+                app(BankTransferService::class)->createFor($payment);
             }
 
             return $payment->refresh();
@@ -146,6 +154,10 @@ class PaymentService
 
         if ($payment->payment_method === 'cash_on_delivery') {
             throw ValidationException::withMessages(['payment_method' => 'Cash on Delivery is paid after delivery is completed.']);
+        }
+
+        if ($payment->payment_method === 'bank_transfer') {
+            throw ValidationException::withMessages(['payment_method' => 'Bank transfers must be verified by DailyCart after you upload a payment slip.']);
         }
 
         if ($payment->payment_method === 'wallet') {

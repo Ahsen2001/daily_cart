@@ -20,6 +20,10 @@ class VendorOrderController extends Controller
         $orders = Order::query()
             ->with(['customer.user', 'delivery.rider.user', 'payment'])
             ->where('vendor_id', $vendor->id)
+            ->where(function ($query) {
+                $query->where('payment_status', 'paid')
+                    ->orWhereDoesntHave('payment', fn ($payment) => $payment->where('payment_method', 'bank_transfer'));
+            })
             ->when($request->filled('status'), fn ($query) => $query->where('order_status', $request->status))
             ->latest()
             ->paginate(15)
@@ -31,6 +35,7 @@ class VendorOrderController extends Controller
     public function show(Order $order): View
     {
         $this->authorize('manage', $order);
+        $this->ensureBankTransferIsVerified($order);
 
         return view('vendor.orders.show', [
             'order' => $order->load(['customer.user', 'items.product', 'delivery.rider.user', 'payment']),
@@ -40,6 +45,7 @@ class VendorOrderController extends Controller
     public function confirm(Order $order, OrderStatusService $orders): RedirectResponse
     {
         $this->authorize('manage', $order);
+        $this->ensureBankTransferIsVerified($order);
         $orders->confirm($order, request()->user());
 
         return back()->with('status', 'Order confirmed.');
@@ -48,6 +54,7 @@ class VendorOrderController extends Controller
     public function packed(Order $order, OrderStatusService $orders): RedirectResponse
     {
         $this->authorize('manage', $order);
+        $this->ensureBankTransferIsVerified($order);
         $orders->pack($order, request()->user());
 
         return back()->with('status', 'Order marked as packed.');
@@ -70,5 +77,11 @@ class VendorOrderController extends Controller
             ->sum(DB::raw('GREATEST(subtotal - discount_amount - loyalty_discount_amount, 0)'));
 
         return view('vendor.orders.earnings', compact('completedOrders', 'total'));
+    }
+
+    private function ensureBankTransferIsVerified(Order $order): void
+    {
+        $order->loadMissing('payment');
+        abort_if($order->payment?->payment_method === 'bank_transfer' && $order->payment_status !== 'paid', 404);
     }
 }

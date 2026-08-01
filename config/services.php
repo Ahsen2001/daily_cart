@@ -64,4 +64,11 @@ return [
         'max_attempts' => env('NOTIFICATION_MAX_ATTEMPTS', 3),
     ],
 
+    'bank_transfer' => [
+        'bank_name' => env('BANK_TRANSFER_BANK_NAME', 'DailyCart Bank Account'),
+        'account_holder' => env('BANK_TRANSFER_ACCOUNT_HOLDER', 'DailyCart (Pvt) Ltd'),
+        'account_number' => env('BANK_TRANSFER_ACCOUNT_NUMBER', 'Configure in .env'),
+        'branch' => env('BANK_TRANSFER_BRANCH'),
+    ],
+
 ];

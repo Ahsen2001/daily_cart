@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\v1\AuthController;
+use App\Http\Controllers\Api\v1\BankTransferPaymentController;
 use App\Http\Controllers\Api\v1\AddressController;
 use App\Http\Controllers\Api\v1\CartController;
 use App\Http\Controllers\Api\v1\CustomerCommerceController;
@@ -125,6 +126,8 @@ Route::prefix('v1')->group(function () {
             Route::delete('/reviews/{review}', [CustomerCommerceController::class, 'destroyReview']);
             Route::get('/payments/{order}/payhere', [PayHereMobileController::class, 'checkout']);
             Route::get('/payments/{order}/status', [PayHereMobileController::class, 'status']);
+            Route::get('/payments/{order}/bank-transfer', [BankTransferPaymentController::class, 'show']);
+            Route::post('/payments/{order}/bank-transfer/slips', [BankTransferPaymentController::class, 'upload']);
 
             Route::patch('/profile', [CustomerAccountController::class, 'updateProfile']);
             Route::post('/profile/photo', [CustomerAccountController::class, 'uploadPhoto']);

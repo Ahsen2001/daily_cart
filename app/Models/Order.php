@@ -117,6 +117,11 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function bankTransferPayment(): HasOne
+    {
+        return $this->hasOne(BankTransferPayment::class);
+    }
+
     public function delivery(): HasOne
     {
         return $this->hasOne(Delivery::class);

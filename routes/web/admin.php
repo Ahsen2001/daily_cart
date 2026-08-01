@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminAnalyticsController;
 use App\Http\Controllers\Admin\AdminBrandController;
+use App\Http\Controllers\Admin\BankTransferVerificationController;
 use App\Http\Controllers\Admin\AdminCouponController;
 use App\Http\Controllers\Admin\AdminCustomerController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -102,6 +103,11 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::patch('/delivery-schedules/{schedule}', [AdminDeliveryManagementController::class, 'schedulesUpdate'])->name('delivery-schedules.update');
 
     Route::get('/finance', [AdminFinanceController::class, 'index'])->name('finance.index');
+    Route::get('/bank-transfer-verifications', [BankTransferVerificationController::class, 'index'])->name('bank-transfer-verifications.index');
+    Route::patch('/bank-transfer-verifications/{bankTransferPayment}/approve', [BankTransferVerificationController::class, 'approve'])->name('bank-transfer-verifications.approve');
+    Route::patch('/bank-transfer-verifications/{bankTransferPayment}/reject', [BankTransferVerificationController::class, 'reject'])->name('bank-transfer-verifications.reject');
+    Route::patch('/bank-transfer-verifications/{bankTransferPayment}/request-new-slip', [BankTransferVerificationController::class, 'requestNewSlip'])->name('bank-transfer-verifications.request-new-slip');
+    Route::get('/bank-transfer-slips/{slip}', [BankTransferVerificationController::class, 'downloadSlip'])->name('bank-transfer-slips.download');
     Route::get('/refunds', [AdminRefundController::class, 'index'])->name('refunds.index');
     Route::patch('/refunds/{refund}/approve', [AdminRefundController::class, 'approve'])->name('refunds.approve');
     Route::patch('/refunds/{refund}/reject', [AdminRefundController::class, 'reject'])->name('refunds.reject');

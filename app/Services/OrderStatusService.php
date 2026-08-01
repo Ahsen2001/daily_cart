@@ -32,6 +32,10 @@ class OrderStatusService
     public function confirm(Order $order, ?User $actor = null): Order
     {
         $this->ensureStatus($order, 'pending', 'Vendor can confirm only pending orders.');
+        $order->loadMissing('payment');
+        if ($order->payment?->payment_method === 'bank_transfer' && $order->payment_status !== 'paid') {
+            throw ValidationException::withMessages(['payment' => 'This bank-transfer order can be confirmed only after finance verifies the payment.']);
+        }
 
         return DB::transaction(function () use ($order, $actor) {
             if ($order->subscription_id) {

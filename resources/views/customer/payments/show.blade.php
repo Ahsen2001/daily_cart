@@ -57,7 +57,7 @@
                             @foreach ([
                                 'cash_on_delivery' => [__('Cash on Delivery'), __('Pay the rider after delivery is completed.')],
                                 'card' => [__('Card Payment'), __('Redirects securely to PayHere for LKR payments.')],
-                                'bank_transfer' => [__('Bank Transfer'), __('Placeholder processing for manual bank payments.')],
+                                'bank_transfer' => [__('Bank Transfer'), __('Transfer using a unique reference, then upload a slip for finance verification.')],
                                 'wallet' => [__('Wallet'), __('Processed from your DailyCart wallet during checkout.')],
                             ] as $value => [$label, $description])
                                 <label class="cursor-pointer rounded-2xl border {{ $method === $value ? 'border-green-300 bg-green-50' : 'border-gray-100 bg-gray-50' }} p-4 transition hover:border-green-300 hover:bg-green-50">
@@ -138,20 +138,8 @@
                                 @endcan
                             </div>
                         @elseif ($method === 'bank_transfer')
-                            <div class="mt-4 space-y-3 rounded-2xl bg-orange-50 p-4 text-sm text-orange-800">
-                                <p class="font-bold text-gray-900">{{ __('Bank transfer details') }}</p>
-                                <p>{{ __('Peoples Bank') }}<br>{{ __('Account') }}: 167200230025623<br>UMER AHSEN</p>
-                                <p>{{ __('Commercial Bank') }}<br>UMER AHSEN<br>{{ __('Account') }}: 8018339778<br>{{ __('Branch') }}: 159 - Valaichchenai</p>
-                                <p>{{ __('Amana Bank') }}<br>{{ __('Account') }}: 0110118699003</p>
-                            </div>
-                            @can('process', $payment)
-                                <form method="POST" action="{{ route('customer.payments.process', $payment) }}" class="mt-5 flex flex-col gap-3 sm:flex-row">
-                                    @csrf
-                                    @method('PATCH')
-                                    <x-primary-button name="result" value="success">{{ __('Simulate Success') }}</x-primary-button>
-                                    <x-danger-button name="result" value="failed">{{ __('Simulate Failure') }}</x-danger-button>
-                                </form>
-                            @endcan
+                            <div class="mt-4 rounded-2xl bg-orange-50 p-4 text-sm text-orange-800">{{ __('Bank-transfer orders are held until a finance reviewer verifies your uploaded payment slip.') }}</div>
+                            <a href="{{ route('customer.payments.bank-transfer', $payment) }}" class="mt-5 inline-flex rounded-full bg-green-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-green-700">{{ __('View bank details / upload slip') }}</a>
                         @else
                             <p class="mt-3 rounded-2xl bg-gray-50 p-4 text-sm text-gray-700">{{ __('This payment method does not require action here.') }}</p>
                         @endif

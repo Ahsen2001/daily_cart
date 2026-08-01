@@ -107,24 +107,28 @@ class OrderService
                     ]);
                 }
 
-                $this->paymentService->createPlaceholder($order, $data['payment_method']);
+                $payment = $this->paymentService->createPlaceholder($order, $data['payment_method']);
                 $this->notificationService->send(
                     $order->customer->user,
-                    'Order placed',
-                    'Order '.$order->order_number.' has been placed.',
-                    'order_placed',
+                    $payment->payment_method === 'bank_transfer' ? 'Bank transfer payment required' : 'Order placed',
+                    $payment->payment_method === 'bank_transfer'
+                        ? 'Use reference '.$payment->transaction_reference.' and upload your payment slip for order '.$order->order_number.'.'
+                        : 'Order '.$order->order_number.' has been placed.',
+                    $payment->payment_method === 'bank_transfer' ? 'bank_transfer_pending_upload' : 'order_placed',
                     ['database', 'push'],
-                    ['order_id' => $order->id, 'status' => 'placed'],
+                    ['order_id' => $order->id, 'status' => 'placed', 'payment_id' => $payment->id],
                 );
-                $this->notificationService->send(
-                    $order->vendor->user,
-                    'New order received',
-                    'New order '.$order->order_number.' is waiting for action.',
-                    'new_order',
-                    ['database', 'mail', 'sms', 'push'],
-                    ['order_id' => $order->id, 'status' => 'placed'],
-                );
-                $this->emails->orderPlaced($order->loadMissing('customer.user'));
+                if ($payment->payment_method !== 'bank_transfer') {
+                    $this->notificationService->send(
+                        $order->vendor->user,
+                        'New order received',
+                        'New order '.$order->order_number.' is waiting for action.',
+                        'new_order',
+                        ['database', 'mail', 'sms', 'push'],
+                        ['order_id' => $order->id, 'status' => 'placed'],
+                    );
+                    $this->emails->orderPlaced($order->loadMissing('customer.user'));
+                }
                 $order->delivery()->create([
                     'pickup_address' => $order->vendor->address,
                     'delivery_address' => $order->delivery_address,

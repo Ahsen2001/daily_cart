@@ -83,6 +83,14 @@ class CheckoutController extends Controller
             }
         }
 
+        if (($data['payment_method'] ?? null) === 'bank_transfer' && count($orders) === 1) {
+            $payment = $orders[0]->payment()->first();
+
+            if ($payment) {
+                return redirect()->route('customer.payments.bank-transfer', $payment);
+            }
+        }
+
         return redirect()->route('customer.checkout.success');
     }
 

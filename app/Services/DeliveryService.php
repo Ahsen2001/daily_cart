@@ -28,6 +28,11 @@ class DeliveryService
             throw ValidationException::withMessages(['order_status' => 'Admin can assign rider only after order is packed.']);
         }
 
+        $order->loadMissing('payment');
+        if ($order->payment?->payment_method === 'bank_transfer' && $order->payment_status !== 'paid') {
+            throw ValidationException::withMessages(['payment' => 'A rider cannot be assigned until this bank transfer is verified.']);
+        }
+
         if ($rider->verification_status !== 'verified') {
             throw ValidationException::withMessages(['rider_id' => 'Selected rider is not verified.']);
         }

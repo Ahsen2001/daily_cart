@@ -107,6 +107,10 @@ class VendorBusinessController extends Controller
         ]);
         $orders = $request->user()->vendor->orders()
             ->with($this->orderRelations())
+            ->where(function ($query) {
+                $query->where('payment_status', 'paid')
+                    ->orWhereDoesntHave('payment', fn ($payment) => $payment->where('payment_method', 'bank_transfer'));
+            })
             ->when($validated['status'] ?? null, fn ($query, $status) => $query->where('order_status', $status))
             ->latest()
             ->paginate(15);
@@ -664,6 +668,8 @@ class VendorBusinessController extends Controller
     private function ensureOrderOwned(Request $request, Order $order): void
     {
         abort_unless($order->vendor_id === $request->user()->vendor?->id, 403);
+        $order->loadMissing('payment');
+        abort_if($order->payment?->payment_method === 'bank_transfer' && $order->payment_status !== 'paid', 404);
     }
 
     private function ensureCouponOwned(Request $request, Coupon $coupon): void
