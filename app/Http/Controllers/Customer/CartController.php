@@ -13,6 +13,7 @@ use App\Services\CurrencyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CartController extends Controller
@@ -39,6 +40,37 @@ class CartController extends Controller
         $this->cartService->add($request->user()->customer, $product->load('category'), (int) $request->quantity, $variant);
 
         return redirect()->route('customer.cart.index')->with('status', 'Product added to cart.');
+    }
+
+    public function storeMany(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'min:1', 'max:50'],
+            'items.*.selected' => ['nullable', 'boolean'],
+            'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:999'],
+        ]);
+
+        $items = collect($validated['items'])
+            ->filter(fn (array $item): bool => (bool) ($item['selected'] ?? false))
+            ->map(fn (array $item): array => [
+                'product_id' => (int) $item['product_id'],
+                'quantity' => (int) $item['quantity'],
+            ])
+            ->values()
+            ->all();
+
+        if ($items === []) {
+            throw ValidationException::withMessages([
+                'items' => 'Select at least one product to add to your cart.',
+            ]);
+        }
+
+        $this->cartService->addMany($request->user()->customer, $items);
+
+        return redirect()->route('customer.cart.index')->with(
+            'status', count($items).' selected product'.(count($items) === 1 ? ' was' : 's were').' added to cart.'
+        );
     }
 
     public function update(UpdateCartItemRequest $request, CartItem $item): RedirectResponse|JsonResponse

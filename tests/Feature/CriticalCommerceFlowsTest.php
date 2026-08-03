@@ -90,6 +90,41 @@ class CriticalCommerceFlowsTest extends TestCase
         $this->assertSame($owner->id, $cart->customer->user_id);
     }
 
+    public function test_customer_can_add_selected_web_products_to_cart_in_one_request(): void
+    {
+        [$user, $customer] = $this->createCustomer();
+        $category = $this->createCategory();
+        $vendor = $this->createVendor();
+        $firstProduct = $this->createProduct($vendor, $category, price: 100);
+        $secondProduct = $this->createProduct($vendor, $category, price: 250);
+
+        $this->actingAs($user)
+            ->post(route('customer.cart.bulk'), [
+                'items' => [
+                    ['product_id' => $firstProduct->id, 'quantity' => 2, 'selected' => true],
+                    ['product_id' => $secondProduct->id, 'quantity' => 3, 'selected' => true],
+                ],
+            ])
+            ->assertRedirect(route('customer.cart.index'))
+            ->assertSessionHas('status', '2 selected products were added to cart.');
+
+        $cartId = Cart::query()
+            ->where('customer_id', $customer->id)
+            ->where('status', 'active')
+            ->value('id');
+
+        $this->assertDatabaseHas('cart_items', [
+            'cart_id' => $cartId,
+            'product_id' => $firstProduct->id,
+            'quantity' => 2,
+        ]);
+        $this->assertDatabaseHas('cart_items', [
+            'cart_id' => $cartId,
+            'product_id' => $secondProduct->id,
+            'quantity' => 3,
+        ]);
+    }
+
     public function test_cart_api_rejects_a_variant_owned_by_a_different_product(): void
     {
         [$user] = $this->createCustomer();

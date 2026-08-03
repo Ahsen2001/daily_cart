@@ -1,4 +1,4 @@
-@props(['product'])
+@props(['product', 'bulkSelectable' => false])
 
 @php
     $price = $product->discount_price ?: $product->price;
@@ -26,6 +26,19 @@
         </div>
     </a>
     <div class="px-5 pb-5">
+        @if ($bulkSelectable)
+            <div class="mb-3 flex items-center justify-between gap-3 rounded-2xl bg-brand-light px-3 py-2">
+                <label class="inline-flex cursor-pointer items-center gap-2 text-sm font-bold text-brand-text">
+                    <input type="hidden" form="bulk-cart-form" name="items[{{ $product->id }}][product_id]" value="{{ $product->id }}">
+                    <input type="checkbox" form="bulk-cart-form" name="items[{{ $product->id }}][selected]" value="1" data-bulk-product class="rounded border-brand-border text-brand-primary focus:ring-brand-primary">
+                    {{ __('Select') }}
+                </label>
+                <label class="flex items-center gap-2 text-xs font-semibold text-brand-text/70">
+                    {{ __('Qty') }}
+                    <input type="number" form="bulk-cart-form" name="items[{{ $product->id }}][quantity]" value="1" min="1" max="999" class="w-16 rounded-lg border-brand-border py-1 text-center text-sm" aria-label="{{ __('Quantity for :product', ['product' => $product->name]) }}">
+                </label>
+            </div>
+        @endif
         @auth
             @if (Auth::user()->hasPrimaryRole('Customer'))
                 <form method="POST" action="{{ route('customer.cart.store', $product) }}">

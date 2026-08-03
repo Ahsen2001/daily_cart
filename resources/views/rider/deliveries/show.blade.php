@@ -64,6 +64,9 @@
                                 @method('PATCH')
                                 <x-primary-button class="w-full justify-center">{{ __('Accept Delivery') }}</x-primary-button>
                             </form>
+                        @endif
+
+                        @if ($delivery->status === 'accepted')
                             <form method="POST" action="{{ route('rider.deliveries.picked-up', $delivery) }}">
                                 @csrf
                                 @method('PATCH')

@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
     Route::delete('/stores/{store:slug}/follow', [StoreFollowController::class, 'destroy'])->name('stores.unfollow');
 
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/bulk', [CartController::class, 'storeMany'])->name('cart.bulk');
     Route::post('/cart/{product}', [CartController::class, 'store'])->name('cart.store');
     Route::patch('/cart/items/{item}', [CartController::class, 'update'])->name('cart.items.update');
     Route::delete('/cart/items/{item}', [CartController::class, 'destroy'])->name('cart.items.destroy');
