@@ -27,6 +27,7 @@
                     @endif
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.customers.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.customers.index') }}">{{ __('Customers') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.vendors.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.vendors.index') }}">{{ __('Vendors') }}</a>
+                    <a class="dc-sidebar-link {{ request()->routeIs('admin.riders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.riders.index') }}">{{ __('Rider Management') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.stores.index') && ! request()->boolean('featured') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.stores.index') }}">{{ __('Stores') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.stores.index') && request()->boolean('featured') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.stores.index', ['featured' => 1]) }}">{{ __('Featured Stores') }}</a>
                     <a class="dc-sidebar-link {{ request()->routeIs('admin.reports.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.reports.sales') }}">{{ __('Reports') }}</a>

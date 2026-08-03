@@ -58,8 +58,11 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::get('/stores/{store}/analytics', [AdminStorefrontController::class, 'analytics'])->name('stores.analytics');
 
     Route::get('/riders', [RiderApprovalController::class, 'index'])->name('riders.index');
+    Route::get('/riders/{rider}', [RiderApprovalController::class, 'show'])->name('riders.show');
     Route::patch('/riders/{rider}/approve', [RiderApprovalController::class, 'approve'])->name('riders.approve');
     Route::patch('/riders/{rider}/reject', [RiderApprovalController::class, 'reject'])->name('riders.reject');
+    Route::patch('/riders/{rider}/status', [RiderApprovalController::class, 'updateStatus'])->name('riders.status');
+    Route::patch('/riders/{rider}/availability', [RiderApprovalController::class, 'updateAvailability'])->name('riders.availability');
 
     Route::resource('categories', CategoryController::class)->except(['show']);
     Route::resource('brands', AdminBrandController::class)->except(['show']);

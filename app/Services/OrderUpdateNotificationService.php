@@ -38,19 +38,39 @@ class OrderUpdateNotificationService
     public function riderAssigned(Order $order, ?User $actor = null): void
     {
         $order->loadMissing(['customer.user', 'vendor.user', 'delivery.rider.user']);
+        $rider = $order->delivery?->rider?->user;
+        if ($rider) {
+            $this->notifications->sendOnce(
+                $rider,
+                'New delivery assigned',
+                'Order '.$order->order_number.' has been assigned to you. Pickup: '.($order->vendor?->address ?: 'vendor location').'.',
+                'delivery_assigned',
+                ['database', 'mail', 'sms', 'push'],
+                [
+                    'order_id' => $order->id,
+                    'delivery_id' => $order->delivery?->id,
+                    'status' => 'assigned',
+                ],
+                '/delivery-details/'.$order->delivery?->id,
+                'rider',
+                'delivery-assigned-'.$order->delivery?->id,
+            );
+        }
+
         $title = 'Rider assigned: '.$order->order_number;
         $message = 'A rider has been assigned to order '.$order->order_number.'.';
-
-        $smsRecipientIds = collect([$order->customer?->user, $order->delivery?->rider?->user])
-            ->filter()->pluck('id')->all();
-
-        $this->recipients($order, $actor)->each(function (User $user) use ($title, $message, $order, $smsRecipientIds) {
+        collect([$order->customer?->user, $order->vendor?->user])
+            ->filter()
+            ->merge($this->admins($actor))
+            ->filter(fn (User $user) => $actor?->id !== $user->id)
+            ->unique('id')
+            ->each(function (User $user) use ($title, $message, $order) {
             $this->notifications->sendOnce(
                 $user,
                 $title,
                 $message,
                 'rider_assigned:'.$order->id,
-                array_merge(['database', 'mail', 'push'], in_array($user->id, $smsRecipientIds, true) ? ['sms'] : []),
+                array_merge(['database', 'mail', 'push'], $user->id === $order->customer?->user?->id ? ['sms'] : []),
                 [
                     'order_id' => $order->id,
                     'delivery_id' => $order->delivery?->id,

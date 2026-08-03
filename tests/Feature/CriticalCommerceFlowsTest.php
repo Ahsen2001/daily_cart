@@ -194,6 +194,45 @@ class CriticalCommerceFlowsTest extends TestCase
         );
     }
 
+    public function test_assigning_a_rider_notifies_that_rider_on_every_private_channel(): void
+    {
+        Bus::fake();
+
+        [, $customer] = $this->createCustomer();
+        $vendor = $this->createVendor();
+        $product = $this->createProduct($vendor, $this->createCategory(), price: 250);
+        $this->createCart($customer, [[$product, 1]]);
+        $order = collect(app(OrderService::class)->createFromCart($customer, $this->checkoutPayload()))->firstOrFail();
+        $order->update(['order_status' => 'packed']);
+
+        $role = Role::findOrCreate('Rider', 'web');
+        $riderUser = User::factory()->create(['role_id' => $role->id, 'phone' => '0779999999']);
+        $riderUser->assignRole($role);
+        $rider = $riderUser->rider()->firstOrFail();
+        $rider->update([
+            'vehicle_type' => 'motorbike',
+            'address' => '1 Rider Street',
+            'city' => 'Colombo',
+            'district' => 'Colombo',
+            'availability_status' => 'available',
+            'verification_status' => 'verified',
+        ]);
+
+        $delivery = app(DeliveryService::class)->assignRider($order->refresh(), $rider->refresh());
+
+        $this->assertSame('assigned', $delivery->status);
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $riderUser->id,
+            'type' => 'delivery_assigned',
+        ]);
+        foreach (['database', 'email', 'sms', 'firebase'] as $channel) {
+            $this->assertDatabaseHas('notification_delivery_logs', [
+                'user_id' => $riderUser->id,
+                'channel' => $channel,
+            ]);
+        }
+    }
+
     public function test_rider_marking_an_order_delivered_queues_the_customer_invoice(): void
     {
         Mail::fake();
