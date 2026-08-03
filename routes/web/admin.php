@@ -62,6 +62,7 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::patch('/riders/{rider}/approve', [RiderApprovalController::class, 'approve'])->name('riders.approve');
     Route::patch('/riders/{rider}/reject', [RiderApprovalController::class, 'reject'])->name('riders.reject');
     Route::patch('/riders/{rider}/status', [RiderApprovalController::class, 'updateStatus'])->name('riders.status');
+    Route::patch('/riders/{rider}/credentials', [RiderApprovalController::class, 'updateCredentials'])->name('riders.credentials');
     Route::patch('/riders/{rider}/availability', [RiderApprovalController::class, 'updateAvailability'])->name('riders.availability');
 
     Route::resource('categories', CategoryController::class)->except(['show']);

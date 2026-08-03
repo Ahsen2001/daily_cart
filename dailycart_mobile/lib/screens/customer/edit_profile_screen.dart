@@ -107,7 +107,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       return;
     }
     if (ok) {
-      context.pop();
+      context.pop(true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

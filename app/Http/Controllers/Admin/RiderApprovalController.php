@@ -7,6 +7,8 @@ use App\Models\Rider;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class RiderApprovalController extends Controller
@@ -41,6 +43,8 @@ class RiderApprovalController extends Controller
 
     public function approve(Rider $rider, NotificationService $notifications): RedirectResponse
     {
+        $this->ensureVerificationCredentials($rider);
+
         $rider->update([
             'verification_status' => 'verified',
             'availability_status' => 'available',
@@ -77,6 +81,11 @@ class RiderApprovalController extends Controller
     {
         $validated = $request->validate(['verification_status' => ['required', 'in:pending,verified,rejected,suspended']]);
         $status = $validated['verification_status'];
+
+        if ($status === 'verified') {
+            $this->ensureVerificationCredentials($rider);
+        }
+
         $rider->update([
             'verification_status' => $status,
             'availability_status' => $status === 'verified' ? $rider->availability_status : 'unavailable',
@@ -87,6 +96,24 @@ class RiderApprovalController extends Controller
         return back()->with('status', 'Rider account status updated.');
     }
 
+    public function updateCredentials(Request $request, Rider $rider): RedirectResponse
+    {
+        $validated = $request->validate([
+            'license_number' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique(Rider::class, 'license_number')
+                    ->ignore($rider->id)
+                    ->withoutTrashed(),
+            ],
+        ]);
+
+        $rider->update($validated);
+
+        return back()->with('status', 'Rider verification credentials updated.');
+    }
+
     public function updateAvailability(Request $request, Rider $rider): RedirectResponse
     {
         $validated = $request->validate(['availability_status' => ['required', 'in:available,unavailable']]);
@@ -95,5 +122,14 @@ class RiderApprovalController extends Controller
         $rider->update(['availability_status' => $validated['availability_status']]);
 
         return back()->with('status', 'Rider availability updated.');
+    }
+
+    private function ensureVerificationCredentials(Rider $rider): void
+    {
+        if (blank($rider->license_number)) {
+            throw ValidationException::withMessages([
+                'license_number' => 'Add the rider driving licence number before verifying this account.',
+            ]);
+        }
     }
 }

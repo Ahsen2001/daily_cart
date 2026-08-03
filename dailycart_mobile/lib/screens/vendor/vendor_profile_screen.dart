@@ -91,7 +91,7 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                           SettingTile(
                             icon: Icons.edit_outlined,
                             title: 'Edit Vendor Profile',
-                            onTap: () => context.push(AppRoutes.vendorEditProfile),
+                            onTap: _editVendorProfile,
                           ),
                           SettingTile(
                             icon: Icons.lock_outline,
@@ -164,6 +164,14 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                     ),
                   ],
                 ),
+    );
+  }
+
+  Future<void> _editVendorProfile() async {
+    final updated = await context.push<bool>(AppRoutes.vendorEditProfile);
+    if (!mounted || updated != true) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Vendor profile updated successfully.')),
     );
   }
 

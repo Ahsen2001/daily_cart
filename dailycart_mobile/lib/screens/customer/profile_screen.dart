@@ -51,7 +51,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           SettingTile(
                             icon: Icons.edit_outlined,
                             title: 'Edit Profile',
-                            onTap: () => context.push(AppRoutes.editProfile),
+                            onTap: _editProfile,
                           ),
                           SettingTile(
                             icon: Icons.lock_outline_rounded,
@@ -146,6 +146,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ],
                 ),
+    );
+  }
+
+  Future<void> _editProfile() async {
+    final updated = await context.push<bool>(AppRoutes.editProfile);
+    if (!mounted || updated != true) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile updated successfully.')),
     );
   }
 

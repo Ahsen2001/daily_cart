@@ -148,12 +148,13 @@ class _EditVendorProfileScreenState
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'Vendor profile updated.' : 'Unable to update profile.')),
-    );
     if (ok) {
-      context.pop();
+      context.pop(true);
+      return;
     }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Unable to update profile.')),
+    );
   }
 
   static String? _required(String? value) {

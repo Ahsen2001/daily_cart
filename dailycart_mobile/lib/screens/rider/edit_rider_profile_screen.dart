@@ -157,10 +157,13 @@ class _EditRiderProfileScreenState
     );
     final ok = await ref.read(riderProvider).updateRiderProfile(updated);
     if (!mounted) return;
+    if (ok) {
+      context.pop(true);
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'Rider profile updated.' : 'Unable to update profile.')),
+      const SnackBar(content: Text('Unable to update profile.')),
     );
-    if (ok) context.pop();
   }
 
   static String? _required(String? value) {

@@ -65,7 +65,7 @@ class _RiderProfileScreenState extends ConsumerState<RiderProfileScreen> {
                           SettingTile(
                             icon: Icons.edit_outlined,
                             title: 'Edit Rider Profile',
-                            onTap: () => context.push(AppRoutes.editRiderProfile),
+                            onTap: _editRiderProfile,
                           ),
                           SettingTile(
                             icon: Icons.payments_outlined,
@@ -105,6 +105,14 @@ class _RiderProfileScreenState extends ConsumerState<RiderProfileScreen> {
                     ),
                   ],
                 ),
+    );
+  }
+
+  Future<void> _editRiderProfile() async {
+    final updated = await context.push<bool>(AppRoutes.editRiderProfile);
+    if (!mounted || updated != true) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Rider profile updated successfully.')),
     );
   }
 
