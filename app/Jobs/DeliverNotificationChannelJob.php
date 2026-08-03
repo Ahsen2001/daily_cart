@@ -4,8 +4,10 @@ namespace App\Jobs;
 
 use App\Exceptions\InvalidDeviceTokenException;
 use App\Mail\GenericNotificationMail;
+use App\Mail\OrderInvoiceMail;
 use App\Models\NotificationDeliveryLog;
 use App\Models\NotificationPreference;
+use App\Models\Order;
 use App\Services\ExternalSmsService;
 use App\Services\FirebaseCloudMessagingService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -102,12 +104,33 @@ class DeliverNotificationChannelJob implements ShouldQueue
             return;
         }
 
-        Mail::to($delivery->user->email)->send(
-            new GenericNotificationMail(
-                $delivery->notification->title,
-                $delivery->notification->message,
-            ),
-        );
+        $notification = $delivery->notification;
+
+        if ($notification?->type === 'order_invoice') {
+            $order = Order::query()
+                ->with(['customer.user', 'vendor', 'items', 'payment', 'delivery.rider.user'])
+                ->find($notification->order_id);
+
+            if (! $order) {
+                $this->skip($delivery, 'The order for this invoice no longer exists.');
+
+                return;
+            }
+
+            Mail::to($delivery->user->email)->send(new OrderInvoiceMail($order));
+        } else {
+            Mail::to($delivery->user->email)->send(
+                new GenericNotificationMail(
+                    $notification->title,
+                    $notification->message,
+                    is_array($notification->data['email_details'] ?? null)
+                        ? $notification->data['email_details']
+                        : [],
+                    $notification->data['email_action_url'] ?? null,
+                    $notification->data['email_action_label'] ?? null,
+                ),
+            );
+        }
         $this->markSent($delivery);
     }
 

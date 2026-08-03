@@ -6,6 +6,7 @@ use App\Jobs\DeliverNotificationChannelJob;
 use App\Jobs\SendPublicPromotionPushJob;
 use App\Models\Notification;
 use App\Models\NotificationDeliveryLog;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -149,6 +150,37 @@ class NotificationService
             ['database', 'mail', 'push'],
             ['product_id' => $product->id],
             '/vendor-product-details/'.$product->id,
+        );
+    }
+
+    /**
+     * Queue the delivered-order invoice through the same durable delivery log
+     * used by all private notifications. This makes SMTP failures visible and
+     * retryable instead of leaving invoice messages as untracked mail jobs.
+     */
+    public function orderInvoice(Order $order): ?Notification
+    {
+        $order->loadMissing(['customer.user', 'delivery']);
+        $customer = $order->customer?->user;
+
+        if (! $customer) {
+            return null;
+        }
+
+        return $this->sendOnce(
+            $customer,
+            'Your DailyCart invoice is ready',
+            'Order '.$order->order_number.' has been delivered. Your itemized invoice is ready to view.',
+            'order_invoice',
+            ['database', 'mail', 'push'],
+            [
+                'order_id' => $order->id,
+                'delivery_id' => $order->delivery?->id,
+                'order_number' => $order->order_number,
+            ],
+            '/order-details/'.$order->id,
+            'customer',
+            'order-invoice-'.$order->id,
         );
     }
 

@@ -39,21 +39,50 @@ class OrderUpdateNotificationService
     {
         $order->loadMissing(['customer.user', 'vendor.user', 'delivery.rider.user']);
         $rider = $order->delivery?->rider?->user;
-        if ($rider) {
+        $delivery = $order->delivery;
+        if ($rider && $delivery) {
+            $customer = $order->customer;
+            $customerName = trim(implode(' ', array_filter([
+                $customer?->first_name,
+                $customer?->last_name,
+            ]))) ?: ($customer?->user?->name ?: 'Customer');
+            $customerContact = $customer?->user?->phone ?: ($customer?->phone ?: 'Not provided');
+            $pickupAddress = $delivery->pickup_address ?: ($order->vendor?->address ?: 'Vendor location');
+            $deliveryAddress = $delivery->delivery_address ?: ($order->delivery_address ?: 'Not provided');
+            $scheduledAt = $delivery->scheduled_at ?: $order->scheduled_delivery_at;
+            $scheduledLabel = $scheduledAt?->format('M d, Y h:i A') ?: 'As soon as possible';
+            $dashboardUrl = route('rider.deliveries.show', $delivery);
+
             $this->notifications->sendOnce(
                 $rider,
                 'New delivery assigned',
-                'Order '.$order->order_number.' has been assigned to you. Pickup: '.($order->vendor?->address ?: 'vendor location').'.',
+                'Order '.$order->order_number.' has been assigned to you. Pickup: '.$pickupAddress.'.',
                 'delivery_assigned',
                 ['database', 'mail', 'sms', 'push'],
                 [
                     'order_id' => $order->id,
-                    'delivery_id' => $order->delivery?->id,
+                    'delivery_id' => $delivery->id,
                     'status' => 'assigned',
+                    'order_number' => $order->order_number,
+                    'customer_name' => $customerName,
+                    'customer_contact' => $customerContact,
+                    'pickup_address' => $pickupAddress,
+                    'delivery_address' => $deliveryAddress,
+                    'scheduled_delivery_at' => $scheduledAt?->toIso8601String(),
+                    'email_details' => [
+                        'Order number' => $order->order_number,
+                        'Customer' => $customerName,
+                        'Customer contact' => $customerContact,
+                        'Pickup address' => $pickupAddress,
+                        'Delivery address' => $deliveryAddress,
+                        'Scheduled delivery time' => $scheduledLabel,
+                    ],
+                    'email_action_url' => $dashboardUrl,
+                    'email_action_label' => 'Open delivery in DailyCart',
                 ],
-                '/delivery-details/'.$order->delivery?->id,
+                '/delivery-details/'.$delivery->id,
                 'rider',
-                'delivery-assigned-'.$order->delivery?->id,
+                'delivery-assigned-'.$delivery->id,
             );
         }
 

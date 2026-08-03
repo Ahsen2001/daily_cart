@@ -17,9 +17,9 @@ class DeliveryService
     public function __construct(
         private readonly OrderStatusService $orderStatusService,
         private readonly LoyaltyPointService $loyaltyPointService,
-        private readonly ExternalEmailService $emails,
         private readonly FinancialPolicyService $financialPolicy,
         private readonly OrderUpdateNotificationService $orderUpdates,
+        private readonly NotificationService $notifications,
     ) {}
 
     public function assignRider(Order $order, Rider $rider, ?User $actor = null): Delivery
@@ -135,7 +135,7 @@ class DeliveryService
             $delivery->rider?->update(['availability_status' => 'available']);
             $this->loyaltyPointService->earnForOrder($order->refresh());
             $this->orderUpdates->statusChanged($order, 'delivered', $actor);
-            $this->emails->outForDeliveryInvoice($order->loadMissing([
+            $this->notifications->orderInvoice($order->loadMissing([
                 'customer.user',
                 'vendor',
                 'items',

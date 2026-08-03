@@ -17,6 +17,21 @@
                                 <div class="min-w-0 flex-1">
                                     <div class="font-semibold text-gray-900">{{ $notification->title }}</div>
                                     <div class="mt-1 text-sm text-gray-700">{{ $notification->message }}</div>
+                                    @if ($notification->type === 'delivery_assigned' && filled($notification->data['email_details'] ?? null))
+                                        <dl class="mt-4 grid gap-x-6 gap-y-2 rounded-lg bg-white/70 p-4 text-sm sm:grid-cols-2">
+                                            @foreach ($notification->data['email_details'] as $label => $value)
+                                                <div>
+                                                    <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ $label }}</dt>
+                                                    <dd class="mt-1 font-medium text-gray-900">{{ $value }}</dd>
+                                                </div>
+                                            @endforeach
+                                        </dl>
+                                        @if (filled($notification->data['email_action_url'] ?? null))
+                                            <a href="{{ $notification->data['email_action_url'] }}" class="mt-4 inline-flex items-center rounded-md bg-green-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-800">
+                                                {{ $notification->data['email_action_label'] ?? 'Open delivery' }}
+                                            </a>
+                                        @endif
+                                    @endif
                                     <div class="mt-2 text-xs text-gray-500"><x-local-time :date="$notification->created_at" /></div>
                                 </div>
                                 <form class="flex-shrink-0" method="POST" action="{{ $notification->read_at ? route('notifications.unread', $notification) : route('notifications.read', $notification) }}">

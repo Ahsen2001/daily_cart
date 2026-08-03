@@ -14,7 +14,11 @@ class GenericNotificationMail extends Mailable
 
     public function __construct(
         public readonly string $title,
-        public readonly string $body
+        public readonly string $body,
+        /** @var array<string, string> */
+        public readonly array $details = [],
+        public readonly ?string $actionUrl = null,
+        public readonly ?string $actionLabel = null,
     ) {}
 
     public function envelope(): Envelope

@@ -260,6 +260,14 @@ class CriticalCommerceFlowsTest extends TestCase
             'user_id' => $riderUser->id,
             'type' => 'delivery_assigned',
         ]);
+        $notification = \App\Models\Notification::query()
+            ->where('user_id', $riderUser->id)
+            ->where('type', 'delivery_assigned')
+            ->firstOrFail();
+        $this->assertSame($order->order_number, $notification->data['order_number']);
+        $this->assertSame('Open delivery in DailyCart', $notification->data['email_action_label']);
+        $this->assertSame($delivery->pickup_address, $notification->data['email_details']['Pickup address']);
+        $this->assertSame($delivery->delivery_address, $notification->data['email_details']['Delivery address']);
         foreach (['database', 'email', 'sms', 'firebase'] as $channel) {
             $this->assertDatabaseHas('notification_delivery_logs', [
                 'user_id' => $riderUser->id,
@@ -309,11 +317,26 @@ class CriticalCommerceFlowsTest extends TestCase
         );
 
         $this->assertSame('delivered', $order->refresh()->order_status);
-        Mail::assertQueued(
+        $invoiceNotification = $customer->user->notifications()
+            ->where('type', 'order_invoice')
+            ->where('order_id', $order->id)
+            ->firstOrFail();
+        $invoiceEmail = NotificationDeliveryLog::query()
+            ->where('notification_id', $invoiceNotification->id)
+            ->where('channel', 'email')
+            ->firstOrFail();
+
+        app()->call([new DeliverNotificationChannelJob($invoiceEmail->id), 'handle']);
+
+        Mail::assertSent(
             OrderInvoiceMail::class,
             fn (OrderInvoiceMail $mail) => $mail->order->is($order)
                 && $mail->hasTo($customer->user->email),
         );
+        $this->assertDatabaseHas('notification_delivery_logs', [
+            'id' => $invoiceEmail->id,
+            'status' => 'sent',
+        ]);
     }
 
     public function test_admin_delivery_fee_configuration_controls_quote_order_and_payment_totals(): void
