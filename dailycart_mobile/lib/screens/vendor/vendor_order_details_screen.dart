@@ -78,7 +78,8 @@ class _VendorOrderDetailsScreenState
                                     .first ??
                                 '-',
                           ),
-                          _Info('Payment', order.paymentStatus),
+                          _Info('Payment method', _label(order.paymentMethod)),
+                          _Info('Payment status', _label(order.paymentStatus)),
                           _Info('Total', CurrencyFormatter.lkr(order.totalAmount)),
                         ],
                       ),
@@ -188,6 +189,11 @@ class _VendorOrderDetailsScreenState
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  String _label(String value) {
+    final normalized = value.replaceAll('_', ' ').trim();
+    return normalized.isEmpty ? '-' : normalized;
   }
 }
 

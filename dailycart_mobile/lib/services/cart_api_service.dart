@@ -51,6 +51,31 @@ class CartApiService with AuthenticatedApiMixin {
     }
   }
 
+  Future<CartModel> addManyToCart(
+    List<({int productId, int quantity, int? variantId})> items,
+  ) async {
+    try {
+      final response = await _dio.post<dynamic>(
+        '/cart/bulk',
+        data: {
+          'items': items
+              .map(
+                (item) => {
+                  'product_id': item.productId,
+                  'quantity': item.quantity,
+                  'product_variant_id': item.variantId,
+                },
+              )
+              .toList(growable: false),
+        },
+        options: await authOptions(),
+      );
+      return CartModel.fromJson(ApiResponseParser.requireMap(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
   Future<CartModel> updateCartItem({
     required int cartItemId,
     required int quantity,

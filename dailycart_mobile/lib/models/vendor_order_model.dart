@@ -4,6 +4,7 @@ class VendorOrderModel {
     required this.orderNumber,
     required this.status,
     required this.paymentStatus,
+    this.paymentMethod = '',
     required this.createdAt,
     this.customerName = '',
     this.customerPhone = '',
@@ -17,6 +18,7 @@ class VendorOrderModel {
   final String orderNumber;
   final String status;
   final String paymentStatus;
+  final String paymentMethod;
   final String customerName;
   final String customerPhone;
   final String deliveryAddress;
@@ -39,6 +41,7 @@ class VendorOrderModel {
       orderNumber: (json['order_number'] ?? '').toString(),
       status: (json['order_status'] ?? json['status'] ?? 'pending').toString(),
       paymentStatus: (json['payment_status'] ?? 'pending').toString(),
+      paymentMethod: (json['payment_method'] ?? '').toString(),
       customerName: (json['customer_name'] ??
               (customer is Map<String, dynamic> ? customer['name'] : null) ??
               '')

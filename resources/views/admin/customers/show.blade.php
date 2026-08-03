@@ -25,19 +25,20 @@
 
                 <div class="rounded-lg bg-white p-6 shadow-sm">
                     <h3 class="font-bold text-gray-900">{{ __('Addresses') }}</h3>
-                    <div class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                    <div class="mt-4 grid gap-4 text-sm xl:grid-cols-2">
                         @forelse ($customer->addresses as $address)
-                            <div class="rounded-lg border border-gray-100 p-4">
+                            <div class="min-w-0 rounded-xl border border-gray-100 p-4">
                                 <p class="font-semibold">{{ $address->label }}</p>
-                                <p class="text-gray-600">{{ $address->address_line_1 }}</p>
+                                <p class="mt-1 break-words text-gray-600">{{ $address->address_line_1 }}</p>
                                 <p class="text-gray-500">{{ $address->city }}, {{ $address->district }}</p>
                                 <x-location-display
-                                    class="mt-3"
+                                    class="mt-4 w-full"
                                     :label="__('Customer map pin')"
                                     :address="collect([$address->address_line_1, $address->city, $address->district])->filter()->implode(', ')"
                                     :latitude="$address->latitude"
                                     :longitude="$address->longitude"
                                     compact
+                                    stacked
                                 />
                             </div>
                         @empty

@@ -114,6 +114,7 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
 
     Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/{notification}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/deliveries/{delivery}/retry', [AdminNotificationController::class, 'retryDelivery'])->name('notifications.deliveries.retry');
 
     Route::get('/support-tickets', [AdminSupportTicketController::class, 'index'])->name('support-tickets.index');
     Route::get('/support-tickets/{ticket}', [AdminSupportTicketController::class, 'show'])->name('support-tickets.show');

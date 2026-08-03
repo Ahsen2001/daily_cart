@@ -31,6 +31,7 @@
                                 <th class="px-3 py-2">{{ __('Customer') }}</th>
                                 <th class="px-3 py-2">{{ __('Scheduled') }}</th>
                                 <th class="px-3 py-2">{{ __('Status') }}</th>
+                                <th class="px-3 py-2">{{ __('Payment') }}</th>
                                 <th class="px-3 py-2">{{ __('Vendor Total') }}</th>
                                 <th class="px-3 py-2"></th>
                             </tr>
@@ -42,13 +43,14 @@
                                     <td class="px-3 py-3">{{ $order->customer?->user?->name }}</td>
                                     <td class="px-3 py-3">{{ $order->scheduled_delivery_at?->format('M d, Y h:i A') }}</td>
                                     <td class="px-3 py-3">{{ str_replace('_', ' ', ucfirst($order->order_status)) }}</td>
+                                    <td class="px-3 py-3"><span class="font-medium">{{ str_replace('_', ' ', ucfirst($order->payment?->payment_method ?? 'pending')) }}</span><br><span class="text-xs text-gray-500">{{ str_replace('_', ' ', ucfirst($order->payment_status)) }}</span></td>
                                     <td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr(max((float) $order->subtotal - (float) $order->discount_amount - (float) $order->loyalty_discount_amount, 0)) }}</td>
                                     <td class="px-3 py-3 text-right">
                                         <a class="text-indigo-700 underline" href="{{ route('vendor.orders.show', $order) }}">{{ __('View') }}</a>
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">{{ __('No orders found.') }}</td></tr>
+                                <tr><td colspan="7" class="px-3 py-6 text-center text-gray-500">{{ __('No orders found.') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>

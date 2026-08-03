@@ -11,6 +11,15 @@ use RuntimeException;
 
 class FirebaseCloudMessagingService
 {
+    public function isConfigured(): bool
+    {
+        $credentials = (string) config('services.firebase.credentials');
+
+        return filled(config('services.firebase.project_id'))
+            && filled($credentials)
+            && (is_file($credentials) || json_decode($credentials, true) !== null);
+    }
+
     public function sendToToken(
         string $token,
         string $title,
@@ -57,16 +66,7 @@ class FirebaseCloudMessagingService
     {
         $projectId = (string) config('services.firebase.project_id');
 
-        if ($projectId === '' || blank(config('services.firebase.credentials'))) {
-            if (app()->environment(['local', 'testing'])) {
-                Log::info('Firebase delivery skipped because credentials are not configured.', [
-                    'target' => isset($message['token']) ? 'device' : 'topic',
-                    'data' => $message['data'] ?? [],
-                ]);
-
-                return;
-            }
-
+        if (! $this->isConfigured()) {
             throw new RuntimeException('Firebase HTTP v1 credentials are not configured.');
         }
 

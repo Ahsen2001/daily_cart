@@ -24,13 +24,22 @@
                     <div class="mb-4 text-sm font-medium text-red-700">{{ $errors->first() }}</div>
                 @endif
 
-                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-4 sm:grid-cols-2">
                     <div><div class="text-sm text-gray-500">{{ __('Order') }}</div><div class="font-semibold">{{ $order->order_number }}</div></div>
                     <div><div class="text-sm text-gray-500">{{ __('Customer') }}</div><div class="font-semibold">{{ $order->customer?->user?->name }}</div></div>
                     <div><div class="text-sm text-gray-500">{{ __('Customer Contact') }}</div><div class="font-semibold">{{ $customerPhone ?: '-' }}</div></div>
                     <div><div class="text-sm text-gray-500">{{ __('Scheduled Delivery') }}</div><div class="font-semibold">{{ $order->scheduled_delivery_at?->format('M d, Y h:i A') }}</div></div>
-                    <div><div class="text-sm text-gray-500">{{ __('Status') }}</div><div class="font-semibold">{{ str_replace('_', ' ', ucfirst($order->order_status)) }}</div></div>
-                </div>
+                        <div><div class="text-sm text-gray-500">{{ __('Status') }}</div><div class="font-semibold">{{ str_replace('_', ' ', ucfirst($order->order_status)) }}</div></div>
+                    </div>
+
+                    <div class="mt-5 rounded-xl border border-green-100 bg-green-50 p-4">
+                        <p class="text-xs font-bold uppercase tracking-wide text-green-700">{{ __('Payment before confirmation') }}</p>
+                        <p class="mt-1 font-semibold text-gray-900">{{ str_replace('_', ' ', ucfirst($order->payment?->payment_method ?? 'pending')) }}</p>
+                        <p class="mt-1 text-sm text-gray-600">{{ __('Payment status') }}: {{ str_replace('_', ' ', ucfirst($order->payment_status)) }}</p>
+                        @if ($order->payment?->transaction_reference)
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Reference') }}: {{ $order->payment->transaction_reference }}</p>
+                        @endif
+                    </div>
 
                 <div class="mt-6 border-t pt-6">
                     <h3 class="mb-3 font-semibold">{{ __('Items') }}</h3>
@@ -51,6 +60,7 @@
                     <h3 class="mb-3 font-semibold">{{ __('Order Actions') }}</h3>
                     <div class="space-y-3">
                         @if ($order->order_status === 'pending')
+                            <p class="rounded-lg bg-gray-50 p-3 text-xs text-gray-600">{{ __('Confirming starts fulfilment. Payment method:') }} <strong>{{ str_replace('_', ' ', ucfirst($order->payment?->payment_method ?? 'pending')) }}</strong>.</p>
                             <form method="POST" action="{{ route('vendor.orders.confirm', $order) }}">
                                 @csrf
                                 @method('PATCH')

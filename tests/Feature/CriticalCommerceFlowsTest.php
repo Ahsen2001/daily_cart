@@ -443,6 +443,28 @@ class CriticalCommerceFlowsTest extends TestCase
         $this->assertSame(1, $user->walletTransactions()->count());
     }
 
+    public function test_customer_can_add_multiple_products_to_cart_in_one_request(): void
+    {
+        [$user] = $this->createCustomer();
+        $vendor = $this->createVendor();
+        $category = $this->createCategory();
+        $firstProduct = $this->createProduct($vendor, $category, price: 100);
+        $secondProduct = $this->createProduct($vendor, $category, price: 200);
+
+        Sanctum::actingAs($user, ['customer']);
+
+        $this->postJson('/api/v1/cart/bulk', [
+            'items' => [
+                ['product_id' => $firstProduct->id, 'quantity' => 2],
+                ['product_id' => $secondProduct->id, 'quantity' => 1],
+            ],
+        ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Selected products added to cart successfully.')
+            ->assertJsonCount(2, 'cart')
+            ->assertJsonPath('totals.item_count', 3);
+    }
+
     /** @return array{User, Customer} */
     private function createCustomer(float $walletBalance = 0): array
     {

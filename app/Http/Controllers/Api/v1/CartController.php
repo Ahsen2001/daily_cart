@@ -49,6 +49,27 @@ class CartController extends Controller
         ]);
     }
 
+    public function addMany(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'min:1', 'max:50'],
+            'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
+        ]);
+        $customer = $request->user()->customer;
+        if (! $customer) {
+            return response()->json(['message' => 'Customer profile not found.'], 404);
+        }
+
+        $this->cartService->addMany($customer, $validated['items']);
+
+        return response()->json([
+            'message' => 'Selected products added to cart successfully.',
+            ...$this->cartPayload($customer),
+        ]);
+    }
+
     public function update(Request $request, CartItem $item): JsonResponse
     {
         $request->validate([

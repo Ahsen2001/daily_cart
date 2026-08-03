@@ -73,6 +73,26 @@ class CartProvider extends ChangeNotifier {
     });
   }
 
+  Future<bool> addManyToCart(List<ProductModel> products) async {
+    final unavailable = products.where(
+      (product) => !product.isVisibleForCustomer || !product.isAvailable,
+    );
+    if (unavailable.isNotEmpty) {
+      errorMessage = 'Remove unavailable products before adding to cart.';
+      notifyListeners();
+      return false;
+    }
+
+    return _runCartAction(() async {
+      final cart = await _apiService.addManyToCart(
+        products
+            .map((product) => (productId: product.id, quantity: 1, variantId: null))
+            .toList(growable: false),
+      );
+      _setCart(cart.items, cart.summary);
+    });
+  }
+
   Future<bool> updateCartItem({
     required CartItemModel item,
     required int quantity,

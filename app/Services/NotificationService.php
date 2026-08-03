@@ -166,6 +166,22 @@ class NotificationService
         return $notification->refresh();
     }
 
+    public function retryDelivery(NotificationDeliveryLog $delivery): void
+    {
+        if (! in_array($delivery->status, [NotificationDeliveryLog::STATUS_FAILED, NotificationDeliveryLog::STATUS_SKIPPED], true)) {
+            return;
+        }
+
+        $delivery->update([
+            'status' => NotificationDeliveryLog::STATUS_QUEUED,
+            'attempts' => 0,
+            'failure_reason' => null,
+            'delivered_at' => null,
+        ]);
+
+        DeliverNotificationChannelJob::dispatch($delivery->id)->afterCommit();
+    }
+
     private function adminUsers(): Collection
     {
         return User::whereHas('roles', fn ($query) => $query->whereIn('name', ['Admin', 'Super Admin']))->get();

@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CartService
 {
@@ -45,6 +46,31 @@ class CartService
                 'unit_price' => $this->unitPrice($product, $variant),
             ]
         );
+    }
+
+    /**
+     * Add several products atomically. A validation failure leaves the cart unchanged.
+     *
+     * @param array<int, array{product_id:int, quantity:int, product_variant_id?:int|null}> $items
+     */
+    public function addMany(Customer $customer, array $items): Cart
+    {
+        return DB::transaction(function () use ($customer, $items) {
+            foreach ($items as $line) {
+                $product = Product::query()
+                    ->with(['category', 'vendor'])
+                    ->lockForUpdate()
+                    ->findOrFail($line['product_id']);
+                $variantId = $line['product_variant_id'] ?? null;
+                $variant = $variantId
+                    ? ProductVariant::query()->with('inventory')->lockForUpdate()->findOrFail($variantId)
+                    : null;
+
+                $this->add($customer, $product, (int) $line['quantity'], $variant);
+            }
+
+            return $this->activeCart($customer)->refresh()->load(['items.product.category', 'items.variant']);
+        });
     }
 
     public function update(CartItem $item, int $quantity): CartItem

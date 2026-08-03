@@ -69,6 +69,13 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             ),
           ),
           IconButton(
+            tooltip: 'Add multiple products',
+            onPressed: state.products.isEmpty
+                ? null
+                : () => _openBulkAdd(state.products),
+            icon: const Icon(Icons.playlist_add_rounded),
+          ),
+          IconButton(
             tooltip: 'Filters',
             onPressed: _openFilters,
             icon: const Icon(Icons.tune_rounded),
@@ -259,6 +266,102 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         );
       },
     );
+  }
+
+  Future<void> _openBulkAdd(List<ProductModel> products) async {
+    final selected = <int>{};
+    final result = await showModalBottomSheet<List<ProductModel>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.lightBackground,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: SizedBox(
+            height: MediaQuery.sizeOf(context).height * .78,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 12, 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Add multiple products',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Close',
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Select products to add one of each to your cart.'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      final enabled = product.isVisibleForCustomer && product.isAvailable;
+                      return CheckboxListTile(
+                        value: selected.contains(product.id),
+                        enabled: enabled,
+                        title: Text(product.name),
+                        subtitle: Text(enabled ? product.vendorName : 'Unavailable'),
+                        activeColor: AppColors.primaryGreen,
+                        onChanged: (checked) => setSheetState(() {
+                          if (checked == true) {
+                            selected.add(product.id);
+                          } else {
+                            selected.remove(product.id);
+                          }
+                        }),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: selected.isEmpty
+                          ? null
+                          : () => Navigator.of(context).pop(
+                              products.where((product) => selected.contains(product.id)).toList(),
+                            ),
+                      icon: const Icon(Icons.add_shopping_cart_rounded),
+                      label: Text('Add ${selected.length} selected'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (result == null || result.isEmpty || !mounted) {
+      return;
+    }
+    final ok = await ref.read(cartProvider).addManyToCart(result);
+    if (!mounted) {
+      return;
+    }
+    _showMessage(ok
+        ? '${result.length} products added to cart.'
+        : ref.read(cartProvider).errorMessage ?? 'Unable to update cart.');
   }
 
   Future<void> _showPlaceholder(

@@ -64,9 +64,15 @@ class DeliverNotificationChannelJob implements ShouldQueue
             };
         } catch (Throwable $exception) {
             $delivery->refresh()->update([
-                'status' => NotificationDeliveryLog::STATUS_QUEUED,
+                'status' => $this->isNonRetryable($delivery, $exception)
+                    ? NotificationDeliveryLog::STATUS_FAILED
+                    : NotificationDeliveryLog::STATUS_QUEUED,
                 'failure_reason' => Str::limit($exception->getMessage(), 1000, ''),
             ]);
+
+            if ($this->isNonRetryable($delivery, $exception)) {
+                return;
+            }
 
             throw $exception;
         }
@@ -121,6 +127,12 @@ class DeliverNotificationChannelJob implements ShouldQueue
         NotificationDeliveryLog $delivery,
         FirebaseCloudMessagingService $firebase,
     ): void {
+        if (! $firebase->isConfigured()) {
+            $this->skip($delivery, 'Firebase is not configured. Set FIREBASE_PROJECT_ID and FIREBASE_CREDENTIALS on the server.');
+
+            return;
+        }
+
         $notification = $delivery->notification;
         $appRole = $notification?->app_role;
 
@@ -202,5 +214,11 @@ class DeliverNotificationChannelJob implements ShouldQueue
             'status' => NotificationDeliveryLog::STATUS_SKIPPED,
             'failure_reason' => $reason,
         ]);
+    }
+
+    private function isNonRetryable(NotificationDeliveryLog $delivery, Throwable $exception): bool
+    {
+        return $delivery->channel === 'sms'
+            && str_contains(strtolower($exception->getMessage()), 'insufficient sms credit');
     }
 }
