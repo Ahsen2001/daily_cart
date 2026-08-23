@@ -13,7 +13,10 @@
     <header class="sticky top-0 z-40 border-b border-brand-border bg-white/95 backdrop-blur-xl">
         <div class="dc-container flex h-20 items-center justify-between">
             <a href="{{ route('home') }}"><x-application-logo /></a>
-            <a class="dc-button-secondary" href="{{ route('stores.index') }}">{{ __('All Stores') }}</a>
+            <div class="flex items-center gap-3">
+                <a class="dc-button-secondary shrink-0" href="{{ route('home') }}">{{ __('← Back to Home') }}</a>
+                <a class="hidden dc-button-secondary sm:inline-flex" href="{{ route('stores.index') }}">{{ __('All Stores') }}</a>
+            </div>
         </div>
     </header>
 

@@ -33,7 +33,16 @@
                     <div class="rounded-lg bg-white p-6 shadow-sm">
                         <h3 class="font-semibold text-gray-900">{{ __($title) }}</h3>
                         <div class="relative mt-4 h-72 max-h-72 overflow-hidden">
-                            <canvas id="{{ $key }}" class="block h-full w-full"></canvas>
+                            @if (filled($charts[$key]['values'] ?? []))
+                                <canvas id="{{ $key }}" class="block h-full w-full"></canvas>
+                            @else
+                                <div class="flex h-full items-center justify-center rounded-2xl border border-dashed border-brand-border bg-brand-light/50 px-6 text-center">
+                                    <div>
+                                        <p class="font-semibold text-brand-text">{{ __('No data for this period') }}</p>
+                                        <p class="mt-2 text-sm leading-6 text-brand-text/60">{{ __('Charts will appear when matching orders and payments are recorded.') }}</p>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endforeach
@@ -52,7 +61,13 @@
         };
 
         Object.keys(charts).forEach((key) => {
-            new Chart(document.getElementById(key), {
+            const canvas = document.getElementById(key);
+
+            if (!canvas || !charts[key].values?.length || !window.Chart) {
+                return;
+            }
+
+            new Chart(canvas, {
                 type: chartTypes[key],
                 data: {
                     labels: charts[key].labels,
