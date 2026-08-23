@@ -2,6 +2,12 @@
     <form method="POST" action="{{ route('rider.register.store') }}">
         @csrf
 
+        <div class="mb-5 flex justify-end">
+            <a href="{{ route('home') }}" class="dc-button-secondary">
+                {{ __('← Back to Home') }}
+            </a>
+        </div>
+
         <x-registration-role-tabs active="rider" />
 
         <div class="mb-6">
@@ -56,7 +62,7 @@
 
         <div class="mt-4">
             <x-input-label for="address" :value="__('Home Base Address')" />
-            <x-text-input id="address" name="address" type="text" class="mt-1 block w-full" :value="old('address')" required autocomplete="street-address" />
+            <x-text-input id="address" name="address" type="text" class="mt-1 block w-full" :value="old('address')" placeholder="Home number, street, and area" required autocomplete="street-address" />
             <x-input-error :messages="$errors->get('address')" class="mt-2" />
         </div>
 

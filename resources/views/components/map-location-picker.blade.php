@@ -1,5 +1,6 @@
 @props([
     'addressInput' => 'address',
+    'enableAddressAutocomplete' => false,
     'latitude' => old('latitude'),
     'longitude' => old('longitude'),
     'formattedAddress' => old('formatted_address'),
@@ -32,7 +33,7 @@
 
     @if ($googleMapsBrowserKey)
         <div class="mt-4 h-72 overflow-hidden rounded-2xl border border-brand-border bg-white" data-location-map role="region" aria-label="{{ __('Select registration location on map') }}"></div>
-        <p class="mt-2 text-xs text-brand-muted">{{ __('Search using the address field above, click anywhere on the map, or drag the pin.') }}</p>
+        <p class="mt-2 text-xs text-brand-muted">{{ __('Enter the address manually, click anywhere on the map, or drag the pin.') }}</p>
     @else
         <div class="dc-flash mt-4 border-amber-200 bg-amber-50 text-amber-900">
             {{ __('Interactive map preview is temporarily unavailable. You can still use your browser location or enter the address manually.') }}
@@ -144,7 +145,7 @@
                     map.addListener('click', (event) => choosePosition(event.latLng));
                     marker.addListener('dragend', () => choosePosition(marker.getPosition()));
 
-                    if (addressInput && google.maps.places) {
+                    if (@js($enableAddressAutocomplete) && addressInput && google.maps.places) {
                         const autocomplete = new google.maps.places.Autocomplete(addressInput, {
                             fields: ['formatted_address', 'geometry'],
                             componentRestrictions: { country: 'lk' },

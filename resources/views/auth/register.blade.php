@@ -2,6 +2,12 @@
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
+        <div class="mb-5 flex justify-end">
+            <a href="{{ route('home') }}" class="dc-button-secondary">
+                {{ __('← Back to Home') }}
+            </a>
+        </div>
+
         <x-registration-role-tabs active="customer" />
 
         <div class="mb-6">
@@ -45,7 +51,7 @@
 
         <div class="mt-4">
             <x-input-label for="address_line_1" :value="__('Address Line 1')" />
-            <x-text-input id="address_line_1" class="block mt-1 w-full" type="text" name="address_line_1" :value="old('address_line_1')" required />
+            <x-text-input id="address_line_1" class="block mt-1 w-full" type="text" name="address_line_1" :value="old('address_line_1')" placeholder="House number, street, and area" required autocomplete="street-address" />
             <x-input-error :messages="$errors->get('address_line_1')" class="mt-2" />
         </div>
 

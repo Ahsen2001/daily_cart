@@ -120,30 +120,37 @@ class ImportLegacyStorefronts extends Command
                     function (object $legacyProduct) use ($legacy, $schema, $vendor, $user, &$importedProducts): void {
                         $category = $this->categoryForLegacyProduct($legacy, $schema, $legacyProduct);
                         $brand = $this->brandForLegacyProduct($legacy, $schema, $legacyProduct);
+                        $imageUrl = $this->legacyProductImageUrl($legacy, $schema, $legacyProduct->id);
+
+                        $productData = [
+                            'vendor_id' => $vendor->id,
+                            'category_id' => $category->id,
+                            'brand_id' => $brand?->id,
+                            'brand' => $brand?->name,
+                            'name' => $legacyProduct->name,
+                            'slug' => $this->uniqueProductSlug($legacyProduct->slug ?: $legacyProduct->name, $legacyProduct->sku),
+                            'barcode' => $legacyProduct->barcode,
+                            'description' => $legacyProduct->description,
+                            'price' => $legacyProduct->price,
+                            'discount_price' => $legacyProduct->discount_price,
+                            'base_price' => $legacyProduct->price,
+                            'sale_price' => $legacyProduct->discount_price,
+                            'unit_type' => 'item',
+                            'unit' => 'item',
+                            'stock_quantity' => $legacyProduct->stock_quantity,
+                            'is_featured' => (bool) $legacyProduct->is_featured,
+                            'status' => in_array($legacyProduct->status, ['active', 'approved'], true) ? 'approved' : 'pending',
+                            'created_by' => $user->id,
+                            'deleted_at' => null,
+                        ];
+
+                        if ($imageUrl) {
+                            $productData['image'] = $imageUrl;
+                        }
 
                         Product::withTrashed()->updateOrCreate(
                             ['sku' => $legacyProduct->sku ?: null],
-                            [
-                                'vendor_id' => $vendor->id,
-                                'category_id' => $category->id,
-                                'brand_id' => $brand?->id,
-                                'brand' => $brand?->name,
-                                'name' => $legacyProduct->name,
-                                'slug' => $this->uniqueProductSlug($legacyProduct->slug ?: $legacyProduct->name, $legacyProduct->sku),
-                                'barcode' => $legacyProduct->barcode,
-                                'description' => $legacyProduct->description,
-                                'price' => $legacyProduct->price,
-                                'discount_price' => $legacyProduct->discount_price,
-                                'base_price' => $legacyProduct->price,
-                                'sale_price' => $legacyProduct->discount_price,
-                                'unit_type' => 'item',
-                                'unit' => 'item',
-                                'stock_quantity' => $legacyProduct->stock_quantity,
-                                'is_featured' => (bool) $legacyProduct->is_featured,
-                                'status' => in_array($legacyProduct->status, ['active', 'approved'], true) ? 'approved' : 'pending',
-                                'created_by' => $user->id,
-                                'deleted_at' => null,
-                            ],
+                            $productData,
                         );
                         $importedProducts++;
                     },
@@ -213,5 +220,20 @@ class ImportLegacyStorefronts extends Command
             ['slug' => Str::slug($legacyBrand->slug ?: $legacyBrand->name)],
             ['name' => $legacyBrand->name],
         );
+    }
+
+    private function legacyProductImageUrl($legacy, $schema, int $productId): ?string
+    {
+        if (! $schema->hasTable('product_images') || ! $schema->hasColumn('product_images', 'url')) {
+            return null;
+        }
+
+        $url = $legacy->table('product_images')
+            ->where('product_id', $productId)
+            ->orderByDesc('is_primary')
+            ->orderBy('id')
+            ->value('url');
+
+        return filter_var($url, FILTER_VALIDATE_URL) ? $url : null;
     }
 }

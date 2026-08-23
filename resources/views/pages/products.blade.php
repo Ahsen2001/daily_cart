@@ -13,15 +13,18 @@
     <body class="bg-brand-light font-sans text-brand-text">
         <header class="sticky top-0 z-40 border-b border-green-100 bg-white/90 backdrop-blur-xl">
             <div class="dc-container flex h-20 items-center justify-between">
-                <a href="{{ url('/') }}" class="transition hover:scale-[1.02]"><x-application-logo /></a>
-                <nav class="hidden items-center gap-3 md:flex">
-                    <a class="dc-button-secondary" href="{{ route('categories.index') }}">{{ __('Categories') }}</a>
-                    @auth
-                        <a class="dc-button" href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
-                    @else
-                        <a class="dc-button" href="{{ route('login') }}">{{ __('Login') }}</a>
-                    @endauth
-                </nav>
+                <a href="{{ route('home') }}" class="transition hover:scale-[1.02]"><x-application-logo /></a>
+                <div class="flex items-center gap-3">
+                    <a class="dc-button-secondary shrink-0" href="{{ route('home') }}">{{ __('← Back to Home') }}</a>
+                    <nav class="hidden items-center gap-3 md:flex">
+                        <a class="dc-button-secondary" href="{{ route('categories.index') }}">{{ __('Categories') }}</a>
+                        @auth
+                            <a class="dc-button" href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
+                        @else
+                            <a class="dc-button" href="{{ route('login') }}">{{ __('Login') }}</a>
+                        @endauth
+                    </nav>
+                </div>
             </div>
         </header>
 
