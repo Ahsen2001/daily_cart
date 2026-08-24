@@ -30,6 +30,7 @@
                     <nav class="hidden items-center gap-3 md:flex">
                         <a class="dc-button-secondary" href="{{ route('pages.about') }}">{{ __('About') }}</a>
                         <a class="dc-button-secondary" href="{{ route('pages.offers') }}">{{ __('Offers') }}</a>
+                        <a class="dc-button-secondary" href="{{ route('stores.index') }}">{{ __('Stores') }}</a>
                         <a class="dc-button-secondary" href="{{ route('pages.contact') }}">{{ __('Contact') }}</a>
                         @auth
                             <a class="dc-button" href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>

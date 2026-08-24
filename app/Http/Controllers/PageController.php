@@ -22,12 +22,12 @@ class PageController extends Controller
 
         return view('welcome', [
             'todayOffers' => $todayOffers,
-            'featuredProducts' => Cache::remember('storefront:featured-products', now()->addSeconds(30), fn () => Product::query()
+            'featuredProducts' => Cache::remember('storefront:featured-products', now()->addSeconds(30), fn() => Product::query()
                 ->visibleToCustomers()
                 ->with(['category', 'vendor.storeProfile', 'images'])
-                ->withAvg(['reviews as visible_reviews_avg_rating' => fn ($query) => $query->where('status', 'visible')], 'rating')
+                ->withAvg(['reviews as visible_reviews_avg_rating' => fn($query) => $query->where('status', 'visible')], 'rating')
                 ->latest()
-                ->limit(4)
+                ->limit(5)
                 ->get()),
             'featuredStores' => VendorProfile::query()
                 ->publiclyVisible()
@@ -60,7 +60,7 @@ class PageController extends Controller
             'product' => $product,
             'pricing' => $promotions->pricingFor($product),
             'variantPricing' => $product->variants->mapWithKeys(
-                fn ($variant) => [$variant->id => $promotions->pricingFor($product, $variant)]
+                fn($variant) => [$variant->id => $promotions->pricingFor($product, $variant)]
             ),
         ]);
     }
@@ -69,7 +69,7 @@ class PageController extends Controller
     {
         return view('pages.categories', [
             'categories' => Category::active()
-                ->withCount(['products as available_products_count' => fn ($query) => $query->visibleToCustomers()])
+                ->withCount(['products as available_products_count' => fn($query) => $query->visibleToCustomers()])
                 ->orderBy('name')
                 ->get(),
         ]);
@@ -84,15 +84,15 @@ class PageController extends Controller
         $products = Product::query()
             ->visibleToCustomers()
             ->with(['category', 'vendor.storeProfile', 'images'])
-            ->withAvg(['reviews as visible_reviews_avg_rating' => fn ($query) => $query->where('status', 'visible')], 'rating')
+            ->withAvg(['reviews as visible_reviews_avg_rating' => fn($query) => $query->where('status', 'visible')], 'rating')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where(function ($inner) use ($request) {
-                    $inner->where('name', 'like', '%'.$request->search.'%')
-                        ->orWhere('brand', 'like', '%'.$request->search.'%');
+                    $inner->where('name', 'like', '%' . $request->search . '%')
+                        ->orWhere('brand', 'like', '%' . $request->search . '%');
                 });
             })
-            ->when($selectedCategory, fn ($query) => $query->where('category_id', $selectedCategory->id))
-            ->when($request->filled('category') && ! $selectedCategory, fn ($query) => $query->whereRaw('1 = 0'))
+            ->when($selectedCategory, fn($query) => $query->where('category_id', $selectedCategory->id))
+            ->when($request->filled('category') && ! $selectedCategory, fn($query) => $query->whereRaw('1 = 0'))
             ->latest()
             ->paginate(16)
             ->withQueryString();
@@ -198,7 +198,7 @@ class PageController extends Controller
         ];
 
         return collect($defaults[$page])
-            ->mapWithKeys(fn ($value, $field) => ["page_{$page}_{$field}" => $value])
+            ->mapWithKeys(fn($value, $field) => ["page_{$page}_{$field}" => $value])
             ->toArray();
     }
 }

@@ -4,6 +4,7 @@ $homepageCategories = [
 ['name' => 'Vegetables', 'slug' => 'vegetables', 'image' => 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80'],
 ['name' => 'Bakery', 'slug' => 'bakery', 'image' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80'],
 ['name' => 'Pharmacy', 'slug' => 'pharmacy', 'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=900&q=80'],
+['name' => 'Beverages', 'slug' => 'beverages', 'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=900&q=80'],
 ];
 @endphp
 
@@ -69,8 +70,8 @@ $homepageCategories = [
         <section class="dc-container grid min-h-[72vh] items-center gap-10 py-10 sm:py-14 lg:grid-cols-[1.05fr_.95fr]">
             <div class="animate-fade-up">
                 <x-notification-badge>{{ __('Fresh Daily Essentials') }}</x-notification-badge>
-                <h1 class="mt-5 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight text-brand-text sm:text-5xl lg:text-6xl">
-                    Smart shopping and daily essentials delivery for your home.
+                <h1 class="mt-5 max-w-3xl text-3xl font-extrabold leading-[1.08] tracking-tight text-brand-text sm:text-4xl lg:text-5xl">
+                    Smart Shopping and Daily Essentials Delivery for Your Home.
                 </h1>
                 <p class="mt-5 max-w-2xl text-lg leading-8 text-brand-text/70">
                     DailyCart brings groceries, vegetables, fruits, household items, bakery goods, pharmacy products, and more into one clean delivery platform.
@@ -110,10 +111,10 @@ $homepageCategories = [
                             <span class="h-2 w-2 animate-pulse rounded-full bg-amber-300" aria-hidden="true"></span>
                             {{ __('Live savings') }}
                         </p>
-                        <h2 id="offers-today-title" class="mt-4 text-3xl font-extrabold sm:text-4xl">{{ __('Offers Today') }}</h2>
+                        <h2 id="offers-today-title" class="mt-4 text-2xl font-extrabold sm:text-2xl">{{ __('Offers Today') }}</h2>
                         <p class="mt-2 max-w-2xl text-sm leading-7 text-white/80 sm:text-base">{{ __('Fresh, active offers announced by DailyCart and approved vendors.') }}</p>
                     </div>
-                    <a class="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-brand-dark shadow-card transition hover:-translate-y-0.5 hover:shadow-lift" href="{{ route('pages.offers') }}">
+                    <a class="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-brand-dark shadow-card transition hover:-translate-y-0.5 hover:shadow-lift" href="{{ route('pages.offers') }}">
                         {{ __('View all offers') }}
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5" />
@@ -121,7 +122,7 @@ $homepageCategories = [
                     </a>
                 </div>
 
-                <div class="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <div class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3">
                     @foreach ($todayOffers as $promotion)
                     @php
                     $offerProduct = $promotion->target_type === 'product' ? $promotion->targetProduct : null;
@@ -145,7 +146,7 @@ $homepageCategories = [
                                 <img src="{{ $offerImage }}" alt="{{ $promotion->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async">
                                 @else
                                 <div class="flex h-full items-center justify-center bg-gradient-to-br from-emerald-50 to-amber-50">
-                                    <img src="{{ asset('images/logo.png') }}" alt="" class="h-28 w-28 object-contain opacity-80">
+                                    <img src="{{ asset('images/logo.png') }}" alt="" class="h-10 w-10 object-contain opacity-80">
                                 </div>
                                 @endif
                                 <span class="absolute left-4 top-4 rounded-full bg-brand-orange px-4 py-2 text-sm font-extrabold text-white shadow-card">{{ $discountLabel }}</span>
@@ -199,50 +200,114 @@ $homepageCategories = [
                     </div>
                     <a class="dc-button-secondary" href="{{ route('categories.index') }}">{{ __('Browse All') }}</a>
                 </div>
-                <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                     @foreach ($homepageCategories as $category)
-                    <a href="{{ route('products.index', ['category' => $category['slug']]) }}" class="dc-card block overflow-hidden p-0 text-center">
+                    <a
+                        href="{{ route('products.index', [
+                'category' => $category['slug']
+            ]) }}"
+                        class="dc-card group block overflow-hidden p-0 text-center">
+
                         <div class="aspect-[4/3] overflow-hidden bg-brand-light">
                             <img
                                 src="{{ $category['image'] }}"
                                 alt="{{ $category['name'] }}"
-                                class="h-full w-full object-cover"
-                                loading="lazy">
+                                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                                loading="lazy"
+                                decoding="async">
                         </div>
-                        <div class="p-6">
-                            <h3 class="font-bold">{{ $category['name'] }}</h3>
-                            <p class="mt-2 text-sm text-brand-text/60">{{ __('View approved products in this category.') }}</p>
+
+                        <div class="p-4 sm:p-5">
+                            <h3 class="line-clamp-1 text-sm font-bold text-brand-dark sm:text-base">
+                                {{ $category['name'] }}
+                            </h3>
+
+                            <p class="mt-1.5 line-clamp-2 text-xs leading-5 text-brand-text/60 sm:text-sm">
+                                {{ __('View approved products in this category.') }}
+                            </p>
                         </div>
                     </a>
                     @endforeach
                 </div>
 
                 @if ($featuredStores->isNotEmpty() || $popularStores->isNotEmpty())
-                <div class="mt-12 space-y-10">
+                <div class="mt-8 space-y-10">
+                    {{-- Featured Stores --}}
                     @if ($featuredStores->isNotEmpty())
-                    <section>
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <section aria-labelledby="featured-stores-title">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                             <div>
-                                <p class="font-semibold text-brand-dark">{{ __('Featured Stores') }}</p>
-                                <h3 class="mt-2 text-2xl font-extrabold">{{ __('Shop trusted local vendors') }}</h3>
-                            </div><a class="dc-button-secondary" href="{{ route('stores.index', ['featured' => 1]) }}">{{ __('View All Stores') }}</a>
+                                <p class="font-semibold text-brand-dark">
+                                    {{ __('Featured Stores') }}
+                                </p>
+
+                                <h3
+                                    id="featured-stores-title"
+                                    class="mt-2 text-2xl font-extrabold">
+
+                                    {{ __('Shop trusted local vendors') }}
+                                </h3>
+                            </div>
+
+                            <a
+                                class="dc-button-secondary w-fit"
+                                href="{{ route('stores.index', ['featured' => 1]) }}">
+
+                                {{ __('View All Stores') }}
+                            </a>
                         </div>
-                        <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">@foreach ($featuredStores as $store)<x-store-card :store="$store" />@endforeach</div>
-                    </section>
-                    @endif
-                    @if ($popularStores->isNotEmpty())
-                    <section>
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                            <div>
-                                <p class="font-semibold text-brand-dark">{{ __('Popular Stores') }}</p>
-                                <h3 class="mt-2 text-2xl font-extrabold">{{ __('Discover more DailyCart vendors') }}</h3>
-                            </div><a class="dc-button-secondary" href="{{ route('stores.index') }}">{{ __('Browse Stores') }}</a>
+
+                        <div class="mt-6 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+                            @foreach ($featuredStores as $store)
+                            <x-store-card :store="$store" />
+                            @endforeach
                         </div>
-                        <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">@foreach ($popularStores as $store)<x-store-card :store="$store" />@endforeach</div>
+
                     </section>
                     @endif
                 </div>
+
+
+                {{-- Popular Stores --}}
+                @if ($popularStores->isNotEmpty())
+                <div class="mt-8 space-y-10">
+                    <section aria-labelledby="popular-stores-title">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p class="font-semibold text-brand-dark">
+                                    {{ __('Popular Stores') }}
+                                </p>
+
+                                <h3
+                                    id="popular-stores-title"
+                                    class="mt-2 text-2xl font-extrabold">
+
+                                    {{ __('Discover more DailyCart vendors') }}
+                                </h3>
+                            </div>
+
+                            <a
+                                class="dc-button-secondary w-fit"
+                                href="{{ route('stores.index') }}">
+
+                                {{ __('Browse Stores') }}
+                            </a>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+                            @foreach ($popularStores as $store)
+                            <x-store-card :store="$store" />
+                            @endforeach
+
+                        </div>
+
+                    </section>
+
+                </div>
                 @endif
+
+                @endif
+
                 @if ($featuredProducts->isNotEmpty())
                 <div class="mt-12 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
@@ -251,7 +316,8 @@ $homepageCategories = [
                     </div>
                     <a class="dc-button-secondary" href="{{ route('products.index') }}">{{ __('View Products') }}</a>
                 </div>
-                <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="mt-6 grid auto-rows-fr grid-cols-2 items-stretch gap-5 sm:grid-cols-3 lg:grid-cols-5">
+
                     @foreach ($featuredProducts as $product)
                     <x-product-card :product="$product" />
                     @endforeach
