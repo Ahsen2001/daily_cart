@@ -44,4 +44,33 @@ export default {
     },
 
     plugins: [forms],
+
+    keyframes: {
+        'fade-up': {
+            '0%': {
+                opacity: '0',
+                transform: 'translateY(14px)',
+            },
+            '100%': {
+                opacity: '1',
+                transform: 'translateY(0)',
+            },
+        },
+
+        blink: {
+            '0%, 100%': {
+                opacity: '1',
+            },
+            '50%': {
+                opacity: '0.2',
+            },
+        },
+    },
+
+    animation: {
+        'fade-up': 'fade-up .45s ease-out both',
+        blink: 'blink 1s ease-in-out infinite',
+    },
+
 };
+

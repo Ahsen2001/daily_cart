@@ -103,15 +103,17 @@ $homepageCategories = [
         </section>
 
         @if ($todayOffers->isNotEmpty())
-        <section class="border-y border-brand-border bg-gradient-to-br from-brand-dark via-brand-primary to-emerald-600 py-14 text-white" aria-labelledby="offers-today-title">
+        <section
+            class="mx-auto my-8 max-w-6xl overflow-hidden rounded-3xl border border-brand-border bg-gradient-to-br from-brand-dark via-brand-primary to-emerald-600 py-8 text-white sm:py-10"
+            aria-labelledby="offers-today-title">
             <div class="dc-container">
-                <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] ring-1 ring-white/20">
                             <span class="h-2 w-2 animate-pulse rounded-full bg-amber-300" aria-hidden="true"></span>
                             {{ __('Live savings') }}
                         </p>
-                        <h2 id="offers-today-title" class="mt-4 text-2xl font-extrabold sm:text-2xl">{{ __('Offers Today') }}</h2>
+                        <h2 id="offers-today-title" class="mt-3 text-xl font-extrabold sm:text-2xl">{{ __('Offers Today') }}</h2>
                         <p class="mt-2 max-w-2xl text-sm leading-7 text-white/80 sm:text-base">{{ __('Fresh, active offers announced by DailyCart and approved vendors.') }}</p>
                     </div>
                     <a class="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-brand-dark shadow-card transition hover:-translate-y-0.5 hover:shadow-lift" href="{{ route('pages.offers') }}">
@@ -122,7 +124,7 @@ $homepageCategories = [
                     </a>
                 </div>
 
-                <div class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3">
+                <div class="mx-auto mt-6 grid max-w-5xl grid-cols-2 gap-3 sm:grid-cols-3">
                     @foreach ($todayOffers as $promotion)
                     @php
                     $offerProduct = $promotion->target_type === 'product' ? $promotion->targetProduct : null;
@@ -139,9 +141,9 @@ $homepageCategories = [
                     $offerPrice = $offerBasePrice !== null ? $promotion->priceFor($offerBasePrice) : null;
                     @endphp
 
-                    <article class="group overflow-hidden rounded-[1.75rem] bg-white text-brand-text shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-lift">
+                    <article class="group overflow-hidden rounded-2xl bg-white text-brand-text shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-lift">
                         <a href="{{ $offerUrl }}" class="block h-full">
-                            <div class="relative aspect-[16/9] overflow-hidden bg-brand-light">
+                            <div class="relative aspect-[16/8] overflow-hidden bg-brand-light">
                                 @if ($offerImage)
                                 <img src="{{ $offerImage }}" alt="{{ $promotion->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async">
                                 @else
@@ -149,10 +151,14 @@ $homepageCategories = [
                                     <img src="{{ asset('images/logo.png') }}" alt="" class="h-10 w-10 object-contain opacity-80">
                                 </div>
                                 @endif
-                                <span class="absolute left-4 top-4 rounded-full bg-brand-orange px-4 py-2 text-sm font-extrabold text-white shadow-card">{{ $discountLabel }}</span>
-                                <span class="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-2 text-xs font-bold uppercase tracking-wide text-brand-dark backdrop-blur">{{ str_replace('_', ' ', $promotion->promotion_type) }}</span>
+                                <span class="absolute left-2.5 top-2.5 rounded-full bg-brand-orange px-2.5 py-1 text-[10px] font-extrabold text-white shadow-card">
+                                    {{ $discountLabel }}
+                                </span>
+                                <span class="absolute right-2.5 top-2.5 max-w-[45%] truncate rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide text-brand-dark backdrop-blur">
+                                    {{ str_replace('_', ' ', $promotion->promotion_type) }}
+                                </span>
                             </div>
-                            <div class="p-6">
+                            <div class="p-4">
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
                                         @if ($offerProduct)
@@ -162,16 +168,16 @@ $homepageCategories = [
                                         @else
                                         <p class="text-xs font-bold uppercase tracking-wide text-brand-dark">{{ __('DailyCart special') }}</p>
                                         @endif
-                                        <h3 class="mt-2 line-clamp-2 text-xl font-extrabold">{{ $promotion->title }}</h3>
+                                        <h3 class="mt-1.5 line-clamp-2 text-sm font-extrabold leading-5 sm:text-base">{{ $promotion->title }}</h3>
                                     </div>
                                     <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-light text-brand-dark transition group-hover:bg-brand-primary group-hover:text-white" aria-hidden="true">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5" />
                                         </svg>
                                     </span>
                                 </div>
                                 @if ($offerProduct)
-                                <div class="mt-4 flex items-center justify-between border-t border-brand-border pt-4">
+                                <div class="mt-3 flex items-center justify-between border-t border-brand-border pt-3">
                                     <p class="line-clamp-1 text-sm font-semibold text-brand-text/70">{{ $offerProduct->name }}</p>
                                     <div class="shrink-0 pl-3 text-right">
                                         <p class="font-extrabold text-brand-dark">{{ \App\Services\CurrencyService::formatLkr($offerPrice) }}</p>
@@ -181,7 +187,7 @@ $homepageCategories = [
                                 @elseif ($promotion->description)
                                 <p class="mt-4 line-clamp-2 text-sm leading-6 text-brand-text/65">{{ $promotion->description }}</p>
                                 @endif
-                                <p class="mt-4 text-xs font-semibold text-brand-text/55">{{ __('Ends :date', ['date' => $promotion->ends_at->format('M d, Y · g:i A')]) }}</p>
+                                <p class="mt-3 text-[10px] font-semibold text-brand-text/55 sm:text-xs">{{ __('Ends :date', ['date' => $promotion->ends_at->format('M d, Y · g:i A')]) }}</p>
                             </div>
                         </a>
                     </article>
