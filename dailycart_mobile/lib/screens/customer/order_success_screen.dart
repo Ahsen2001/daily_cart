@@ -12,11 +12,13 @@ class OrderSuccessScreen extends ConsumerWidget {
   const OrderSuccessScreen({
     required this.orders,
     this.payHere = false,
+    this.message,
     super.key,
   });
 
   final List<OrderModel> orders;
   final bool payHere;
+  final String? message;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +46,8 @@ class OrderSuccessScreen extends ConsumerWidget {
                                 : 'Order Placed',
                             message: payHere
                                 ? 'Complete payment for this vendor order.'
-                                : 'Your Cash on Delivery order was created successfully.',
+                                : message ??
+                                      'Your Cash on Delivery order was created successfully.',
                           ),
                           if (payHere && !order.isPaid)
                             TextButton.icon(

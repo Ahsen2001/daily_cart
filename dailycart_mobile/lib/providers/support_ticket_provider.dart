@@ -5,13 +5,15 @@ import '../models/support_ticket_model.dart';
 import '../services/auth_api_service.dart';
 import '../services/support_ticket_api_service.dart';
 
-final supportTicketApiServiceProvider =
-    Provider<SupportTicketApiService>((ref) {
+final supportTicketApiServiceProvider = Provider<SupportTicketApiService>((
+  ref,
+) {
   return SupportTicketApiService();
 });
 
-final supportTicketProvider =
-    ChangeNotifierProvider<SupportTicketProvider>((ref) {
+final supportTicketProvider = ChangeNotifierProvider<SupportTicketProvider>((
+  ref,
+) {
   return SupportTicketProvider(ref.watch(supportTicketApiServiceProvider));
 });
 
@@ -58,11 +60,13 @@ class SupportTicketProvider extends ChangeNotifier {
   Future<bool> replyToTicket({
     required int ticketId,
     required String message,
+    String? attachmentPath,
   }) async {
     return _run(() async {
       selectedTicket = await _apiService.replyToTicket(
         ticketId: ticketId,
         message: message,
+        attachmentPath: attachmentPath,
       );
     });
   }

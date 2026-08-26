@@ -150,8 +150,16 @@ class CustomerAccountController extends Controller
     ): JsonResponse {
         $this->ensureTicketOwned($request, $ticket);
         abort_if(in_array($ticket->status, ['closed', 'resolved'], true), 422, 'This ticket is closed.');
-        $validated = $request->validate(['message' => ['required', 'string', 'max:5000']]);
-        $tickets->reply($ticket, $request->user(), $validated['message']);
+        $validated = $request->validate([
+            'message' => ['required', 'string', 'max:5000'],
+            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,doc,docx', 'max:4096'],
+        ]);
+        $tickets->reply(
+            $ticket,
+            $request->user(),
+            $validated['message'],
+            $request->file('attachment'),
+        );
 
         return response()->json([
             'message' => 'Reply added.',

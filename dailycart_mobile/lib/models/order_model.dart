@@ -11,6 +11,10 @@ class OrderModel {
     this.estimatedDeliveryTime,
     this.riderName = '',
     this.riderPhone = '',
+    this.riderLatitude,
+    this.riderLongitude,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
     this.subtotal = 0,
     this.discount = 0,
     this.deliveryCharge = 0,
@@ -30,6 +34,10 @@ class OrderModel {
   final DateTime? estimatedDeliveryTime;
   final String riderName;
   final String riderPhone;
+  final double? riderLatitude;
+  final double? riderLongitude;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
   final double subtotal;
   final double discount;
   final double deliveryCharge;
@@ -48,8 +56,8 @@ class OrderModel {
       status: (json['order_status'] ?? json['status'] ?? 'pending').toString(),
       paymentStatus: (json['payment_status'] ?? 'pending').toString(),
       paymentMethod: (json['payment_method'] ?? '').toString(),
-      deliveryAddress:
-          (json['delivery_address'] ?? json['address'] ?? '').toString(),
+      deliveryAddress: (json['delivery_address'] ?? json['address'] ?? '')
+          .toString(),
       scheduledDeliveryTime: _toNullableDate(
         json['scheduled_delivery_at'] ??
             json['scheduled_delivery_time'] ??
@@ -64,17 +72,26 @@ class OrderModel {
       riderPhone: rider is Map<String, dynamic>
           ? (rider['phone'] ?? '').toString()
           : (json['rider_phone'] ?? '').toString(),
+      riderLatitude: rider is Map<String, dynamic>
+          ? _toNullableDouble(rider['latitude'])
+          : _toNullableDouble(json['rider_latitude']),
+      riderLongitude: rider is Map<String, dynamic>
+          ? _toNullableDouble(rider['longitude'])
+          : _toNullableDouble(json['rider_longitude']),
+      deliveryLatitude: _toNullableDouble(json['delivery_latitude']),
+      deliveryLongitude: _toNullableDouble(json['delivery_longitude']),
       subtotal: _toDouble(json['subtotal']),
       discount: _toDouble(json['discount_amount'] ?? json['discount']),
-      deliveryCharge:
-          _toDouble(json['delivery_fee'] ?? json['delivery_charge']),
+      deliveryCharge: _toDouble(
+        json['delivery_fee'] ?? json['delivery_charge'],
+      ),
       serviceCharge: _toDouble(json['service_charge']),
       grandTotal: _toDouble(
         json['total_amount'] ?? json['grand_total'] ?? json['total'],
       ),
-      items: _listFrom(json['items'] ?? json['order_items'])
-          .map(OrderItemModel.fromJson)
-          .toList(growable: false),
+      items: _listFrom(
+        json['items'] ?? json['order_items'],
+      ).map(OrderItemModel.fromJson).toList(growable: false),
     );
   }
 
@@ -109,6 +126,11 @@ class OrderModel {
       return value.toDouble();
     }
     return double.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static double? _toNullableDouble(Object? value) {
+    if (value == null || value.toString().isEmpty) return null;
+    return value is num ? value.toDouble() : double.tryParse(value.toString());
   }
 
   static DateTime _toDate(Object? value) {
@@ -150,8 +172,7 @@ class OrderItemModel {
       image: (json['image'] ?? json['image_url'] ?? '').toString(),
       quantity: OrderModel._toInt(json['quantity']),
       price: OrderModel._toDouble(json['unit_price'] ?? json['price']),
-      subtotal:
-          OrderModel._toDouble(json['total_price'] ?? json['subtotal']),
+      subtotal: OrderModel._toDouble(json['total_price'] ?? json['subtotal']),
     );
   }
 }

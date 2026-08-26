@@ -26,16 +26,16 @@ enum PaymentMethodType {
     return switch (this) {
       PaymentMethodType.cashOnDelivery => 'Pay in LKR when your order arrives.',
       PaymentMethodType.payHere => 'Pay securely by card through PayHere.',
-      PaymentMethodType.bankTransfer => 'Placeholder for bank transfer.',
-      PaymentMethodType.wallet => 'Placeholder for DailyCart wallet.',
+      PaymentMethodType.bankTransfer =>
+        'Transfer to the displayed bank account and upload your slip.',
+      PaymentMethodType.wallet =>
+        'Pay instantly using your available DailyCart wallet balance.',
     };
   }
 }
 
 class PaymentMethodModel {
-  const PaymentMethodModel({
-    required this.type,
-  });
+  const PaymentMethodModel({required this.type});
 
   final PaymentMethodType type;
 

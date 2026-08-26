@@ -34,14 +34,7 @@ class _LoyaltyPointsScreenState extends ConsumerState<LoyaltyPointsScreen> {
             points: state.loyaltyBalance,
             onHistory: () => context.push(AppRoutes.loyaltyHistory),
             onRedeem: state.loyaltyBalance > 0
-                ? () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                            Text('Redeem points during checkout placeholder.'),
-                      ),
-                    );
-                  }
+                ? () => context.push(AppRoutes.checkoutPreparation)
                 : null,
           ),
         ],

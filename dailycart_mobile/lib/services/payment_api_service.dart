@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../models/checkout_response_model.dart';
+import '../models/bank_transfer_model.dart';
 import '../networking/api_client.dart';
 import '../utils/secure_storage_helper.dart';
 import 'api_list_parser.dart';
@@ -8,11 +9,9 @@ import 'auth_api_service.dart';
 import 'authenticated_api_mixin.dart';
 
 class PaymentApiService with AuthenticatedApiMixin {
-  PaymentApiService({
-    Dio? dio,
-    SecureStorageHelper? storage,
-  })  : _dio = dio ?? ApiClient.shared.dio,
-        _storage = storage ?? SecureStorageHelper();
+  PaymentApiService({Dio? dio, SecureStorageHelper? storage})
+    : _dio = dio ?? ApiClient.shared.dio,
+      _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
   final SecureStorageHelper _storage;
@@ -39,6 +38,41 @@ class PaymentApiService with AuthenticatedApiMixin {
         options: await authOptions(),
       );
       return OrderModel.fromJson(ApiListParser.extractObject(response.data));
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<BankTransferModel> getBankTransfer(int orderId) async {
+    try {
+      final response = await _dio.get<dynamic>(
+        '/payments/$orderId/bank-transfer',
+        options: await authOptions(),
+      );
+      return BankTransferModel.fromJson(
+        ApiListParser.extractObject(response.data),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  Future<BankTransferModel> uploadBankTransferSlip(
+    int orderId,
+    String path,
+  ) async {
+    try {
+      final form = await ApiClient.shared.multipart(
+        files: [ApiUploadFile(field: 'slip', path: path)],
+      );
+      final response = await _dio.post<dynamic>(
+        '/payments/$orderId/bank-transfer/slips',
+        data: form,
+        options: await authOptions(),
+      );
+      return BankTransferModel.fromJson(
+        ApiListParser.extractObject(response.data),
+      );
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }

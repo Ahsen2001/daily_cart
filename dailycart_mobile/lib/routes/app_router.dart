@@ -17,6 +17,7 @@ import '../screens/customer/add_edit_address_screen.dart';
 import '../screens/customer/add_review_screen.dart';
 import '../screens/customer/address_list_screen.dart';
 import '../screens/customer/available_coupons_screen.dart';
+import '../screens/customer/bank_transfer_screen.dart';
 import '../screens/customer/category_screen.dart';
 import '../screens/customer/cart_screen.dart';
 import '../screens/customer/checkout_preparation_screen.dart';
@@ -32,6 +33,7 @@ import '../screens/customer/my_orders_screen.dart';
 import '../screens/customer/my_reviews_screen.dart';
 import '../screens/customer/notifications_screen.dart';
 import '../screens/customer/order_details_screen.dart';
+import '../screens/customer/order_receipt_screen.dart';
 import '../screens/customer/order_success_screen.dart';
 import '../screens/customer/order_tracking_screen.dart';
 import '../screens/customer/payhere_webview_screen.dart';
@@ -464,6 +466,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       builder: (context, state) => const PaymentMethodScreen(),
     ),
     GoRoute(
+      path: AppRoutes.bankTransfer,
+      name: 'bank-transfer',
+      builder: (context, state) {
+        final extra = state.extra;
+        final orders = extra is List
+            ? extra.whereType<OrderModel>().toList(growable: false)
+            : const <OrderModel>[];
+        return BankTransferScreen(orders: orders);
+      },
+    ),
+    GoRoute(
       path: AppRoutes.payHereWebView,
       name: 'payhere-webview',
       builder: (context, state) {
@@ -509,6 +522,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return OrderSuccessScreen(
             orders: orders,
             payHere: extra['payHere'] == true,
+            message: extra['message']?.toString(),
           );
         }
         return OrderSuccessScreen(
@@ -537,6 +551,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       builder: (context, state) {
         final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
         return OrderDetailsScreen(orderId: orderId);
+      },
+    ),
+    GoRoute(
+      path: '${AppRoutes.orderReceipt}/:id',
+      name: 'order-receipt',
+      builder: (context, state) {
+        final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        return OrderReceiptScreen(orderId: orderId);
       },
     ),
     GoRoute(

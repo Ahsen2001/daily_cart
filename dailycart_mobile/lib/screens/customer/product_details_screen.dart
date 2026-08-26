@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -54,7 +55,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
         actions: [
           IconButton(
             tooltip: 'Share Product',
-            onPressed: () => _showMessage('Share product placeholder'),
+            onPressed: () => _shareProduct(product),
             icon: const Icon(Icons.share_outlined),
           ),
         ],
@@ -133,10 +134,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                     variant: CustomButtonVariant.secondary,
                     onPressed: () => context.push(
                       AppRoutes.createSubscription,
-                      extra: {
-                        'product': product,
-                        'variant': _selectedVariant,
-                      },
+                      extra: {'product': product, 'variant': _selectedVariant},
                     ),
                   ),
                 ],
@@ -176,6 +174,21 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
           : ref.read(wishlistProvider).errorMessage ??
                 'Unable to add wishlist item.',
     );
+  }
+
+  Future<void> _shareProduct(ProductModel? product) async {
+    if (product == null) {
+      _showMessage('Product details are still loading.');
+      return;
+    }
+    final text =
+        '${product.name}\n'
+        '${CurrencyFormatter.lkr(product.displayPrice)}\n'
+        'DailyCart product #${product.id}';
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) {
+      _showMessage('Product details copied. You can paste them into any app.');
+    }
   }
 
   void _showMessage(String message) {

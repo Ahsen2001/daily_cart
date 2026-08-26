@@ -90,18 +90,6 @@ class _CreateSupportTicketScreenState
                     onChanged: (value) =>
                         setState(() => _priority = value ?? 'medium'),
                   ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Attachment upload placeholder.'),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.attach_file_rounded),
-                    label: const Text('Attachment placeholder'),
-                  ),
                   const SizedBox(height: 20),
                   CustomButton(
                     label: 'Create Ticket',

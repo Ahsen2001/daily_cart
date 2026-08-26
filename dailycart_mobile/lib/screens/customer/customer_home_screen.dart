@@ -154,10 +154,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
               points: loyalty.loyaltyBalance,
               onHistory: () => context.push(AppRoutes.loyaltyHistory),
               onRedeem: loyalty.loyaltyBalance > 0
-                  ? () => _showPlaceholder(
-                      context,
-                      'Redeem points during checkout placeholder.',
-                    )
+                  ? () => context.push(AppRoutes.checkoutPreparation)
                   : null,
             ),
             if (promotions.promotions.isNotEmpty) ...[

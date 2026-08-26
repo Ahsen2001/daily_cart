@@ -36,6 +36,7 @@
 
     {"method": "GET", "path": "/api/v1/cart", "access": "customer", "ability": "customer"},
     {"method": "POST", "path": "/api/v1/cart", "access": "customer", "ability": "customer"},
+    {"method": "POST", "path": "/api/v1/cart/bulk", "access": "customer", "ability": "customer"},
     {"method": "PATCH", "path": "/api/v1/cart-items/{item}", "access": "customer", "ability": "customer"},
     {"method": "DELETE", "path": "/api/v1/cart-items/{item}", "access": "customer", "ability": "customer"},
     {"method": "DELETE", "path": "/api/v1/cart/clear", "access": "customer", "ability": "customer"},
@@ -47,6 +48,8 @@
     {"method": "PATCH", "path": "/api/v1/orders/{order}/cancel", "access": "customer", "ability": "customer"},
     {"method": "GET", "path": "/api/v1/payments/{order}/payhere", "access": "customer", "ability": "customer"},
     {"method": "GET", "path": "/api/v1/payments/{order}/status", "access": "customer", "ability": "customer"},
+    {"method": "GET", "path": "/api/v1/payments/{order}/bank-transfer", "access": "customer", "ability": "customer"},
+    {"method": "POST", "path": "/api/v1/payments/{order}/bank-transfer/slips", "access": "customer", "ability": "customer"},
 
     {"method": "GET", "path": "/api/v1/wishlist", "access": "customer", "ability": "customer"},
     {"method": "POST", "path": "/api/v1/wishlist", "access": "customer", "ability": "customer"},

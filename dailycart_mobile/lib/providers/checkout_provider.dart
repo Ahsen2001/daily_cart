@@ -25,6 +25,7 @@ class CheckoutProvider extends ChangeNotifier {
   AddressModel? selectedAddress;
   DateTime? selectedDeliveryTime;
   PaymentMethodType selectedPaymentMethod = PaymentMethodType.cashOnDelivery;
+  int selectedLoyaltyPoints = 0;
   OrderModel? order;
   List<OrderModel> orders = const [];
   CheckoutQuoteModel? quote;
@@ -88,6 +89,15 @@ class CheckoutProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> selectLoyaltyPoints(int points, {String? couponCode}) async {
+    selectedLoyaltyPoints = points < 0 ? 0 : points;
+    notifyListeners();
+    return refreshQuote(
+      couponCode: couponCode,
+      loyaltyPoints: selectedLoyaltyPoints,
+    );
+  }
+
   Future<bool> createOrder({String? couponCode}) async {
     if (selectedAddress == null) {
       errorMessage = 'Please select a delivery address.';
@@ -112,7 +122,10 @@ class CheckoutProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final quoteReady = await refreshQuote(couponCode: couponCode);
+      final quoteReady = await refreshQuote(
+        couponCode: couponCode,
+        loyaltyPoints: selectedLoyaltyPoints,
+      );
       if (!quoteReady) {
         return false;
       }
@@ -122,6 +135,7 @@ class CheckoutProvider extends ChangeNotifier {
           deliveryTime: selectedDeliveryTime!,
           paymentMethod: selectedPaymentMethod,
           couponCode: couponCode,
+          loyaltyPoints: selectedLoyaltyPoints,
         ),
       );
       orders = response.orders;

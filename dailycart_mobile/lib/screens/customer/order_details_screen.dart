@@ -65,10 +65,12 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                     ),
                     const SizedBox(height: 10),
                     CustomButton(
-                      label: 'Download Invoice Placeholder',
-                      icon: Icons.download_rounded,
+                      label: 'View Receipt',
+                      icon: Icons.receipt_long_rounded,
                       variant: CustomButtonVariant.secondary,
-                      onPressed: () => _show('Invoice download placeholder.'),
+                      onPressed: () => context.push(
+                        '${AppRoutes.orderReceipt}/${order.id}',
+                      ),
                     ),
                     if (order.isPending) ...[
                       const SizedBox(height: 10),

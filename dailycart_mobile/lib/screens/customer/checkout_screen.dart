@@ -6,6 +6,7 @@ import '../../models/payment_method_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/checkout_provider.dart';
 import '../../providers/coupon_provider.dart';
+import '../../providers/loyalty_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/checkout_summary_card.dart';
@@ -25,7 +26,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(cartProvider).getCart());
+    Future.microtask(() async {
+      await ref.read(cartProvider).getCart();
+      await ref.read(loyaltyProvider).getBalance();
+    });
   }
 
   @override
@@ -33,6 +37,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final cart = ref.watch(cartProvider);
     final checkout = ref.watch(checkoutProvider);
     final coupon = ref.watch(couponProvider);
+    final loyalty = ref.watch(loyaltyProvider);
 
     return Scaffold(
       appBar: const CustomAppBar(title: 'Checkout'),
@@ -45,7 +50,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 const SizedBox(height: 18),
                 _StepCard(
                   title: 'Delivery Address',
-                  value: checkout.selectedAddress?.displayAddress ??
+                  value:
+                      checkout.selectedAddress?.displayAddress ??
                       'Select delivery address',
                   icon: Icons.location_on_outlined,
                   onTap: () => context.push(AppRoutes.addresses),
@@ -66,12 +72,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   icon: Icons.payments_outlined,
                   onTap: () => context.push(AppRoutes.paymentMethod),
                 ),
+                const SizedBox(height: 12),
+                _StepCard(
+                  title: 'Loyalty Points',
+                  value: checkout.selectedLoyaltyPoints == 0
+                      ? '${loyalty.loyaltyBalance} available'
+                      : '${checkout.selectedLoyaltyPoints} points applied',
+                  icon: Icons.stars_rounded,
+                  onTap: () => _selectLoyaltyPoints(
+                    loyalty.loyaltyBalance,
+                    coupon.appliedCoupon?.code,
+                  ),
+                ),
                 const SizedBox(height: 18),
                 Text(
                   'Cart Items',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 for (final item in cart.cartItems)
@@ -132,15 +150,67 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           extra: {'orders': checkout.orders, 'payHere': true},
         );
       case PaymentMethodType.bankTransfer:
+        context.go(AppRoutes.bankTransfer, extra: checkout.orders);
       case PaymentMethodType.wallet:
-        _showMessage('${checkout.selectedPaymentMethod.title} placeholder.');
+        context.go(
+          AppRoutes.orderSuccess,
+          extra: {
+            'orders': checkout.orders,
+            'payHere': false,
+            'message': 'Your wallet payment was completed successfully.',
+          },
+        );
     }
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+  Future<void> _selectLoyaltyPoints(int available, String? couponCode) async {
+    final controller = TextEditingController(
+      text: ref.read(checkoutProvider).selectedLoyaltyPoints.toString(),
     );
+    final points = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Redeem loyalty points'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'Points (0-$available)',
+            helperText: 'Enter 0 to remove the redemption.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = int.tryParse(controller.text.trim());
+              if (value == null || value < 0 || value > available) return;
+              Navigator.pop(context, value);
+            },
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (points == null) return;
+    final ok = await ref
+        .read(checkoutProvider)
+        .selectLoyaltyPoints(points, couponCode: couponCode);
+    if (!mounted || ok) return;
+    _showMessage(
+      ref.read(checkoutProvider).errorMessage ?? 'Unable to apply points.',
+    );
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -216,17 +286,17 @@ class _StepCard extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     value,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.mutedText,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.mutedText),
                   ),
                 ],
               ),

@@ -57,12 +57,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               items: state.popularSearches,
               onTap: _runSearch,
             ),
-            const SizedBox(height: 18),
-            _VoiceSearchPlaceholder(onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Voice search placeholder')),
-              );
-            }),
           ],
           if (state.isLoading)
             const Padding(
@@ -171,41 +165,6 @@ class _SearchChips extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-class _VoiceSearchPlaceholder extends StatelessWidget {
-  const _VoiceSearchPlaceholder({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(22),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 20,
-              offset: Offset(0, 10),
-            ),
-          ],
-        ),
-        child: const Row(
-          children: [
-            Icon(Icons.mic_none_rounded, color: AppColors.accentOrange),
-            SizedBox(width: 12),
-            Expanded(child: Text('Voice search placeholder')),
-          ],
-        ),
-      ),
     );
   }
 }

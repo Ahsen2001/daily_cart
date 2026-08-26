@@ -22,8 +22,8 @@ class SupportTicketApiService with AuthenticatedApiMixin {
   String get _prefix => AppIdentity.isVendor
       ? '/vendor'
       : AppIdentity.isRider
-          ? '/rider'
-          : '';
+      ? '/rider'
+      : '';
 
   Future<List<SupportTicketModel>> getTickets() async {
     try {
@@ -82,11 +82,18 @@ class SupportTicketApiService with AuthenticatedApiMixin {
   Future<SupportTicketModel> replyToTicket({
     required int ticketId,
     required String message,
+    String? attachmentPath,
   }) async {
     try {
+      final data = attachmentPath == null
+          ? <String, dynamic>{'message': message}
+          : await ApiClient.shared.multipart(
+              fields: {'message': message},
+              files: [ApiUploadFile(field: 'attachment', path: attachmentPath)],
+            );
       final response = await _dio.post<dynamic>(
         '$_prefix/support-tickets/$ticketId/replies',
-        data: {'message': message},
+        data: data,
         options: await authOptions(),
       );
       return SupportTicketModel.fromJson(

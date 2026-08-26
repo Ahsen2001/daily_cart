@@ -61,12 +61,14 @@ class AppRoutes {
   static const addressForm = '/address-form';
   static const deliverySchedule = '/delivery-schedule';
   static const paymentMethod = '/payment-method';
+  static const bankTransfer = '/bank-transfer';
   static const payHereWebView = '/payhere-webview';
   static const paymentSuccess = '/payment-success';
   static const paymentFailed = '/payment-failed';
   static const orderSuccess = '/order-success';
   static const myOrders = '/my-orders';
   static const orderDetails = '/order-details';
+  static const orderReceipt = '/order-receipt';
   static const orderTracking = '/order-tracking';
   static const notifications = '/notifications';
   static const profile = '/profile';
