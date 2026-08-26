@@ -1,4 +1,7 @@
 @php
+$isAuthenticatedCustomer = auth()->check()
+    && auth()->user()->hasPrimaryRole('Customer');
+
 $homepageCategories = [
 ['name' => 'Grocery', 'slug' => 'grocery', 'image' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80'],
 ['name' => 'Vegetables', 'slug' => 'vegetables', 'image' => 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&q=80'],
@@ -33,6 +36,17 @@ $homepageCategories = [
                     <a class="dc-public-nav-link" href="{{ route('stores.index') }}">{{ __('Stores') }}</a>
                     <a class="dc-public-nav-link" href="{{ route('pages.contact') }}">{{ __('Contact') }}</a>
                 </nav>
+                @if ($isAuthenticatedCustomer)
+                <a class="dc-button-secondary px-5" href="{{ route('customer.dashboard') }}">
+                    {{ __('Dashboard') }}
+                </a>
+                <a class="dc-button px-6" href="{{ route('customer.products.index') }}">
+                    {{ __('Shop Products') }}
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5" />
+                    </svg>
+                </a>
+                @else
                 <a class="dc-button-secondary px-5" href="{{ route('login') }}">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm4 12a7 7 0 0 0-14 0" />
@@ -45,6 +59,7 @@ $homepageCategories = [
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5" />
                     </svg>
                 </a>
+                @endif
             </div>
             <button @click="open = ! open" :aria-expanded="open.toString()" aria-controls="public-mobile-navigation" aria-label="{{ __('Toggle navigation') }}" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl bg-brand-light text-brand-dark md:hidden">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -59,8 +74,13 @@ $homepageCategories = [
                 <a class="dc-sidebar-link" href="{{ route('pages.offers') }}">{{ __('Offers') }}</a>
                 <a class="dc-sidebar-link" href="{{ route('pages.contact') }}">{{ __('Contact') }}</a>
                 <div class="mt-2 grid grid-cols-2 gap-2">
+                    @if ($isAuthenticatedCustomer)
+                    <a class="dc-button-secondary" href="{{ route('customer.dashboard') }}">{{ __('Dashboard') }}</a>
+                    <a class="dc-button" href="{{ route('customer.products.index') }}">{{ __('Shop Products') }}</a>
+                    @else
                     <a class="dc-button-secondary" href="{{ route('login') }}">{{ __('Login') }}</a>
                     <a class="dc-button" href="{{ route('register') }}">{{ __('Start Shopping') }}</a>
+                    @endif
                 </div>
             </div>
         </nav>
@@ -77,8 +97,13 @@ $homepageCategories = [
                     DailyCart brings groceries, vegetables, fruits, household items, bakery goods, pharmacy products, and more into one clean delivery platform.
                 </p>
                 <div class="mt-8 flex flex-wrap gap-3">
+                    @if ($isAuthenticatedCustomer)
+                    <a class="dc-button" href="{{ route('customer.products.index') }}">{{ __('Shop Products') }}</a>
+                    <a class="dc-button-secondary" href="{{ route('stores.index') }}">{{ __('Browse Stores') }}</a>
+                    @else
                     <a class="dc-button" href="{{ route('register') }}">{{ __('Create Customer Account') }}</a>
                     <a class="dc-button-secondary" href="{{ route('vendor.register') }}">{{ __('Become a Vendor') }}</a>
+                    @endif
                 </div>
             </div>
             <div class="relative animate-fade-up">

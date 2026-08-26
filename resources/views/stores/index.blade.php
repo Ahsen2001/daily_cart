@@ -1,3 +1,8 @@
+@php
+    $isAuthenticatedCustomer = auth()->check()
+        && auth()->user()->hasPrimaryRole('Customer');
+@endphp
+
 <!DOCTYPE html>
 
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -54,8 +59,8 @@
                 {{-- Mobile Back button --}}
                 <a
                     class="dc-button-secondary inline-flex min-h-10 items-center gap-1.5 px-3 text-xs lg:hidden"
-                    href="{{ route('home') }}"
-                    aria-label="{{ __('Back to Home') }}">
+                    href="{{ $isAuthenticatedCustomer ? route('customer.dashboard') : route('home') }}"
+                    aria-label="{{ $isAuthenticatedCustomer ? __('Customer Dashboard') : __('Back to Home') }}">
 
                     <svg
                         class="h-4 w-4"
@@ -77,6 +82,15 @@
                 <nav
                     class="hidden items-center gap-2 lg:flex"
                     aria-label="{{ __('Store navigation') }}">
+
+                    @if ($isAuthenticatedCustomer)
+                    <a
+                        class="dc-button"
+                        href="{{ route('customer.dashboard') }}">
+
+                        {{ __('Customer Dashboard') }}
+                    </a>
+                    @else
 
                     <a
                         class="dc-button-secondary"
@@ -120,6 +134,7 @@
 
                         {{ __('Products') }}
                     </a>
+                    @endif
                 </nav>
             </div>
         </div>
