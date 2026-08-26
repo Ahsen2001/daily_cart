@@ -51,10 +51,9 @@
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Vendor'))
-            <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.edit') && ! request()->filled('section') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.edit') }}">{{ __('My Store') }}</a>
-            <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.edit') && request('section') === 'settings' ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.edit', ['section' => 'settings']) }}">{{ __('Store Settings') }}</a>
+            <p class="px-3 pt-3 text-xs font-bold uppercase tracking-wider text-brand-muted">{{ __('My Store') }}</p>
+            <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.edit') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.edit') }}">{{ __('Store Settings') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.banners.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.banners.index') }}">{{ __('Store Banner') }}</a>
-            <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.edit') && request('section') === 'profile' ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.edit', ['section' => 'profile']) }}">{{ __('Store Profile') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('vendor.store.analytics') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.store.analytics') }}">{{ __('Store Analytics') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('vendor.products.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.products.index') }}">{{ __('My Products') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('vendor.orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('vendor.orders.index') }}">{{ __('Orders') }}</a>

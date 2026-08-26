@@ -182,7 +182,7 @@
                         <p class="mt-1 text-sm font-bold text-brand-dark">
                             {{
                                 $store->minimum_order
-                                ? AppServicesCurrencyService::formatLkr(
+                                ? \App\Services\CurrencyService::formatLkr(
                                     $store->minimum_order
                                 )
                                 : __('No minimum')

@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Vendor\ProductController;
 use App\Http\Controllers\Vendor\ProductImageController;
+use App\Http\Controllers\Vendor\VendorProductImportController;
 use App\Http\Controllers\Vendor\ProductVariantController;
 use App\Http\Controllers\Vendor\VendorCouponController;
 use App\Http\Controllers\Vendor\VendorDashboardController;
@@ -30,6 +31,10 @@ Route::middleware(['auth', 'verified', 'role:Vendor'])->prefix('vendor')->name('
         Route::get('/reports', [VendorReportController::class, 'index'])->name('reports.index');
         Route::get('/subscriptions', [VendorSubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::get('/scheduled-orders', [VendorSubscriptionController::class, 'scheduledOrders'])->name('scheduled-orders.index');
+        Route::get('/products/import', [VendorProductImportController::class, 'create'])->name('products.import.create');
+        Route::post('/products/import/preview', [VendorProductImportController::class, 'preview'])->name('products.import.preview');
+        Route::post('/products/import/confirm', [VendorProductImportController::class, 'confirm'])->name('products.import.confirm');
+        Route::get('/products/import/template/{format}', [VendorProductImportController::class, 'template'])->name('products.import.template');
         Route::resource('products', ProductController::class);
         Route::patch('/products/{product}/stock', [ProductController::class, 'updateStock'])->name('products.stock');
         Route::delete('/products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->name('products.images.destroy');

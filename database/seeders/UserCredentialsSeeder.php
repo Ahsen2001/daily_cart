@@ -7,6 +7,7 @@ use App\Models\Rider;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Models\VendorProfile;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -73,6 +74,25 @@ class UserCredentialsSeeder extends Seeder
                 'approved_at' => now(),
             ]
         );
+
+        $vendor = $vendorUser->vendor()->firstOrFail();
+        $storeProfile = VendorProfile::firstOrNew(['vendor_id' => $vendor->id]);
+        if (! $storeProfile->exists || $storeProfile->profile_status === 'pending') {
+            $storeProfile->fill([
+                'slug' => $storeProfile->slug ?: 'dailycart-vendor-store-'.$vendor->id,
+                'description' => 'Daily essentials from an approved DailyCart vendor.',
+                'opening_hours' => ['summary' => 'Mon-Sun, 08:00 AM-09:00 PM'],
+                'delivery_estimate' => '30-60 minutes',
+                'minimum_order' => 0,
+                'contact_phone' => $vendor->phone,
+                'contact_email' => $vendorUser->email,
+                'is_featured' => true,
+                'is_enabled' => true,
+                'profile_status' => 'approved',
+                'approved_at' => now(),
+                'reviewed_by' => $adminUser->id,
+            ])->save();
+        }
 
         // 3. Customer
         $customerRole = Role::query()->where('name', 'Customer')->firstOrFail();

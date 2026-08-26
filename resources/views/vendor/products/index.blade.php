@@ -1,8 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <div><p class="dc-page-eyebrow">{{ __('Catalog') }}</p><h2 class="dc-page-title">{{ __('My Products') }}</h2></div>
-            <a href="{{ route('vendor.products.create') }}" class="dc-button">{{ __('Add Product') }}</a>
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('vendor.products.import.create') }}" class="dc-button-secondary">{{ __('Bulk Import') }}</a>
+                <a href="{{ route('vendor.products.create') }}" class="dc-button">{{ __('Add Product') }}</a>
+            </div>
         </div>
     </x-slot>
 
