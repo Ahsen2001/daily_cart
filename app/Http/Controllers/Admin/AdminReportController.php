@@ -97,11 +97,16 @@ class AdminReportController extends Controller
             return null;
         }
 
-        if ($request->string('export')->toString() === 'csv') {
-            return $exports->csv('dailycart-'.$name.'-report.csv', ['Metric', 'Value'], $rows);
-        }
+        $format = $request->string('export')->lower()->toString();
+        $filename = 'dailycart-'.$name.'-report';
+        $headers = ['Metric', 'Value'];
 
-        return back()->with('status', $exports->placeholder($request->string('export')->toString()));
+        return match ($format) {
+            'csv' => $exports->csv($filename.'.csv', $headers, $rows),
+            'excel', 'xlsx' => $exports->excel($filename.'.xlsx', $headers, $rows),
+            'pdf' => $exports->pdf($filename.'.pdf', ucfirst($name).' Report', $headers, $rows),
+            default => back()->with('status', 'Unsupported export format.'),
+        };
     }
 
     private function authorizeAdmin(Request $request): void

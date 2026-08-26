@@ -31,8 +31,8 @@
 
             <div class="flex flex-wrap gap-2">
                 <a class="rounded bg-gray-800 px-3 py-2 text-sm text-white" href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}">{{ __('Export CSV') }}</a>
-                <a class="rounded bg-gray-600 px-3 py-2 text-sm text-white" href="{{ request()->fullUrlWithQuery(['export' => 'excel']) }}">{{ __('Excel placeholder') }}</a>
-                <a class="rounded bg-gray-600 px-3 py-2 text-sm text-white" href="{{ request()->fullUrlWithQuery(['export' => 'pdf']) }}">{{ __('PDF placeholder') }}</a>
+                <a class="rounded bg-gray-600 px-3 py-2 text-sm text-white" href="{{ request()->fullUrlWithQuery(['export' => 'excel']) }}">{{ __('Export Excel') }}</a>
+                <a class="rounded bg-gray-600 px-3 py-2 text-sm text-white" href="{{ request()->fullUrlWithQuery(['export' => 'pdf']) }}">{{ __('Export PDF') }}</a>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
