@@ -48,6 +48,7 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::get('/reports/support', [AdminReportController::class, 'support'])->name('reports.support');
 
     Route::get('/vendors', [VendorApprovalController::class, 'index'])->name('vendors.index');
+    Route::get('/vendors/{vendor}', [VendorApprovalController::class, 'show'])->name('vendors.show');
     Route::patch('/vendors/{vendor}/approve', [VendorApprovalController::class, 'approve'])->name('vendors.approve');
     Route::patch('/vendors/{vendor}/reject', [VendorApprovalController::class, 'reject'])->name('vendors.reject');
     Route::delete('/vendors/{vendor}', [VendorApprovalController::class, 'destroy'])->name('vendors.destroy');

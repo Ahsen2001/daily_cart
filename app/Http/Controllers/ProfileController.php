@@ -161,18 +161,15 @@ class ProfileController extends Controller
             return;
         }
 
+        $hasMapPin = filled($validated['latitude'] ?? null) && filled($validated['longitude'] ?? null);
+
         $location = [
             'address' => $validated['address'],
             'city' => $validated['city'],
             'province' => $validated['province'],
             'latitude' => $validated['latitude'] ?? null,
             'longitude' => $validated['longitude'] ?? null,
-            'formatted_address' => $validated['formatted_address']
-                ?? collect([
-                    $validated['address'],
-                    $validated['city'],
-                    $validated['district'] ?? null,
-                ])->filter()->implode(', '),
+            'formatted_address' => $hasMapPin ? ($validated['formatted_address'] ?? null) : null,
         ];
 
         if ($user->vendor) {

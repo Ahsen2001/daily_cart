@@ -19,15 +19,23 @@
                                     <x-location-display
                                         class="mt-3 max-w-xl"
                                         :label="__('Store location')"
-                                        :address="$vendor->formatted_address ?: collect([$vendor->address, $vendor->city, $vendor->district])->filter()->implode(', ')"
+                                        :address="$vendor->latitude !== null && $vendor->longitude !== null && filled($vendor->formatted_address)
+                                            ? $vendor->formatted_address
+                                            : collect([$vendor->address, $vendor->city, $vendor->district, $vendor->province])->filter()->implode(', ')"
                                         :latitude="$vendor->latitude"
                                         :longitude="$vendor->longitude"
                                         compact
                                     />
-                                    <div class="text-sm text-gray-600">{{ $vendor->user?->email }} · {{ ucfirst($vendor->status) }}</div>
+                                    <div class="text-sm text-gray-600">
+                                        {{ $vendor->user?->name }} · {{ $vendor->user?->email }} · {{ ucfirst($vendor->status) }}
+                                    </div>
                                 </div>
 
                                 <div class="flex gap-2">
+                                    <a href="{{ route('admin.vendors.show', $vendor) }}" class="inline-flex min-h-10 items-center rounded-lg border border-green-200 px-3 text-sm font-semibold text-green-700 transition hover:bg-green-50">
+                                        {{ __('View Details') }}
+                                    </a>
+
                                     <form method="POST" action="{{ route('admin.vendors.approve', $vendor) }}">
                                         @csrf
                                         @method('PATCH')

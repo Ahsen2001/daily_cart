@@ -20,6 +20,17 @@ class VendorApprovalController extends Controller
         ]);
     }
 
+    public function show(Vendor $vendor): View
+    {
+        $vendor->load(['user', 'storeProfile'])->loadCount(['products', 'orders']);
+
+        return view('admin.vendors.show', [
+            'vendor' => $vendor,
+            'recentProducts' => $vendor->products()->with('category')->latest()->limit(5)->get(),
+            'recentOrders' => $vendor->orders()->with('customer.user')->latest()->limit(5)->get(),
+        ]);
+    }
+
     public function approve(Vendor $vendor, ExternalEmailService $emails): RedirectResponse
     {
         $vendor->update([

@@ -76,6 +76,16 @@
                 let marker;
                 let geocoder;
 
+                addressInput?.addEventListener('input', () => {
+                    latitudeInput.value = '';
+                    longitudeInput.value = '';
+                    formattedAddressInput.value = '';
+                    locationText.textContent = '{{ __('No map pin selected yet.') }}';
+                    locationDot.classList.remove('bg-brand-primary');
+                    locationDot.classList.add('bg-slate-300');
+                    marker?.setVisible(false);
+                });
+
                 const showStatus = (message, isError = false) => {
                     status.textContent = message;
                     status.classList.remove('hidden', 'text-brand-dark', 'text-red-700');
