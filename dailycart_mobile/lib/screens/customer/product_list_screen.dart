@@ -359,7 +359,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     if (!mounted) {
       return;
     }
-    _showMessage(ok
+    await _showPlaceholder(ok
         ? '${result.length} products added to cart.'
         : ref.read(cartProvider).errorMessage ?? 'Unable to update cart.');
   }
