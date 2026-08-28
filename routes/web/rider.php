@@ -5,6 +5,7 @@ use App\Http\Controllers\Rider\RiderDashboardController;
 use App\Http\Controllers\Rider\RiderDeliveryController;
 use App\Http\Controllers\Rider\RiderEarningController;
 use App\Http\Controllers\Rider\RiderReportController;
+use App\Http\Controllers\Rider\RiderRatingController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:Rider'])->prefix('rider')->name('rider.')->group(function () {
@@ -24,5 +25,7 @@ Route::middleware(['auth', 'verified', 'role:Rider'])->prefix('rider')->name('ri
         Route::patch('/deliveries/{delivery}/failed', [RiderDeliveryController::class, 'failed'])->name('deliveries.failed');
         Route::post('/location', [RiderDeliveryController::class, 'location'])->name('location.store');
         Route::get('/earnings', [RiderEarningController::class, 'index'])->name('earnings.index');
+        Route::get('/ratings', [RiderRatingController::class, 'index'])->name('ratings.index');
+        Route::patch('/ratings/{riderRating}/report', [RiderRatingController::class, 'report'])->name('ratings.report');
     });
 });

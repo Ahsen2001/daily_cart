@@ -11,6 +11,7 @@ use App\Http\Controllers\Customer\ProductBrowseController;
 use App\Http\Controllers\Customer\PromotionController;
 use App\Http\Controllers\Customer\RefundController;
 use App\Http\Controllers\Customer\ReviewController;
+use App\Http\Controllers\Customer\RiderRatingController;
 use App\Http\Controllers\Customer\ScheduledOrderController;
 use App\Http\Controllers\Customer\SubscriptionController;
 use App\Http\Controllers\Customer\StoreFollowController;
@@ -71,6 +72,8 @@ Route::middleware(['auth', 'verified', 'role:Customer'])->prefix('customer')->na
 
     Route::get('/orders/{order}/products/{product}/reviews/create', [ReviewController::class, 'create'])->name('reviews.create');
     Route::post('/orders/{order}/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::get('/orders/{order}/rider-rating', [RiderRatingController::class, 'edit'])->name('rider-ratings.edit');
+    Route::post('/orders/{order}/rider-rating', [RiderRatingController::class, 'store'])->name('rider-ratings.store');
 
     Route::get('/coupons', [CouponController::class, 'index'])->name('coupons.index');
     Route::get('/promotions', [PromotionController::class, 'index'])->name('promotions.index');

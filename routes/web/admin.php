@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminPromotionController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminReviewController;
+use App\Http\Controllers\Admin\AdminRiderRatingController;
 use App\Http\Controllers\Admin\AdminStorefrontController;
 use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Admin\AdminSupportTicketController;
@@ -129,6 +130,8 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
     Route::patch('/reviews/{review}/hide', [AdminReviewController::class, 'hide'])->name('reviews.hide');
     Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::get('/rider-ratings', [AdminRiderRatingController::class, 'index'])->name('rider-ratings.index');
+    Route::patch('/rider-ratings/{riderRating}', [AdminRiderRatingController::class, 'moderate'])->name('rider-ratings.moderate');
 
     Route::resource('coupons', AdminCouponController::class)->except(['show', 'destroy']);
     Route::resource('promotions', AdminPromotionController::class)->except(['show', 'destroy']);

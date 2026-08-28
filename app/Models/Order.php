@@ -127,6 +127,11 @@ class Order extends Model
         return $this->hasOne(Delivery::class);
     }
 
+    public function riderRating(): HasOne
+    {
+        return $this->hasOne(RiderRating::class);
+    }
+
     public function refunds(): HasMany
     {
         return $this->hasMany(Refund::class);

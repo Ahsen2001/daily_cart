@@ -135,7 +135,7 @@ class DeliveryFeeService
         return $rules
             ->filter(function (DeliveryPricingRule $rule) use ($district, $province, $zoneId) {
                 return match ($rule->scope) {
-                    'zone' => $zoneId
+                    'zone' => $zoneId !== null
                         ? (int) $rule->zone_id === $zoneId
                         : $district && $rule->zone && strcasecmp((string) $rule->zone->district, $district) === 0,
                     'district' => $district && strcasecmp((string) $rule->district, $district) === 0,

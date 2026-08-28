@@ -28,6 +28,7 @@
             <a class="dc-sidebar-link {{ request()->routeIs('admin.customers.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.customers.index') }}">{{ __('Customers') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('admin.vendors.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.vendors.index') }}">{{ __('Vendors') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('admin.riders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.riders.index') }}">{{ __('Rider Management') }}</a>
+            <a class="dc-sidebar-link {{ request()->routeIs('admin.rider-ratings.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.rider-ratings.index') }}">{{ __('Rider Ratings') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('admin.stores.index') && ! request()->boolean('featured') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.stores.index') }}">{{ __('Stores') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('admin.stores.index') && request()->boolean('featured') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.stores.index', ['featured' => 1]) }}">{{ __('Featured Stores') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('admin.reports.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.reports.sales') }}">{{ __('Reports') }}</a>
@@ -65,6 +66,7 @@
             @if (Auth::user()->hasPrimaryRole('Rider'))
             <a class="dc-sidebar-link {{ request()->routeIs('rider.deliveries.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('rider.deliveries.index') }}">{{ __('Deliveries') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('rider.earnings.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('rider.earnings.index') }}">{{ __('Earnings') }}</a>
+            <a class="dc-sidebar-link {{ request()->routeIs('rider.ratings.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('rider.ratings.index') }}">{{ __('My Ratings') }}</a>
             @endif
 
             @if (Auth::user()->hasPrimaryRole('Customer'))

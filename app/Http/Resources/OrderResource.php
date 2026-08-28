@@ -66,6 +66,14 @@ class OrderResource extends JsonResource
                 'picked_up_at' => $this->delivery->picked_up_at,
                 'delivered_at' => $this->delivery->delivered_at,
             ] : null),
+            'rider_rating' => $this->whenLoaded('riderRating', fn () => $this->riderRating ? [
+                'id' => $this->riderRating->id,
+                'rating' => $this->riderRating->rating,
+                'tags' => $this->riderRating->tags ?? [],
+                'comment' => $this->riderRating->comment,
+                'status' => $this->riderRating->status,
+                'updated_at' => $this->riderRating->updated_at,
+            ] : null),
             'timeline' => $this->whenLoaded('statusHistories', fn () => $this->statusHistories->map(fn ($history) => [
                 'status' => $history->status,
                 'remarks' => $history->remarks,

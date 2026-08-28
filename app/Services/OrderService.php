@@ -27,7 +27,6 @@ class OrderService
         private readonly PaymentService $paymentService,
         private readonly NotificationService $notificationService,
         private readonly LoyaltyPointService $loyaltyPointService,
-        private readonly ExternalEmailService $emails,
         private readonly DeliveryFeeService $deliveryFees,
     ) {}
 
@@ -115,7 +114,7 @@ class OrderService
                         ? 'Use reference '.$payment->transaction_reference.' and upload your payment slip for order '.$order->order_number.'.'
                         : 'Order '.$order->order_number.' has been placed.',
                     $payment->payment_method === 'bank_transfer' ? 'bank_transfer_pending_upload' : 'order_placed',
-                    ['database', 'push'],
+                    ['database', 'mail', 'push'],
                     ['order_id' => $order->id, 'status' => 'placed', 'payment_id' => $payment->id],
                 );
                 if ($payment->payment_method !== 'bank_transfer') {
@@ -127,7 +126,6 @@ class OrderService
                         ['database', 'mail', 'sms', 'push'],
                         ['order_id' => $order->id, 'status' => 'placed'],
                     );
-                    $this->emails->orderPlaced($order->loadMissing('customer.user'));
                 }
                 $order->delivery()->create([
                     'pickup_address' => $order->vendor->address,

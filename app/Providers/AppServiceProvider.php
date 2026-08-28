@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\RiderRating;
 use App\Models\Subscription;
 use App\Policies\ProductPolicy;
+use App\Policies\RiderRatingPolicy;
 use App\Policies\SubscriptionPolicy;
 use App\Policies\WalletPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -38,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(Customer::class, WalletPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
+        Gate::policy(RiderRating::class, RiderRatingPolicy::class);
         Gate::policy(Subscription::class, SubscriptionPolicy::class);
         Gate::define('view-admin-reports', fn ($user) => $user->isAdminUser());
         Gate::define('view-vendor-reports', fn ($user) => $user->hasPrimaryRole('Vendor') && $user->vendor?->status === 'approved');

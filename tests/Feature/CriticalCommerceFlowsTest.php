@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\DeliveryFee;
+use App\Models\Notification;
 use App\Models\NotificationDeliveryLog;
 use App\Models\Order;
 use App\Models\Product;
@@ -196,18 +197,22 @@ class CriticalCommerceFlowsTest extends TestCase
         $this->assertSame('converted', $cart->refresh()->status);
     }
 
-    public function test_placing_an_order_queues_email_and_sms_notifications_for_the_vendor(): void
+    public function test_placing_an_order_queues_customer_email_and_vendor_channel_notifications(): void
     {
         Mail::fake();
         Bus::fake();
 
-        [, $customer] = $this->createCustomer();
+        [$customerUser, $customer] = $this->createCustomer();
         $vendor = $this->createVendor();
         $product = $this->createProduct($vendor, $this->createCategory(), price: 250);
         $this->createCart($customer, [[$product, 1]]);
 
         app(OrderService::class)->createFromCart($customer, $this->checkoutPayload());
 
+        $customerEmailDeliveryId = NotificationDeliveryLog::query()
+            ->where('user_id', $customerUser->id)
+            ->where('channel', 'email')
+            ->value('id');
         $emailDeliveryId = NotificationDeliveryLog::query()
             ->where('user_id', $vendor->user->id)
             ->where('channel', 'email')
@@ -217,13 +222,14 @@ class CriticalCommerceFlowsTest extends TestCase
             ->where('channel', 'sms')
             ->value('id');
 
+        $this->assertNotNull($customerEmailDeliveryId);
         $this->assertNotNull($emailDeliveryId);
         $this->assertNotNull($smsDeliveryId);
         Bus::assertDispatched(
             DeliverNotificationChannelJob::class,
             fn (DeliverNotificationChannelJob $job) => in_array(
                 $job->deliveryLogId,
-                [$emailDeliveryId, $smsDeliveryId],
+                [$customerEmailDeliveryId, $emailDeliveryId, $smsDeliveryId],
                 true,
             ),
         );
@@ -260,7 +266,7 @@ class CriticalCommerceFlowsTest extends TestCase
             'user_id' => $riderUser->id,
             'type' => 'delivery_assigned',
         ]);
-        $notification = \App\Models\Notification::query()
+        $notification = Notification::query()
             ->where('user_id', $riderUser->id)
             ->where('type', 'delivery_assigned')
             ->firstOrFail();

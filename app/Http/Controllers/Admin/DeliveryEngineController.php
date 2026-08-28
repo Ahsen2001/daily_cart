@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
+use App\Models\DeliveryFee;
 use App\Models\DeliveryHoliday;
 use App\Models\DeliveryPricingRule;
 use App\Models\DeliveryPromotion;
@@ -16,8 +17,11 @@ use App\Services\DeliveryFeeService;
 use App\Services\FinancialPolicyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class DeliveryEngineController extends Controller
@@ -117,8 +121,41 @@ class DeliveryEngineController extends Controller
         $selectedZone = isset($data['zone_id'])
             ? $zones->firstWhere('id', (int) $data['zone_id'])
             : null;
-        $district = $selectedZone?->district ?: ($data['district'] ?? null);
-        $province = $selectedZone?->province ?: ($data['province'] ?? null);
+        $fullAddress = trim((string) ($data['full_address'] ?? ''));
+        $locationSource = $selectedZone ? 'selected zone' : null;
+        $matchedLocation = $selectedZone?->name;
+        $detectedDistrict = null;
+        $detectedProvince = null;
+
+        if (! $selectedZone && $fullAddress !== '') {
+            $detected = $this->detectSimulatorLocation($fullAddress, $zones);
+            $selectedZone = $detected['zone'];
+            $detectedDistrict = $detected['district'];
+            $detectedProvince = $detected['province'];
+            $locationSource = $detected['source'];
+            $matchedLocation = $detected['matched_location'];
+        }
+
+        $district = $selectedZone?->district
+            ?: $detectedDistrict
+            ?: ($data['district'] ?? null);
+        $province = $selectedZone?->province
+            ?: $detectedProvince
+            ?: ($data['province'] ?? null);
+
+        if ($fullAddress !== '' && ! $locationSource && ! $district && ! $province) {
+            throw ValidationException::withMessages([
+                'full_address' => 'The address did not match an active delivery zone, configured district, or configured province. Select a zone or provide a district/province.',
+            ]);
+        }
+
+        if (! $locationSource && $district) {
+            $locationSource = 'entered district';
+            $matchedLocation = $district;
+        } elseif (! $locationSource && $province) {
+            $locationSource = 'entered province';
+            $matchedLocation = $province;
+        }
 
         $estimate = isset($data['subtotal'])
             ? $deliveryFees->estimate(
@@ -128,7 +165,7 @@ class DeliveryEngineController extends Controller
                 null,
                 $province,
                 null,
-                $selectedZone?->id,
+                $selectedZone?->id ?? 0,
             )
             : null;
         $simulation = $estimate ? [
@@ -137,8 +174,10 @@ class DeliveryEngineController extends Controller
             'zone_name' => $selectedZone?->name,
             'district' => $district,
             'province' => $province,
-            'full_address' => trim((string) ($data['full_address'] ?? '')),
+            'full_address' => $fullAddress,
             'distance_meters' => (int) ($data['distance_meters'] ?? 0),
+            'location_source' => $locationSource,
+            'matched_location' => $matchedLocation,
         ] : null;
         if ($simulation) {
             $simulation['customer_total'] = round((float) $data['subtotal'] + $estimate['delivery_fee'] + $simulation['service_charge'], 2);
@@ -272,6 +311,102 @@ class DeliveryEngineController extends Controller
                 'average_delivery_minutes' => round((float) Delivery::query()->whereNotNull('picked_up_at')->whereNotNull('delivered_at')->avg(DB::raw('TIMESTAMPDIFF(MINUTE, picked_up_at, delivered_at)')), 1),
             ],
         ]);
+    }
+
+    /**
+     * Resolve a typed address using the simulator's required priority:
+     * active zone, configured district, then configured province.
+     *
+     * @param Collection<int, Zone> $zones
+     * @return array{zone: Zone|null, district: string|null, province: string|null, source: string|null, matched_location: string|null}
+     */
+    private function detectSimulatorLocation(string $address, Collection $zones): array
+    {
+        $zone = $zones
+            ->sortByDesc(fn (Zone $candidate) => mb_strlen($this->normalizeLocationText($candidate->name)))
+            ->first(fn (Zone $candidate) => $this->addressContainsLocation($address, $candidate->name));
+
+        if ($zone) {
+            return [
+                'zone' => $zone,
+                'district' => $zone->district,
+                'province' => $zone->province,
+                'source' => 'address zone',
+                'matched_location' => $zone->name,
+            ];
+        }
+
+        $districts = $zones->pluck('district')
+            ->merge(
+                DeliveryPricingRule::query()
+                    ->where('status', 'active')
+                    ->where('scope', 'district')
+                    ->pluck('district')
+            )
+            ->merge(
+                DeliveryFee::query()
+                    ->where('status', 'active')
+                    ->whereNotIn('district', ['All Districts', 'Default', '*'])
+                    ->pluck('district')
+            );
+        $district = $this->firstAddressLocationMatch($address, $districts);
+
+        if ($district) {
+            $province = $zones->first(
+                fn (Zone $candidate) => strcasecmp((string) $candidate->district, $district) === 0
+            )?->province;
+
+            return [
+                'zone' => null,
+                'district' => $district,
+                'province' => $province,
+                'source' => 'address district',
+                'matched_location' => $district,
+            ];
+        }
+
+        $provinces = $zones->pluck('province')
+            ->merge(
+                DeliveryPricingRule::query()
+                    ->where('status', 'active')
+                    ->where('scope', 'province')
+                    ->pluck('province')
+            );
+        $province = $this->firstAddressLocationMatch($address, $provinces);
+
+        return [
+            'zone' => null,
+            'district' => null,
+            'province' => $province,
+            'source' => $province ? 'address province' : null,
+            'matched_location' => $province,
+        ];
+    }
+
+    /** @param Collection<int, string|null> $locations */
+    private function firstAddressLocationMatch(string $address, Collection $locations): ?string
+    {
+        return $locations
+            ->filter(fn ($location) => is_string($location) && trim($location) !== '')
+            ->unique(fn (string $location) => $this->normalizeLocationText($location))
+            ->sortByDesc(fn (string $location) => mb_strlen($this->normalizeLocationText($location)))
+            ->first(fn (string $location) => $this->addressContainsLocation($address, $location));
+    }
+
+    private function addressContainsLocation(string $address, string $location): bool
+    {
+        $normalizedAddress = ' '.$this->normalizeLocationText($address).' ';
+        $normalizedLocation = $this->normalizeLocationText($location);
+
+        return $normalizedLocation !== ''
+            && str_contains($normalizedAddress, ' '.$normalizedLocation.' ');
+    }
+
+    private function normalizeLocationText(string $value): string
+    {
+        $normalized = Str::lower(Str::ascii($value));
+
+        return trim((string) preg_replace('/[^a-z0-9]+/', ' ', $normalized));
     }
 
     /** @return array<string, mixed> */

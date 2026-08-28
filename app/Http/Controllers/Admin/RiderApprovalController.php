@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Rider;
 use App\Services\NotificationService;
+use App\Services\RiderRatingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -31,13 +32,15 @@ class RiderApprovalController extends Controller
         return view('admin.riders.index', compact('riders'));
     }
 
-    public function show(Rider $rider): View
+    public function show(Rider $rider, RiderRatingService $ratings): View
     {
         return view('admin.riders.show', [
             'rider' => $rider->load([
                 'user',
                 'deliveries' => fn ($query) => $query->with(['order.customer.user', 'order.vendor'])->latest('scheduled_at')->limit(20),
+                'ratings' => fn ($query) => $query->with(['order', 'customer.user'])->latest()->limit(10),
             ]),
+            'ratingStatistics' => $ratings->statistics($rider),
         ]);
     }
 

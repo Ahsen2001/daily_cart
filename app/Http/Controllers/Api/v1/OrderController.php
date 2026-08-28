@@ -121,6 +121,7 @@ class OrderController extends Controller
             'items.variant',
             'payment',
             'delivery.rider.user',
+            'riderRating',
         ];
     }
 }

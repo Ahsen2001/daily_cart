@@ -16,5 +16,15 @@
                 </div>
             @endforeach
         </div>
+        <div class="dc-container mt-6">
+            <section class="dc-card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="dc-page-eyebrow">{{ __('Customer rating') }}</p>
+                    <p class="mt-2 text-3xl font-extrabold text-brand-text">{{ number_format($ratingStatistics['average'], 1) }}<span class="text-base text-brand-muted">/5</span></p>
+                    <p class="mt-1 text-sm text-brand-muted">{{ trans_choice(':count visible rating|:count visible ratings', $ratingStatistics['count'], ['count' => $ratingStatistics['count']]) }}</p>
+                </div>
+                <a class="dc-button" href="{{ route('rider.ratings.index') }}">{{ __('View customer feedback') }}</a>
+            </section>
+        </div>
     </div>
 </x-app-layout>

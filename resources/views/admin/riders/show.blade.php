@@ -60,6 +60,30 @@
                             @endforelse
                         </div>
                     </section>
+
+                    <section class="rounded-3xl bg-white p-6 shadow-sm">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <h3 class="font-bold text-gray-900">{{ __('Customer delivery ratings') }}</h3>
+                                <p class="mt-1 text-sm text-gray-500">{{ number_format($ratingStatistics['average'], 1) }}/5 · {{ trans_choice(':count visible rating|:count visible ratings', $ratingStatistics['count'], ['count' => $ratingStatistics['count']]) }}</p>
+                            </div>
+                            <a href="{{ route('admin.rider-ratings.index', ['rider_id' => $rider->id]) }}" class="text-sm font-semibold text-green-700 underline">{{ __('Open moderation') }}</a>
+                        </div>
+                        <div class="mt-4 divide-y divide-gray-100">
+                            @forelse ($rider->ratings as $rating)
+                            <article class="py-4">
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="font-bold text-amber-500">{{ $rating->rating }}/5</p>
+                                    <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold">{{ ucfirst($rating->status) }}</span>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">{{ $rating->order?->order_number }}</p>
+                                @if ($rating->comment)<p class="mt-2 text-sm leading-6 text-gray-700">{{ $rating->comment }}</p>@endif
+                            </article>
+                            @empty
+                            <p class="py-5 text-sm text-gray-500">{{ __('No rider ratings yet.') }}</p>
+                            @endforelse
+                        </div>
+                    </section>
                 </main>
 
                 <aside class="space-y-6">

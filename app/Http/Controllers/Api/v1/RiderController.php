@@ -7,6 +7,7 @@ use App\Models\Delivery;
 use App\Services\DashboardService;
 use App\Services\DeliveryService;
 use App\Services\RiderEarningService;
+use App\Services\RiderRatingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -56,11 +57,13 @@ class RiderController extends Controller
     public function dashboard(
         Request $request,
         DashboardService $dashboards,
-        RiderEarningService $earnings
+        RiderEarningService $earnings,
+        RiderRatingService $ratings
     ): JsonResponse {
         $rider = $request->user()->rider;
         $summary = $dashboards->riderOverview($rider);
         $earningSummary = $earnings->summary($rider);
+        $ratingSummary = $ratings->statistics($rider);
 
         return response()->json([
             'dashboard' => [
@@ -71,6 +74,8 @@ class RiderController extends Controller
                 'today_earnings' => $earningSummary['daily'],
                 'weekly_earnings' => $earningSummary['weekly'],
                 'monthly_earnings' => $earningSummary['monthly'],
+                'average_rating' => $ratingSummary['average'],
+                'rating_count' => $ratingSummary['count'],
                 'approval_status' => $rider->verification_status,
                 'availability_status' => $rider->availability_status,
             ],

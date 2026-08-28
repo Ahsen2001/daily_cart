@@ -16,6 +16,7 @@
     $assignedRider = $order->delivery?->rider;
     $assignedRiderPhone = $assignedRider?->user?->phone;
     $latestLocation = $order->delivery?->rider?->locations?->sortByDesc('recorded_at')->first();
+    $riderRating = $order->riderRating;
 @endphp
 
 <x-app-layout>
@@ -233,6 +234,15 @@
                             <a href="{{ route('customer.orders.receipt', $order) }}" class="mt-4 inline-flex w-full justify-center rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700">{{ __('Open Printable Receipt') }}</a>
                             @if ($order->payment?->status === 'paid')
                                 <a href="{{ route('customer.refunds.create', $order) }}" class="mt-3 inline-flex w-full justify-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">{{ __('Request refund') }}</a>
+                            @endif
+                            @if ($order->delivery?->status === 'delivered' && $order->delivery?->rider_id)
+                                @if ($riderRating)
+                                    <div class="mt-4 rounded-2xl bg-amber-50 p-4">
+                                        <p class="text-sm font-bold text-amber-700">{{ str_repeat('★', $riderRating->rating) }}<span class="text-amber-200">{{ str_repeat('★', 5 - $riderRating->rating) }}</span></p>
+                                        <p class="mt-1 text-xs text-amber-800">{{ __('Your rider rating') }} · {{ ucfirst($riderRating->status) }}</p>
+                                    </div>
+                                @endif
+                                <a href="{{ route('customer.rider-ratings.edit', $order) }}" class="mt-3 inline-flex w-full justify-center rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600">{{ $riderRating ? __('Update rider rating') : __('Rate your rider') }}</a>
                             @endif
                         </section>
                     @endif

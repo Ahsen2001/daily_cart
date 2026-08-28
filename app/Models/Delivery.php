@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Delivery extends Model
@@ -56,5 +57,10 @@ class Delivery extends Model
     public function deliveryProofs(): HasMany
     {
         return $this->proofs();
+    }
+
+    public function riderRating(): HasOne
+    {
+        return $this->hasOne(RiderRating::class);
     }
 }

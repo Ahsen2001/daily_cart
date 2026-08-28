@@ -12,7 +12,7 @@
                 <div class="flex flex-col gap-2 border-b border-gray-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                         <h3 class="text-lg font-bold text-gray-900">{{ __('Test a delivery fee') }}</h3>
-                        <p class="mt-1 text-sm text-gray-500">{{ __('Selecting a zone uses its exact zone rule first. District, province, and default rules remain available as fallbacks.') }}</p>
+                        <p class="mt-1 text-sm text-gray-500">{{ __('Type a full address to detect an active zone first, then a configured district, then a configured province. You can also select a zone manually.') }}</p>
                     </div>
                     <span class="w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">{{ __('Read-only simulation') }}</span>
                 </div>
@@ -49,7 +49,7 @@
                             id="simulator-zone"
                             name="zone_id"
                             class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">{{ __('No zone selected — use district or province') }}</option>
+                            <option value="">{{ __('Auto-detect from full address') }}</option>
                             @foreach ($zones as $zone)
                             <option
                                 value="{{ $zone->id }}"
@@ -60,7 +60,7 @@
                             </option>
                             @endforeach
                         </select>
-                        <p class="mt-2 text-xs text-gray-500">{{ __('Only active delivery zones are available.') }}</p>
+                        <p class="mt-2 text-xs text-gray-500">{{ __('A manually selected active zone overrides automatic address detection.') }}</p>
                     </div>
 
                     <div>
@@ -82,7 +82,7 @@
                             maxlength="1000"
                             class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             placeholder="{{ __('House or building number, street, town, district, and postal code') }}">{{ request('full_address') }}</textarea>
-                        <p class="mt-2 text-xs text-gray-500">{{ __('The address is used only to describe this test and is not saved.') }}</p>
+                        <p class="mt-2 text-xs text-gray-500">{{ __('The simulator matches this text against active zone names first, districts second, and provinces third. The address is not saved.') }}</p>
                     </div>
 
                     <div>
@@ -128,7 +128,7 @@
                     @endforeach
                 </dl>
 
-                <dl class="grid gap-5 border-t border-gray-100 px-6 py-5 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <dl class="grid gap-5 border-t border-gray-100 px-6 py-5 text-sm sm:grid-cols-2 lg:grid-cols-5">
                     <div>
                         <dt class="font-medium text-gray-500">{{ __('Selected zone') }}</dt>
                         <dd class="mt-1 font-semibold text-gray-900">{{ $simulation['zone_name'] ?: __('Not selected') }}</dd>
@@ -136,6 +136,15 @@
                     <div>
                         <dt class="font-medium text-gray-500">{{ __('District / Province') }}</dt>
                         <dd class="mt-1 font-semibold text-gray-900">{{ $simulation['district'] ?: '—' }}{{ $simulation['province'] ? ' / '.$simulation['province'] : '' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">{{ __('Location identified by') }}</dt>
+                        <dd class="mt-1 font-semibold text-gray-900">
+                            {{ $simulation['location_source'] ? ucfirst($simulation['location_source']) : __('Default pricing') }}
+                            @if ($simulation['matched_location'])
+                            <span class="block text-xs font-normal text-gray-500">{{ $simulation['matched_location'] }}</span>
+                            @endif
+                        </dd>
                     </div>
                     <div>
                         <dt class="font-medium text-gray-500">{{ __('Matched rule') }}</dt>
@@ -173,6 +182,8 @@
                 const option = zoneSelect.options[zoneSelect.selectedIndex];
 
                 if (!option?.value) {
+                    districtInput.value = '';
+                    provinceInput.value = '';
                     return;
                 }
 

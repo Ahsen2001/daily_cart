@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\v1\PasswordRecoveryController;
 use App\Http\Controllers\Api\v1\PayHereMobileController;
 use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\v1\RiderController;
+use App\Http\Controllers\Api\v1\RiderRatingController;
 use App\Http\Controllers\Api\v1\VendorController;
 use App\Http\Controllers\Api\v1\VendorBusinessController;
 use App\Http\Controllers\Api\v1\VendorCatalogController;
@@ -95,6 +96,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/orders/{order}', [OrderController::class, 'show']);
             Route::get('/orders/{order}/status', [CustomerCommerceController::class, 'orderStatus']);
             Route::patch('/orders/{order}/cancel', [CustomerCommerceController::class, 'cancelOrder']);
+            Route::get('/orders/{order}/rider-rating', [RiderRatingController::class, 'show']);
+            Route::post('/orders/{order}/rider-rating', [RiderRatingController::class, 'store']);
 
             Route::get('/coupons/available', [CustomerCommerceController::class, 'coupons']);
             Route::post('/coupons/apply', [CustomerCommerceController::class, 'validateCoupon']);
@@ -165,6 +168,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/location', [RiderController::class, 'location']);
             Route::get('/earnings', [RiderController::class, 'earnings']);
             Route::get('/reports', [RiderController::class, 'reports']);
+            Route::get('/ratings', [RiderRatingController::class, 'riderIndex']);
+            Route::patch('/ratings/{riderRating}/report', [RiderRatingController::class, 'report']);
 
             Route::get('/notifications', [NotificationInfrastructureController::class, 'index']);
             Route::patch('/notifications/read-all', [NotificationInfrastructureController::class, 'markAllRead']);

@@ -51,4 +51,14 @@ class Rider extends Model
     {
         return $this->hasMany(RiderLocation::class);
     }
+
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(RiderRating::class);
+    }
+
+    public function visibleRatings(): HasMany
+    {
+        return $this->ratings()->where('status', 'visible');
+    }
 }
