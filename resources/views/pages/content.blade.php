@@ -412,6 +412,143 @@ $ctaUrl = $content["page_{$page}_cta_url"];
                 </aside>
             </section>
 
+            @if ($page === 'about')
+            <section class="mt-8 space-y-8" aria-label="{{ __('About DailyCart') }}">
+                <div class="grid gap-6 lg:grid-cols-2">
+                    <article class="relative overflow-hidden rounded-3xl border border-green-100 bg-gradient-to-br from-brand-dark to-brand-primary p-6 text-white shadow-soft sm:p-8">
+                        <div class="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10" aria-hidden="true"></div>
+                        <div class="relative">
+                            <p class="text-xs font-bold uppercase tracking-[0.2em] text-green-100">{{ __('Our mission') }}</p>
+                            <h2 class="mt-3 text-2xl font-extrabold leading-tight text-white sm:text-3xl">{{ __('Daily essentials within easier reach.') }}</h2>
+                            <p class="mt-4 max-w-xl text-sm leading-7 text-white/85 sm:text-base">
+                                {{ __('Our mission is to make daily essentials accessible through fast, reliable local delivery while helping trusted local businesses serve more households.') }}
+                            </p>
+                        </div>
+                    </article>
+
+                    <article class="rounded-3xl border border-brand-border bg-white p-6 shadow-sm sm:p-8">
+                        <p class="dc-page-eyebrow">{{ __('Our story') }}</p>
+                        <h2 class="mt-2 text-2xl font-extrabold text-brand-text">{{ __('Built for everyday shopping in Sri Lanka') }}</h2>
+                        <p class="mt-4 text-sm leading-7 text-brand-text/70 sm:text-base">
+                            {{ __('DailyCart began with a simple idea: bring customers, local vendors, and delivery riders together in one dependable marketplace. From our roots in Batticaloa, we are building a practical shopping experience centred on local availability, clear order updates, and reliable support.') }}
+                        </p>
+                    </article>
+                </div>
+
+                <section class="rounded-3xl border border-brand-border bg-white p-6 shadow-sm sm:p-8">
+                    <div class="max-w-2xl">
+                        <p class="dc-page-eyebrow">{{ __('How DailyCart works') }}</p>
+                        <h2 class="mt-2 text-2xl font-extrabold text-brand-text">{{ __('From local store to your door') }}</h2>
+                    </div>
+
+                    <ol class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        @foreach ([
+                        ['Browse', 'Explore products and approved local stores.'],
+                        ['Build your cart', 'Choose the items and quantities you need.'],
+                        ['Checkout', 'Select your delivery and payment options.'],
+                        ['Track delivery', 'Follow your order until it reaches you.'],
+                        ] as $index => [$step, $description])
+                        <li class="rounded-2xl border border-green-100 bg-brand-light/60 p-5">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary text-sm font-extrabold text-white">{{ $index + 1 }}</span>
+                            <h3 class="mt-4 font-extrabold text-brand-text">{{ __($step) }}</h3>
+                            <p class="mt-2 text-sm leading-6 text-brand-text/65">{{ __($description) }}</p>
+                        </li>
+                        @endforeach
+                    </ol>
+                </section>
+
+                <div class="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+                    <section class="rounded-3xl border border-brand-border bg-white p-6 shadow-sm sm:p-8">
+                        <p class="dc-page-eyebrow">{{ __('What you can shop') }}</p>
+                        <h2 class="mt-2 text-2xl font-extrabold text-brand-text">{{ __('Essentials for every day') }}</h2>
+                        <p class="mt-3 text-sm leading-7 text-brand-text/70">{{ __('Browse useful products from approved vendors across the DailyCart marketplace.') }}</p>
+                        <div class="mt-6 flex flex-wrap gap-2.5">
+                            @foreach (['Groceries', 'Vegetables', 'Fruits', 'Bakery', 'Household goods', 'Pharmacy products', 'Beverages', 'Personal care'] as $category)
+                            <span class="rounded-full border border-green-100 bg-green-50 px-4 py-2 text-sm font-semibold text-brand-dark">{{ __($category) }}</span>
+                            @endforeach
+                        </div>
+                        <a class="dc-button-secondary mt-6" href="{{ route('categories.index') }}">{{ __('Browse categories') }}</a>
+                    </section>
+
+                    <section class="rounded-3xl border border-brand-border bg-white p-6 shadow-sm sm:p-8">
+                        <p class="dc-page-eyebrow">{{ __('Why choose DailyCart') }}</p>
+                        <h2 class="mt-2 text-2xl font-extrabold text-brand-text">{{ __('Shopping built around trust') }}</h2>
+                        <ul class="mt-6 grid gap-3 sm:grid-cols-2">
+                            @foreach (['Approved local vendors', 'Secure checkout', 'Reliable delivery', 'Order tracking', 'Multiple payment methods', 'Customer support'] as $benefit)
+                            <li class="flex items-start gap-3 rounded-2xl bg-brand-light/60 p-4 text-sm font-semibold text-brand-text">
+                                <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-primary text-xs text-white" aria-hidden="true">✓</span>
+                                <span>{{ __($benefit) }}</span>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </section>
+                </div>
+
+                <section class="rounded-3xl border border-brand-border bg-white p-6 shadow-sm sm:p-8">
+                    <div class="max-w-2xl">
+                        <p class="dc-page-eyebrow">{{ __('Our marketplace') }}</p>
+                        <h2 class="mt-2 text-2xl font-extrabold text-brand-text">{{ __('Powered by people working together') }}</h2>
+                    </div>
+                    <div class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        @foreach ([
+                        ['Customers', 'Discover stores, shop essentials, and track every order.'],
+                        ['Vendors', 'Manage storefronts, products, promotions, and fulfilment.'],
+                        ['Riders', 'Coordinate deliveries and keep customers informed.'],
+                        ['DailyCart team', 'Support the marketplace, safety, and service quality.'],
+                        ] as [$participant, $description])
+                        <article class="rounded-2xl border border-brand-border p-5">
+                            <h3 class="font-extrabold text-brand-dark">{{ __($participant) }}</h3>
+                            <p class="mt-2 text-sm leading-6 text-brand-text/65">{{ __($description) }}</p>
+                        </article>
+                        @endforeach
+                    </div>
+                </section>
+
+                <div class="grid gap-6 lg:grid-cols-2">
+                    <section class="rounded-3xl border border-brand-border bg-white p-6 shadow-sm sm:p-8">
+                        <p class="dc-page-eyebrow">{{ __('Service area') }}</p>
+                        <h2 class="mt-2 text-2xl font-extrabold text-brand-text">{{ __('Growing from Batticaloa') }}</h2>
+                        <p class="mt-4 text-sm leading-7 text-brand-text/70">
+                            {{ __('DailyCart serves Batticaloa and other locations enabled through our active delivery network. Product and delivery availability may vary by vendor, address, and configured delivery zone. Confirm availability for your location during checkout.') }}
+                        </p>
+                    </section>
+
+                    <section class="rounded-3xl border border-brand-border bg-white p-6 shadow-sm sm:p-8">
+                        <p class="dc-page-eyebrow">{{ __('Our values') }}</p>
+                        <h2 class="mt-2 text-2xl font-extrabold text-brand-text">{{ __('What guides DailyCart') }}</h2>
+                        <div class="mt-5 grid grid-cols-2 gap-3 text-sm font-semibold text-brand-text sm:grid-cols-3">
+                            @foreach (['Reliability', 'Customer care', 'Fair marketplace', 'Product quality', 'Data privacy', 'Local business support'] as $value)
+                            <div class="rounded-2xl bg-brand-light/70 px-4 py-3 text-center">{{ __($value) }}</div>
+                            @endforeach
+                        </div>
+                    </section>
+                </div>
+
+                <section class="overflow-hidden rounded-3xl bg-brand-text p-6 text-white shadow-soft sm:p-8">
+                    <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="max-w-2xl">
+                            <p class="text-xs font-bold uppercase tracking-[0.2em] text-green-200">{{ __('Join DailyCart') }}</p>
+                            <h2 class="mt-2 text-2xl font-extrabold sm:text-3xl">{{ __('Shop, sell, or deliver with us') }}</h2>
+                            <p class="mt-3 text-sm leading-7 text-white/70">{{ __('Choose the DailyCart experience that fits you and become part of a growing local marketplace.') }}</p>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <a class="dc-button" href="{{ route('products.index') }}">{{ __('Start Shopping') }}</a>
+                            <a class="dc-button-secondary" href="{{ route('stores.index') }}">{{ __('Browse Stores') }}</a>
+                            <a class="dc-button-secondary" href="{{ route('vendor.register') }}">{{ __('Become a Vendor') }}</a>
+                            <a class="dc-button-secondary" href="{{ route('rider.register') }}">{{ __('Become a Rider') }}</a>
+                        </div>
+                    </div>
+                </section>
+
+                <nav class="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 rounded-3xl border border-brand-border bg-white px-6 py-5 text-sm font-semibold text-brand-dark shadow-sm" aria-label="{{ __('DailyCart policies') }}">
+                    <span class="text-brand-text/55">{{ __('Learn about your rights and responsibilities:') }}</span>
+                    <a class="underline decoration-green-200 underline-offset-4 hover:text-brand-primary" href="{{ route('pages.privacy-policy') }}">{{ __('Privacy Policy') }}</a>
+                    <a class="underline decoration-green-200 underline-offset-4 hover:text-brand-primary" href="{{ route('pages.refund-policy') }}">{{ __('Refund Policy') }}</a>
+                    <a class="underline decoration-green-200 underline-offset-4 hover:text-brand-primary" href="{{ route('pages.terms-and-conditions') }}">{{ __('Terms and Conditions') }}</a>
+                </nav>
+            </section>
+            @endif
+
             {{-- Offers --}}
             @if ($page === 'offers')
             <div class="mx-auto mt-5 max-w-6xl">
