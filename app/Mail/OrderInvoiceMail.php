@@ -22,6 +22,9 @@ class OrderInvoiceMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.orders.invoice');
+        return new Content(
+            view: 'emails.orders.invoice',
+            text: 'emails.orders.invoice-text',
+        );
     }
 }

@@ -18,17 +18,17 @@ class ExternalEmailService
 {
     public function welcome(User $user): void
     {
-        $this->send($user, 'Welcome to DailyCart', 'Your DailyCart account has been created successfully.');
+        $this->send($user, 'Welcome to DailyCart', 'Your DailyCart account has been created successfully.', route('dashboard'), 'Open your dashboard');
     }
 
     public function orderPlaced(Order $order): void
     {
-        $this->send($order->customer->user, 'Order placed', 'Your order '.$order->order_number.' has been placed successfully.');
+        $this->send($order->customer->user, 'Order placed', 'Your order '.$order->order_number.' has been placed successfully.', route('customer.orders.show', $order), 'Track your order');
     }
 
     public function orderStatus(Order $order, string $message): void
     {
-        $this->send($order->customer->user, 'Order update: '.$order->order_number, $message);
+        $this->send($order->customer->user, 'Order update: '.$order->order_number, $message, route('customer.orders.show', $order), 'View order update');
     }
 
     /** Send the itemized invoice when the rider starts the final delivery leg. */
@@ -51,17 +51,17 @@ class ExternalEmailService
 
     public function paymentStatus(Payment $payment, string $message): void
     {
-        $this->send($payment->order->customer->user, 'Payment update', $message);
+        $this->send($payment->order->customer->user, 'Payment update', $message, route('customer.orders.show', $payment->order), 'View payment details');
     }
 
     public function refundStatus(Refund $refund, string $message): void
     {
-        $this->send($refund->order->customer->user, 'Refund update', $message);
+        $this->send($refund->order->customer->user, 'Refund update', $message, route('customer.refunds.index'), 'Review refund');
     }
 
     public function approval(User $user, string $title, string $message): void
     {
-        $this->send($user, $title, $message);
+        $this->send($user, $title, $message, route('dashboard'), 'Open DailyCart');
     }
 
     public function otp(string $email, string $code, string $purpose): void
@@ -69,11 +69,18 @@ class ExternalEmailService
         $this->queue($email, (new OtpMail($code, $purpose))->afterCommit(), 'OTP');
     }
 
-    private function send(User $user, string $subject, string $message): void
+    private function send(User $user, string $subject, string $message, ?string $actionUrl = null, ?string $actionLabel = null): void
     {
         $this->queue(
             $user->email,
-            (new DailyCartStatusMail($subject, $user->name, $message))->afterCommit(),
+            (new DailyCartStatusMail(
+                $subject,
+                $user->name,
+                $message,
+                strtolower((string) ($user->role?->name ?? 'customer')),
+                $actionUrl,
+                $actionLabel,
+            ))->afterCommit(),
             $subject,
         );
     }

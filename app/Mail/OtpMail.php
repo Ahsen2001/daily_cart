@@ -24,6 +24,9 @@ class OtpMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.dailycart.otp');
+        return new Content(
+            view: 'emails.dailycart.otp',
+            text: 'emails.dailycart.otp-text',
+        );
     }
 }

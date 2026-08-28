@@ -16,6 +16,9 @@ class DailyCartStatusMail extends Mailable
         public readonly string $subjectLine,
         public readonly string $recipientName,
         public readonly string $bodyText,
+        public readonly string $role = 'customer',
+        public readonly ?string $actionUrl = null,
+        public readonly ?string $actionLabel = null,
     ) {}
 
     public function envelope(): Envelope
@@ -25,6 +28,9 @@ class DailyCartStatusMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.dailycart.status');
+        return new Content(
+            view: 'emails.dailycart.status',
+            text: 'emails.dailycart.status-text',
+        );
     }
 }

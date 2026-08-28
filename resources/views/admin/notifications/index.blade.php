@@ -5,11 +5,13 @@
 
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+            <div>
                 @if (session('status'))
-                    <div class="mb-4 text-sm font-medium text-green-700">{{ session('status') }}</div>
+                    <div class="mb-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800 ring-1 ring-emerald-100">{{ session('status') }}</div>
                 @endif
-                <section class="mb-8 rounded-xl border border-gray-100 bg-gray-50 p-4">
+                @include('notifications._action-center', ['adminCenter' => true])
+
+                <section class="mb-8 mt-6 rounded-xl border border-gray-100 bg-gray-50 p-4">
                     <h3 class="font-semibold text-gray-900">{{ __('Delivery channel health') }}</h3>
                     <p class="mt-1 text-sm text-gray-600">{{ __('Database notifications are always stored. Email, SMS and push run independently through the queue.') }}</p>
                     <div class="mt-4 grid gap-3 md:grid-cols-3">
@@ -29,19 +31,6 @@
                         <table class="min-w-full divide-y divide-gray-100 text-sm"><thead><tr class="text-left text-xs font-semibold uppercase text-gray-500"><th class="px-4 py-3">{{ __('Channel') }}</th><th class="px-4 py-3">{{ __('Recipient') }}</th><th class="px-4 py-3">{{ __('Status') }}</th><th class="px-4 py-3">{{ __('Reason') }}</th><th class="px-4 py-3"></th></tr></thead><tbody class="divide-y divide-gray-100">@foreach($recentDeliveries as $delivery)<tr><td class="px-4 py-3 font-medium">{{ strtoupper($delivery->channel) }}</td><td class="px-4 py-3">{{ $delivery->user?->email ?? $delivery->user?->phone ?? '-' }}</td><td class="px-4 py-3">{{ ucfirst($delivery->status) }}</td><td class="max-w-md px-4 py-3 text-xs text-gray-600">{{ $delivery->failure_reason ?: __('Waiting for a queue worker.') }}</td><td class="px-4 py-3 text-right">@if(in_array($delivery->status, ['failed', 'skipped'], true))<form method="POST" action="{{ route('admin.notifications.deliveries.retry', $delivery) }}">@csrf<button class="text-sm font-semibold text-indigo-700 underline">{{ __('Retry') }}</button></form>@endif</td></tr>@endforeach</tbody></table>
                     </section>
                 @endif
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead><tr class="text-left text-xs font-semibold uppercase text-gray-500"><th class="px-3 py-2">{{ __('Title') }}</th><th class="px-3 py-2">{{ __('Message') }}</th><th class="px-3 py-2">{{ __('Read') }}</th><th class="px-3 py-2"></th></tr></thead>
-                        <tbody class="divide-y divide-gray-100 text-sm">
-                            @forelse ($notifications as $notification)
-                                <tr><td class="px-3 py-3 font-semibold">{{ $notification->title }}</td><td class="px-3 py-3 text-gray-600">{{ $notification->message }}</td><td class="px-3 py-3">{{ $notification->read_at ? __('Yes') : __('No') }}</td><td class="px-3 py-3 text-right">@unless($notification->read_at)<form method="POST" action="{{ route('admin.notifications.read', $notification) }}">@csrf @method('PATCH')<x-secondary-button type="submit">{{ __('Mark read') }}</x-secondary-button></form>@endunless</td></tr>
-                            @empty
-                                <tr><td colspan="4" class="px-3 py-6 text-center text-gray-500">{{ __('No notifications found.') }}</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mt-6">{{ $notifications->links() }}</div>
             </div>
         </div>
     </div>

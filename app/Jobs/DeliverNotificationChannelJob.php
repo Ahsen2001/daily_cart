@@ -10,6 +10,7 @@ use App\Models\NotificationPreference;
 use App\Models\Order;
 use App\Services\ExternalSmsService;
 use App\Services\FirebaseCloudMessagingService;
+use App\View\NotificationPresenter;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -119,6 +120,9 @@ class DeliverNotificationChannelJob implements ShouldQueue
 
             Mail::to($delivery->user->email)->send(new OrderInvoiceMail($order));
         } else {
+            $action = NotificationPresenter::action($notification, $delivery->user);
+            $role = strtolower((string) ($delivery->user->role?->name ?? $notification->app_role ?? 'customer'));
+
             Mail::to($delivery->user->email)->send(
                 new GenericNotificationMail(
                     $notification->title,
@@ -126,8 +130,15 @@ class DeliverNotificationChannelJob implements ShouldQueue
                     is_array($notification->data['email_details'] ?? null)
                         ? $notification->data['email_details']
                         : [],
-                    $notification->data['email_action_url'] ?? null,
-                    $notification->data['email_action_label'] ?? null,
+                    $action['url'] ?? $notification->data['email_action_url'] ?? null,
+                    $action['label'] ?? $notification->data['email_action_label'] ?? null,
+                    $delivery->user->name,
+                    $role,
+                    NotificationPresenter::label($notification),
+                    NotificationPresenter::tone($notification),
+                    $delivery->user->isAdminUser()
+                        ? route('admin.notifications.index')
+                        : route('notifications.index'),
                 ),
             );
         }

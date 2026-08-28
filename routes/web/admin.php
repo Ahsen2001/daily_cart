@@ -119,6 +119,7 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::patch('/refunds/{refund}/reject', [AdminRefundController::class, 'reject'])->name('refunds.reject');
 
     Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/read-all', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::patch('/notifications/{notification}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/deliveries/{delivery}/retry', [AdminNotificationController::class, 'retryDelivery'])->name('notifications.deliveries.retry');
 
