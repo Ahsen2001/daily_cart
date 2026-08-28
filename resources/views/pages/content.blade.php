@@ -562,7 +562,7 @@ $ctaUrl = $content["page_{$page}_cta_url"];
 
                             <div>
                                 <p class="text-xs font-bold uppercase tracking-wide text-brand-text/50">{{ __('Office address') }}</p>
-                                <p class="mt-1 font-semibold text-brand-dark">{{ __('#479 Ofnaa Ex-Chairman Road, Oddamavadi-03') }}</p>
+                                <p class="mt-1 font-semibold text-brand-dark">{{ __('#479 Ofnaa Ex-Chairman Road, Oddamavadi-02') }}</p>
                             </div>
 
                             <div class="grid grid-cols-2 gap-3 border-t border-brand-border pt-4">
@@ -674,10 +674,10 @@ $ctaUrl = $content["page_{$page}_cta_url"];
                 <article class="dc-contact-card rounded-3xl border border-brand-border bg-white p-6 shadow-sm sm:p-8" data-contact-tilt data-tilt-strength="5">
                     <p class="dc-page-eyebrow">{{ __('Visit DailyCart') }}</p>
                     <h2 class="mt-2 text-2xl font-extrabold text-brand-text">{{ __('Map and directions') }}</h2>
-                    <p class="mt-3 text-sm leading-7 text-brand-text/65">{{ __('#479 Ofnaa Ex-Chairman Road, Oddamavadi-03') }}</p>
+                    <p class="mt-3 text-sm leading-7 text-brand-text/65">{{ __('#479 Ofnaa Ex-Chairman Road, Oddamavadi-02') }}</p>
                     <a
                         class="dc-button mt-5"
-                        href="https://www.google.com/maps/dir/?api=1&destination=479%20Ofnaa%20Ex-Chairman%20Road%2C%20Oddamavadi-03%2C%20Sri%20Lanka"
+                        href="https://www.google.com/maps/dir/?api=1&destination=479%20Ofnaa%20Ex-Chairman%20Road%2C%20Oddamavadi-02%2C%20Sri%20Lanka"
                         target="_blank"
                         rel="noopener noreferrer">
                         {{ __('Get directions') }}
@@ -687,7 +687,7 @@ $ctaUrl = $content["page_{$page}_cta_url"];
                 <div class="dc-contact-card overflow-hidden rounded-3xl border border-brand-border bg-white p-2 shadow-sm" data-contact-tilt data-tilt-strength="3">
                     <iframe
                         class="h-72 w-full rounded-[1.25rem] border-0 lg:h-full lg:min-h-80"
-                        src="https://www.google.com/maps?q=479%20Ofnaa%20Ex-Chairman%20Road%2C%20Oddamavadi-03%2C%20Sri%20Lanka&output=embed"
+                        src="https://www.google.com/maps?q=479%20Ofnaa%20Ex-Chairman%20Road%2C%20Oddamavadi-02%2C%20Sri%20Lanka&output=embed"
                         title="{{ __('DailyCart office location map') }}"
                         loading="lazy"
                         referrerpolicy="no-referrer-when-downgrade">

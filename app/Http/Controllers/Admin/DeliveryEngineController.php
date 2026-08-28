@@ -17,6 +17,7 @@ use App\Services\FinancialPolicyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class DeliveryEngineController extends Controller
@@ -96,23 +97,55 @@ class DeliveryEngineController extends Controller
     {
         $data = $request->validate([
             'subtotal' => ['nullable', 'numeric', 'min:0'],
+            'zone_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('zones', 'id')->where('status', 'active'),
+            ],
             'district' => ['nullable', 'string', 'max:255'],
             'province' => ['nullable', 'string', 'max:255'],
+            'full_address' => ['nullable', 'string', 'max:1000'],
             'distance_meters' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        $zones = Zone::query()
+            ->where('status', 'active')
+            ->orderBy('province')
+            ->orderBy('district')
+            ->orderBy('name')
+            ->get();
+        $selectedZone = isset($data['zone_id'])
+            ? $zones->firstWhere('id', (int) $data['zone_id'])
+            : null;
+        $district = $selectedZone?->district ?: ($data['district'] ?? null);
+        $province = $selectedZone?->province ?: ($data['province'] ?? null);
+
         $estimate = isset($data['subtotal'])
-            ? $deliveryFees->estimate((float) $data['subtotal'], $data['district'] ?? null, $data['distance_meters'] ?? null, null, $data['province'] ?? null)
+            ? $deliveryFees->estimate(
+                (float) $data['subtotal'],
+                $district,
+                $data['distance_meters'] ?? null,
+                null,
+                $province,
+                null,
+                $selectedZone?->id,
+            )
             : null;
         $simulation = $estimate ? [
             'service_charge' => $financialPolicy->serviceCharge((float) $data['subtotal']),
             'rider_earnings' => $financialPolicy->riderPayoutForDistance(((int) ($data['distance_meters'] ?? 0)) / 1000, now()),
+            'zone_name' => $selectedZone?->name,
+            'district' => $district,
+            'province' => $province,
+            'full_address' => trim((string) ($data['full_address'] ?? '')),
+            'distance_meters' => (int) ($data['distance_meters'] ?? 0),
         ] : null;
         if ($simulation) {
             $simulation['customer_total'] = round((float) $data['subtotal'] + $estimate['delivery_fee'] + $simulation['service_charge'], 2);
             $simulation['platform_delivery_margin'] = round($estimate['delivery_fee'] + $simulation['service_charge'] - $simulation['rider_earnings'], 2);
         }
 
-        return view('admin.delivery-engine.simulator', compact('estimate', 'simulation'));
+        return view('admin.delivery-engine.simulator', compact('estimate', 'simulation', 'zones', 'selectedZone'));
     }
 
     public function history(): View

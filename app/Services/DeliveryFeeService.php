@@ -42,10 +42,11 @@ class DeliveryFeeService
         ?Customer $customer = null,
         ?string $province = null,
         ?string $couponCode = null,
+        ?int $zoneId = null,
     ): array {
         $district = $this->resolveDistrict($district, $customer);
         $province = $this->resolveProvince($province, $customer);
-        $pricingRule = $this->matchingPricingRule($district, $province);
+        $pricingRule = $this->matchingPricingRule($district, $province, $zoneId);
 
         if ($pricingRule) {
             return $this->estimateFromPricingRule($pricingRule, $subtotal, $distanceMeters, $customer, $couponCode);
@@ -121,7 +122,7 @@ class DeliveryFeeService
             ->first();
     }
 
-    private function matchingPricingRule(?string $district, ?string $province): ?DeliveryPricingRule
+    private function matchingPricingRule(?string $district, ?string $province, ?int $zoneId = null): ?DeliveryPricingRule
     {
         $today = now()->toDateString();
         $rules = DeliveryPricingRule::query()
@@ -132,9 +133,11 @@ class DeliveryFeeService
             ->get();
 
         return $rules
-            ->filter(function (DeliveryPricingRule $rule) use ($district, $province) {
+            ->filter(function (DeliveryPricingRule $rule) use ($district, $province, $zoneId) {
                 return match ($rule->scope) {
-                    'zone' => $district && $rule->zone && strcasecmp((string) $rule->zone->district, $district) === 0,
+                    'zone' => $zoneId
+                        ? (int) $rule->zone_id === $zoneId
+                        : $district && $rule->zone && strcasecmp((string) $rule->zone->district, $district) === 0,
                     'district' => $district && strcasecmp((string) $rule->district, $district) === 0,
                     'province' => $province && strcasecmp((string) $rule->province, $province) === 0,
                     'default' => true,
