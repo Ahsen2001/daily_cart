@@ -9,6 +9,7 @@ use App\Models\Rider;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Services\NotificationService;
 use App\Services\OtpService;
 use App\Services\PhoneVerificationService;
 use Illuminate\Http\JsonResponse;
@@ -37,7 +38,7 @@ class AuthController extends Controller
     public function registerCustomer(
         Request $request,
         OtpService $otps,
-        PhoneVerificationService $phones
+        PhoneVerificationService $phones,
     ): JsonResponse {
         $validated = $request->validate($this->commonRegistrationRules());
 
@@ -60,7 +61,8 @@ class AuthController extends Controller
     public function registerVendor(
         Request $request,
         OtpService $otps,
-        PhoneVerificationService $phones
+        PhoneVerificationService $phones,
+        NotificationService $notifications,
     ): JsonResponse {
         $validated = $request->validate([
             ...$this->commonRegistrationRules(),
@@ -89,13 +91,23 @@ class AuthController extends Controller
             return $user;
         });
 
+        $notifications->notifyAdmins(
+            'Vendor registration requires approval',
+            $validated['store_name'].' submitted a vendor registration.',
+            'vendor_registration_pending',
+            ['database', 'mail', 'push'],
+            ['vendor_id' => $user->vendor?->id, 'user_id' => $user->id],
+            '/admin/vendors',
+        );
+
         return $this->completeRegistration($user, $validated, $otps, $phones);
     }
 
     public function registerRider(
         Request $request,
         OtpService $otps,
-        PhoneVerificationService $phones
+        PhoneVerificationService $phones,
+        NotificationService $notifications,
     ): JsonResponse {
         $validated = $request->validate([
             ...$this->commonRegistrationRules(),
@@ -125,6 +137,15 @@ class AuthController extends Controller
 
             return $user;
         });
+
+        $notifications->notifyAdmins(
+            'Rider registration requires approval',
+            $user->name.' submitted a rider registration.',
+            'rider_registration_pending',
+            ['database', 'mail', 'push'],
+            ['rider_id' => $user->rider?->id, 'user_id' => $user->id],
+            '/admin/riders',
+        );
 
         return $this->completeRegistration($user, $validated, $otps, $phones);
     }

@@ -20,6 +20,7 @@ class DeliveryService
         private readonly FinancialPolicyService $financialPolicy,
         private readonly OrderUpdateNotificationService $orderUpdates,
         private readonly NotificationService $notifications,
+        private readonly PaymentService $payments,
     ) {}
 
     public function assignRider(Order $order, Rider $rider, ?User $actor = null): Delivery
@@ -36,8 +37,10 @@ class DeliveryService
         if ($rider->verification_status !== 'verified') {
             throw ValidationException::withMessages(['rider_id' => 'Selected rider is not verified.']);
         }
+        $order->loadMissing('delivery.rider.user');
+        $previousRiderUser = $order->delivery?->rider?->user;
 
-        return DB::transaction(function () use ($order, $rider, $actor) {
+        return DB::transaction(function () use ($order, $rider, $actor, $previousRiderUser) {
             $delivery = $order->delivery()->updateOrCreate(
                 ['order_id' => $order->id],
                 [
@@ -53,6 +56,19 @@ class DeliveryService
             $rider->update(['availability_status' => 'delivering']);
             $order->load(['delivery.rider.user', 'customer.user']);
 
+            if ($previousRiderUser && $previousRiderUser->id !== $rider->user_id) {
+                $this->notifications->sendOnce(
+                    $previousRiderUser,
+                    'Delivery reassigned',
+                    'Order '.$order->order_number.' has been reassigned to another rider.',
+                    'delivery_reassigned',
+                    ['database', 'mail', 'push'],
+                    ['order_id' => $order->id, 'delivery_id' => $delivery->id, 'status' => 'reassigned'],
+                    '/assigned-deliveries',
+                    'rider',
+                    'delivery-reassigned-'.$delivery->id.'-'.$previousRiderUser->id,
+                );
+            }
             $this->orderUpdates->riderAssigned($order, $actor);
 
             return $delivery->refresh();
@@ -125,11 +141,8 @@ class DeliveryService
             $order->update(['order_status' => 'delivered']);
 
             if ($order->payment?->payment_method === 'cash_on_delivery') {
-                $order->payment()->update([
-                    'status' => 'paid',
-                    'paid_at' => now(),
-                ]);
-                $order->update(['payment_status' => 'paid']);
+                $this->payments->markPaid($order->payment, 'COD-'.$order->id);
+                $order->refresh();
             }
 
             $delivery->rider?->update(['availability_status' => 'available']);
@@ -142,6 +155,33 @@ class DeliveryService
                 'payment',
                 'delivery.rider.user',
             ]));
+            if ($delivery->rider?->user) {
+                $this->notifications->sendOnce(
+                    $delivery->rider->user,
+                    'Delivery earning recorded',
+                    'You earned '.CurrencyService::formatLkr($delivery->rider_payout ?? 0).' for order '.$order->order_number.'.',
+                    'rider_earning_recorded',
+                    ['database', 'push'],
+                    ['order_id' => $order->id, 'delivery_id' => $delivery->id, 'amount' => (float) ($delivery->rider_payout ?? 0)],
+                    '/rider/earnings',
+                    'rider',
+                    'rider-earning-'.$delivery->id,
+                );
+            }
+            if ($order->vendor?->user) {
+                $vendorEarning = $this->financialPolicy->vendorPayout($order->loadMissing('vendor'));
+                $this->notifications->sendOnce(
+                    $order->vendor->user,
+                    'Vendor earning recorded',
+                    CurrencyService::formatLkr($vendorEarning).' was recorded for delivered order '.$order->order_number.'.',
+                    'vendor_earning_recorded',
+                    ['database', 'push'],
+                    ['order_id' => $order->id, 'amount' => $vendorEarning],
+                    '/vendor/earnings',
+                    'vendor',
+                    'vendor-earning-'.$order->id,
+                );
+            }
 
             return $delivery->refresh();
         });

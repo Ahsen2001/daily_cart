@@ -14,17 +14,17 @@
                 @foreach ($summary as $key => $value)
                     <div class="dc-card border-l-4 border-l-brand-primary p-5">
                         <p class="dc-page-eyebrow">{{ __(str_replace('_', ' ', $key)) }}</p>
-                        <p class="mt-2 text-2xl font-extrabold text-brand-text">{{ in_array($key, ['revenue', 'earnings'], true) ? CurrencyService::formatLkr($value) : number_format($value) }}</p>
+                        <p class="mt-2 text-2xl font-extrabold text-brand-text">{{ $key === 'earnings' ? CurrencyService::formatLkr($value) : number_format($value) }}</p>
                     </div>
                 @endforeach
             </div>
 
             <div class="grid gap-6 lg:grid-cols-2">
                 <div class="dc-panel">
-                    <h3 class="text-lg font-bold">{{ __('Revenue trend') }}</h3>
-                    <p class="mt-1 text-sm text-brand-muted">{{ __('Track recent store revenue in LKR.') }}</p>
+                    <h3 class="text-lg font-bold">{{ __('Earnings trend') }}</h3>
+                    <p class="mt-1 text-sm text-brand-muted">{{ __('Track your earnings after DailyCart commission, excluding delivery and service fees.') }}</p>
                     <div class="relative mt-4 h-64 w-full">
-                        <canvas id="vendorRevenue" role="img" aria-label="{{ __('Revenue trend chart') }}"></canvas>
+                        <canvas id="vendorEarnings" role="img" aria-label="{{ __('Earnings trend chart') }}"></canvas>
                     </div>
                 </div>
                 <div class="dc-panel">
@@ -41,9 +41,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const charts = @json($charts);
-        new Chart(document.getElementById('vendorRevenue'), {
+        new Chart(document.getElementById('vendorEarnings'), {
             type: 'line',
-            data: { labels: charts.revenue_line.labels, datasets: [{ label: 'Revenue (LKR)', data: charts.revenue_line.values, borderColor: '#15803D', backgroundColor: 'rgba(21, 128, 61, .08)', fill: true, tension: .3 }] },
+            data: { labels: charts.earnings_line.labels, datasets: [{ label: 'Vendor earnings (LKR)', data: charts.earnings_line.values, borderColor: '#15803D', backgroundColor: 'rgba(21, 128, 61, .08)', fill: true, tension: .3 }] },
             options: { responsive: true, maintainAspectRatio: false },
         });
         new Chart(document.getElementById('vendorOrders'), {

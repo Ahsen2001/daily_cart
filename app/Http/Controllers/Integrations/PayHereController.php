@@ -5,10 +5,6 @@ namespace App\Http\Controllers\Integrations;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
-use App\Notifications\PaymentFailedNotification;
-use App\Notifications\PaymentSuccessNotification;
-use App\Services\ExternalEmailService;
-use App\Services\OrderStatusService;
 use App\Services\PayHereService;
 use App\Services\PaymentService;
 use Illuminate\Http\RedirectResponse;
@@ -37,7 +33,7 @@ class PayHereController extends Controller
         ]);
     }
 
-    public function notify(Request $request, PayHereService $payHere, PaymentService $payments, OrderStatusService $notifications, ExternalEmailService $emails): string
+    public function notify(Request $request, PayHereService $payHere, PaymentService $payments): string
     {
         $payload = $request->all();
 
@@ -51,18 +47,14 @@ class PayHereController extends Controller
             return 'ORDER_NOT_FOUND';
         }
 
-        DB::transaction(function () use ($order, $payload, $payHere, $payments, $notifications, $emails) {
+        DB::transaction(function () use ($order, $payload, $payHere, $payments) {
             $payment = $order->payment()->lockForUpdate()->firstOrFail();
             $transaction = $payHere->recordNotification($payment, $payload);
 
             if ((string) ($payload['status_code'] ?? '') === '2') {
                 $payment = $payments->markPaid($payment, $payload['payment_id'] ?? null);
-                $notifications->notify($order->customer->user, new PaymentSuccessNotification($payment));
             } else {
-                $payment->update(['status' => 'failed']);
-                $order->update(['payment_status' => 'failed']);
-                $notifications->notify($order->customer->user, new PaymentFailedNotification($payment));
-                $emails->paymentStatus($payment, 'Your DailyCart payment for order '.$order->order_number.' failed.');
+                $payment = $payments->markFailed($payment);
             }
 
             $transaction->update(['payment_id' => $payment->id]);

@@ -80,6 +80,17 @@ class SupportTicketService
             'assigned_admin_id' => $admin->id,
             'status' => 'in_progress',
         ]);
+        $this->notifications->sendOnce(
+            $ticket->user,
+            'Support ticket assigned',
+            'Your support ticket "'.$ticket->subject.'" is now being reviewed.',
+            'support_ticket_assigned',
+            ['database', 'mail', 'push'],
+            ['support_ticket_id' => $ticket->id, 'status' => 'in_progress'],
+            null,
+            null,
+            'support-ticket-assigned-'.$ticket->id,
+        );
 
         return $ticket->refresh();
     }
@@ -90,6 +101,17 @@ class SupportTicketService
             'status' => 'closed',
             'closed_at' => now(),
         ]);
+        $this->notifications->sendOnce(
+            $ticket->user,
+            'Support ticket closed',
+            'Your support ticket "'.$ticket->subject.'" has been closed.',
+            'support_ticket_closed',
+            ['database', 'mail', 'push'],
+            ['support_ticket_id' => $ticket->id, 'status' => 'closed'],
+            null,
+            null,
+            'support-ticket-closed-'.$ticket->id,
+        );
 
         return $ticket->refresh();
     }
@@ -104,6 +126,17 @@ class SupportTicketService
             'status' => $status,
             'closed_at' => $status === 'closed' ? now() : null,
         ]);
+        $this->notifications->sendOnce(
+            $ticket->user,
+            'Support ticket updated',
+            'Your support ticket "'.$ticket->subject.'" is now '.str_replace('_', ' ', $status).'.',
+            'support_ticket_status',
+            ['database', 'mail', 'push'],
+            ['support_ticket_id' => $ticket->id, 'status' => $status],
+            null,
+            null,
+            'support-ticket-status-'.$ticket->id.'-'.$status,
+        );
 
         return $ticket->refresh();
     }

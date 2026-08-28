@@ -117,6 +117,14 @@ class OrderService
                     ['database', 'mail', 'push'],
                     ['order_id' => $order->id, 'status' => 'placed', 'payment_id' => $payment->id],
                 );
+                $this->notificationService->notifyAdmins(
+                    'New order placed',
+                    'Order '.$order->order_number.' was placed and is awaiting vendor confirmation.',
+                    'new_order_placed',
+                    ['database', 'mail', 'push'],
+                    ['order_id' => $order->id, 'status' => 'placed', 'vendor_id' => $order->vendor_id],
+                    '/admin/orders/'.$order->id,
+                );
                 if ($payment->payment_method !== 'bank_transfer') {
                     $this->notificationService->send(
                         $order->vendor->user,

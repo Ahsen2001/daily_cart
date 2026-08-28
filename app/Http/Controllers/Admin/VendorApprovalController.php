@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Vendor;
 use App\Services\AccountDeletionService;
-use App\Services\ExternalEmailService;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -31,7 +31,7 @@ class VendorApprovalController extends Controller
         ]);
     }
 
-    public function approve(Vendor $vendor, ExternalEmailService $emails): RedirectResponse
+    public function approve(Vendor $vendor, NotificationService $notifications): RedirectResponse
     {
         $vendor->update([
             'status' => 'approved',
@@ -50,20 +50,36 @@ class VendorApprovalController extends Controller
             'approved_at' => now(),
             'reviewed_by' => request()->user()?->id,
         ]);
-        $emails->approval(
+        $notifications->sendOnce(
             $vendor->user,
             'Congratulations — your vendor account is verified',
             'Congratulations! Your DailyCart vendor account has been verified and approved. You can now sign in and start managing your store.',
+            'vendor_account_approved',
+            ['database', 'mail', 'push'],
+            ['vendor_id' => $vendor->id, 'status' => 'approved'],
+            '/vendor/profile',
+            'vendor',
+            'vendor-approved-'.$vendor->id,
         );
 
         return back()->with('status', 'Vendor approved successfully.');
     }
 
-    public function reject(Request $request, Vendor $vendor, ExternalEmailService $emails): RedirectResponse
+    public function reject(Request $request, Vendor $vendor, NotificationService $notifications): RedirectResponse
     {
         $vendor->update(['status' => 'rejected']);
         $vendor->user()->update(['status' => 'suspended']);
-        $emails->approval($vendor->user, 'Vendor rejected', 'Your DailyCart vendor registration was rejected.');
+        $notifications->sendOnce(
+            $vendor->user,
+            'Vendor registration rejected',
+            'Your DailyCart vendor registration was rejected. Contact support for more information.',
+            'vendor_account_rejected',
+            ['database', 'mail', 'push'],
+            ['vendor_id' => $vendor->id, 'status' => 'rejected'],
+            '/vendor/profile',
+            'vendor',
+            'vendor-rejected-'.$vendor->id,
+        );
 
         return back()->with('status', 'Vendor rejected.');
     }

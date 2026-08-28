@@ -80,6 +80,14 @@ class RiderRatingService
             'report_reason' => trim($reason),
             'reported_at' => now(),
         ]);
+        $this->notifications->notifyAdmins(
+            'Rider rating reported',
+            'A rider reported rating #'.$rating->id.' for administrator review.',
+            'rider_rating_reported',
+            ['database', 'mail', 'push'],
+            ['rating_id' => $rating->id, 'rider_id' => $rider->id],
+            '/admin/rider-ratings?status=reported',
+        );
 
         return $rating->refresh();
     }
@@ -93,6 +101,19 @@ class RiderRatingService
             'moderated_by' => $moderator->id,
             'moderated_at' => now(),
         ]);
+        if ($rating->rider?->user) {
+            $this->notifications->sendOnce(
+                $rating->rider->user,
+                'Rating review completed',
+                'Administrator review marked rating #'.$rating->id.' as '.$status.'.',
+                'rider_rating_moderated',
+                ['database', 'push'],
+                ['rating_id' => $rating->id, 'status' => $status],
+                '/rider/ratings',
+                'rider',
+                'rider-rating-moderated-'.$rating->id.'-'.$status,
+            );
+        }
 
         return $rating->refresh();
     }

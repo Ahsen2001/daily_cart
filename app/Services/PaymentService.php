@@ -10,6 +10,8 @@ use Illuminate\Validation\ValidationException;
 
 class PaymentService
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     public const METHODS = [
         'cash_on_delivery',
         'card',
@@ -175,12 +177,7 @@ class PaymentService
             'payment_status' => $successful ? 'paid' : 'failed',
         ]);
 
-        app(ExternalEmailService::class)->paymentStatus(
-            $payment->loadMissing('order.customer.user'),
-            $successful
-                ? 'Your DailyCart payment was successful.'
-                : 'Your DailyCart payment failed. Please try again.'
-        );
+        $this->notifyStatus($payment, $successful ? 'paid' : 'failed');
 
         return $payment->refresh();
     }
@@ -194,7 +191,16 @@ class PaymentService
         ]);
 
         $payment->order()->update(['payment_status' => 'paid']);
-        app(ExternalEmailService::class)->paymentStatus($payment->loadMissing('order.customer.user'), 'Your DailyCart payment has been marked as paid.');
+        $this->notifyStatus($payment, 'paid');
+
+        return $payment->refresh();
+    }
+
+    public function markFailed(Payment $payment): Payment
+    {
+        $payment->update(['status' => 'failed', 'paid_at' => null]);
+        $payment->order()->update(['payment_status' => 'failed']);
+        $this->notifyStatus($payment, 'failed');
 
         return $payment->refresh();
     }
@@ -203,7 +209,7 @@ class PaymentService
     {
         $payment->update(['status' => 'refunded']);
         $payment->order()->update(['payment_status' => 'refunded']);
-        app(ExternalEmailService::class)->paymentStatus($payment->loadMissing('order.customer.user'), 'Your DailyCart payment has been refunded.');
+        $this->notifyStatus($payment, 'refunded');
 
         return $payment->refresh();
     }
@@ -211,5 +217,59 @@ class PaymentService
     private function reference(Payment $payment, string $prefix = 'PAY'): string
     {
         return $prefix.'-'.$payment->id.'-'.Str::upper(Str::random(8));
+    }
+
+    private function notifyStatus(Payment $payment, string $status): void
+    {
+        $payment->loadMissing(['order.customer.user', 'order.vendor.user']);
+        $order = $payment->order;
+        if (! $order) {
+            return;
+        }
+
+        $labels = [
+            'paid' => ['Payment successful', 'Payment for order '.$order->order_number.' was successful.'],
+            'failed' => ['Payment failed', 'Payment for order '.$order->order_number.' failed. Please try again.'],
+            'refunded' => ['Payment refunded', 'Payment for order '.$order->order_number.' was refunded.'],
+        ];
+        [$title, $message] = $labels[$status] ?? ['Payment updated', 'Payment for order '.$order->order_number.' is now '.$status.'.'];
+        $data = ['order_id' => $order->id, 'payment_id' => $payment->id, 'status' => $status];
+
+        if ($order->customer?->user) {
+            $this->notifications->sendOnce(
+                $order->customer->user,
+                $title,
+                $message,
+                'payment_'.$status,
+                ['database', 'mail', 'push'],
+                $data,
+                '/order-details/'.$order->id,
+                'customer',
+                'payment-'.$status.'-customer-'.$payment->id,
+            );
+        }
+        if ($order->vendor?->user) {
+            $this->notifications->sendOnce(
+                $order->vendor->user,
+                $title.': '.$order->order_number,
+                $message,
+                'payment_'.$status,
+                ['database', 'mail', 'push'],
+                $data,
+                '/vendor-order-details/'.$order->id,
+                'vendor',
+                'payment-'.$status.'-vendor-'.$payment->id,
+            );
+        }
+        if (in_array($status, ['failed', 'refunded'], true)) {
+            $this->notifications->notifyAdmins(
+                $title.': '.$order->order_number,
+                $message,
+                'payment_'.$status,
+                ['database', 'mail', 'push'],
+                $data,
+                '/admin/orders/'.$order->id,
+            );
+        }
     }
 }

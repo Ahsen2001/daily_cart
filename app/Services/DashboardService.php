@@ -67,7 +67,6 @@ class DashboardService
             'total_orders' => $vendor->orders()->count('*'),
             'completed_orders' => $vendor->orders()->where('order_status', 'delivered')->count('*'),
             'cancelled_orders' => $vendor->orders()->where('order_status', 'cancelled')->count('*'),
-            'revenue' => $this->completedRevenueForVendor($vendor),
             'earnings' => $this->financeReportService->vendorSummary($vendor)['completed'],
             'low_stock_products' => $vendor->products()->where('stock_quantity', '<=', 5)->count('*'),
             'customer_reviews' => Review::query()->where('vendor_id', $vendor->id)->count('*'),
@@ -97,14 +96,6 @@ class DashboardService
             ->where('payment_status', 'paid')
             ->when($from, fn ($query) => $query->whereDate('placed_at', '>=', $from, 'and'))
             ->when($to, fn ($query) => $query->whereDate('placed_at', '<=', $to, 'and'))
-            ->sum('total_amount');
-    }
-
-    private function completedRevenueForVendor(Vendor $vendor): float
-    {
-        return (float) $vendor->orders()
-            ->where('order_status', 'delivered')
-            ->where('payment_status', 'paid')
             ->sum('total_amount');
     }
 }

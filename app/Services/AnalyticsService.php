@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\Vendor;
 use Illuminate\Support\Facades\DB;
 
 class AnalyticsService
 {
+    public function __construct(private readonly FinancialPolicyService $financialPolicy) {}
+
     public function adminCharts(array $filters = []): array
     {
         $filters = $this->withDefaultDateWindow($filters);
@@ -25,9 +28,28 @@ class AnalyticsService
         $filters = $this->withDefaultDateWindow($filters);
 
         return [
-            'revenue_line' => $this->dailyRevenue($filters),
+            'earnings_line' => $this->dailyVendorEarnings($vendorId, $filters),
             'orders_bar' => $this->dailyOrders($filters),
         ];
+    }
+
+    public function dailyVendorEarnings(int $vendorId, array $filters = []): array
+    {
+        $rows = $this->filteredOrders($filters)
+            ->selectRaw('DATE(placed_at) as label, SUM(subtotal - discount_amount - loyalty_discount_amount) as value')
+            ->where('order_status', 'delivered')
+            ->where('payment_status', 'paid')
+            ->groupBy('label')
+            ->orderBy('label')
+            ->limit(60)
+            ->get();
+        $commissionRate = $this->financialPolicy->vendorCommissionRate(Vendor::query()->findOrFail($vendorId));
+
+        $rows->each(function ($row) use ($commissionRate) {
+            $row->value = max(0, (float) $row->value) * (1 - ($commissionRate / 100));
+        });
+
+        return $this->chartPair($rows);
     }
 
     public function dailyRevenue(array $filters = []): array

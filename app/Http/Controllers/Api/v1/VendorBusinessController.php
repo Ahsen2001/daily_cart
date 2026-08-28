@@ -12,14 +12,15 @@ use App\Models\Review;
 use App\Models\Subscription;
 use App\Models\VendorPayoutRequest;
 use App\Services\AnalyticsService;
+use App\Services\CurrencyService;
 use App\Services\DashboardService;
 use App\Services\FinanceReportService;
+use App\Services\NotificationService;
 use App\Services\OrderStatusService;
 use App\Services\ReportService;
 use App\Services\ScheduledOrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -28,7 +29,8 @@ class VendorBusinessController extends Controller
     public function dashboard(
         Request $request,
         DashboardService $dashboards,
-        AnalyticsService $analytics
+        AnalyticsService $analytics,
+        FinanceReportService $finance,
     ): JsonResponse {
         $vendor = $request->user()->vendor;
         $summary = $dashboards->vendorOverview($vendor);
@@ -37,10 +39,11 @@ class VendorBusinessController extends Controller
             'dashboard' => [
                 ...$summary,
                 'pending_orders' => $vendor->orders()->where('order_status', 'pending')->count(),
-                'today_sales' => (float) $vendor->orders()
-                    ->whereDate('placed_at', today())
-                    ->where('payment_status', 'paid')
-                    ->sum('total_amount'),
+                'today_earnings' => $finance->vendorEarningsSum(
+                    $vendor,
+                    today()->toDateString(),
+                    today()->toDateString(),
+                ),
                 'total_earnings' => (float) ($summary['earnings'] ?? 0),
                 'approval_status' => $vendor->status,
             ],
@@ -249,6 +252,27 @@ class VendorBusinessController extends Controller
             ...$validated,
             'status' => 'requested',
         ]);
+        $notifications = app(NotificationService::class);
+        $data = ['vendor_id' => $vendor->id, 'payout_id' => $payout->id, 'amount' => (float) $payout->amount];
+        $notifications->sendOnce(
+            $request->user(),
+            'Payout request submitted',
+            'Your payout request for '.CurrencyService::formatLkr($payout->amount).' is awaiting review.',
+            'vendor_payout_requested',
+            ['database', 'mail', 'push'],
+            $data,
+            '/vendor/earnings',
+            'vendor',
+            'vendor-payout-requested-'.$payout->id,
+        );
+        $notifications->notifyAdmins(
+            'Vendor payout review required',
+            $vendor->store_name.' requested a payout of '.CurrencyService::formatLkr($payout->amount).'.',
+            'vendor_payout_review_required',
+            ['database', 'mail', 'push'],
+            $data,
+            '/admin/reports/finance',
+        );
 
         return response()->json([
             'message' => 'Payout request submitted.',
@@ -309,6 +333,16 @@ class VendorBusinessController extends Controller
             'vendor_note' => $validated['vendor_note'],
             'vendor_responded_at' => now(),
         ]);
+        $order = $refund->order;
+        $data = ['order_id' => $order->id, 'refund_id' => $refund->id, 'status' => $refund->status];
+        app(NotificationService::class)->notifyAdmins(
+            'Vendor responded to refund',
+            $request->user()->vendor->store_name.' responded to the refund for order '.$order->order_number.'.',
+            'refund_vendor_response',
+            ['database', 'mail', 'push'],
+            $data,
+            '/admin/refunds',
+        );
 
         return response()->json([
             'message' => 'Refund response saved for administrator review.',
