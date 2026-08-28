@@ -258,18 +258,54 @@ class PageController extends Controller
                 'max:255',
             ],
 
+            'enquiry_type' => [
+                'required',
+                'string',
+                'in:order_assistance,payment_problem,refund_or_cancellation,delivery_problem,product_complaint,vendor_support,rider_support,account_problem,technical_issue,general_enquiry',
+            ],
+
+            'order_number' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
             'message' => [
                 'required',
                 'string',
                 'max:5000',
             ],
+
+            'attachment' => [
+                'nullable',
+                'file',
+                'mimes:jpg,jpeg,png,pdf,doc,docx',
+                'max:5120',
+            ],
         ]);
 
-        ContactMessage::create(
-            $validated + [
-                'status' => 'pending',
-            ]
-        );
+        $attachmentPath = $request->file('attachment')?->store('contact-attachments');
+        $enquiryType = str_replace('_', ' ', $validated['enquiry_type']);
+        $messageContext = [
+            'Enquiry type: '.ucwords($enquiryType),
+        ];
+
+        if (! empty($validated['order_number'])) {
+            $messageContext[] = 'Order number: '.$validated['order_number'];
+        }
+
+        if ($attachmentPath) {
+            $messageContext[] = 'Private attachment: '.$attachmentPath;
+        }
+
+        ContactMessage::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'subject' => $validated['subject'],
+            'message' => implode("\n", $messageContext)."\n\n".$validated['message'],
+            'status' => 'pending',
+        ]);
 
         return back()->with(
             'contact_status',
