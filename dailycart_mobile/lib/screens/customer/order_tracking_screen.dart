@@ -68,7 +68,10 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                       const SizedBox(height: 8),
                       Text(order.status.replaceAll('_', ' ')),
                       const SizedBox(height: 16),
-                      OrderStatusTimeline(currentStatus: order.status),
+                      OrderStatusTimeline(
+                        currentStatus: order.status,
+                        entries: order.timeline,
+                      ),
                     ],
                   ),
                 ),

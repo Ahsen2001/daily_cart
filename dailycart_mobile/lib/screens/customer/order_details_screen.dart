@@ -91,6 +91,17 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                         onPressed: () => _requestRefund(order),
                       ),
                     ],
+                    if (order.isCompleted) ...[
+                      const SizedBox(height: 10),
+                      CustomButton(
+                        label: 'Rate Rider',
+                        icon: Icons.delivery_dining_rounded,
+                        variant: CustomButtonVariant.secondary,
+                        onPressed: () => context.push(
+                          '${AppRoutes.riderRating}/${order.id}',
+                        ),
+                      ),
+                    ],
                   ],
                 ),
     );

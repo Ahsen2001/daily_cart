@@ -23,12 +23,34 @@ class NotificationInfrastructureController extends Controller
         ]);
 
         $notifications = $request->user()->notifications()
+            ->with(['order.statusHistories'])
             ->where(fn (Builder $query) => $query
                 ->where('app_role', $role)
                 ->orWhereNull('app_role'))
             ->when($validated['unread_only'] ?? false, fn (Builder $query) => $query->whereNull('read_at'))
             ->latest()
             ->paginate((int) ($validated['per_page'] ?? 30));
+
+        $notifications->getCollection()->transform(function (Notification $notification): Notification {
+            if ($notification->order) {
+                $notification->setAttribute('order_status', $notification->order->order_status);
+                $notification->setAttribute(
+                    'activity_timeline',
+                    $notification->order->statusHistories
+                        ->sortBy('created_at')
+                        ->values()
+                        ->map(fn ($history) => [
+                            'status' => $history->status,
+                            'remarks' => $history->remarks,
+                            'timestamp' => $history->created_at,
+                        ]),
+                );
+            }
+
+            $notification->unsetRelation('order');
+
+            return $notification;
+        });
 
         return response()->json([
             'notifications' => $notifications,

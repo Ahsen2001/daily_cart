@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/app_identity.dart';
 import '../models/notification_model.dart';
 import '../services/auth_api_service.dart';
 import '../services/notification_api_service.dart';
@@ -24,6 +28,8 @@ class NotificationProvider extends ChangeNotifier {
   List<NotificationModel> notifications = const [];
   NotificationPreferences preferences = const NotificationPreferences();
   bool isLoading = false;
+  bool isUsingCachedData = false;
+  DateTime? lastSyncedAt;
   String? errorMessage;
 
   int get unreadCount {
@@ -31,10 +37,33 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> getNotifications() async {
-    await _run(() async {
+    if (notifications.isEmpty) {
+      await _loadCache();
+    }
+
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
       notifications = await _apiService.getNotifications();
-      preferences = await _apiService.getPreferences();
-    });
+      try {
+        preferences = await _apiService.getPreferences();
+      } catch (_) {
+        // Notifications remain usable when preferences cannot be refreshed.
+      }
+      lastSyncedAt = DateTime.now();
+      isUsingCachedData = false;
+      await _saveCache();
+    } on ApiException catch (error) {
+      errorMessage = error.message;
+      isUsingCachedData = notifications.isNotEmpty;
+    } catch (_) {
+      errorMessage = 'Unable to refresh notifications. Check your connection.';
+      isUsingCachedData = notifications.isNotEmpty;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<bool> markAsRead(String id) async {
@@ -43,6 +72,7 @@ class NotificationProvider extends ChangeNotifier {
       notifications = notifications
           .map((item) => item.id == id ? item.copyWith(isRead: true) : item)
           .toList(growable: false);
+      await _saveCache();
     });
   }
 
@@ -52,6 +82,7 @@ class NotificationProvider extends ChangeNotifier {
       notifications = notifications
           .map((item) => item.copyWith(isRead: true))
           .toList(growable: false);
+      await _saveCache();
     });
   }
 
@@ -61,6 +92,7 @@ class NotificationProvider extends ChangeNotifier {
       notifications = notifications
           .where((item) => item.id != id)
           .toList(growable: false);
+      await _saveCache();
     });
   }
 
@@ -89,5 +121,38 @@ class NotificationProvider extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  String get _cacheKey =>
+      'dailycart_${AppIdentity.flavor.name}_notifications_cache_v2';
+
+  Future<void> _loadCache() async {
+    try {
+      final raw = (await SharedPreferences.getInstance()).getString(_cacheKey);
+      if (raw == null) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return;
+      final items = decoded['notifications'];
+      if (items is List) {
+        notifications = items
+            .whereType<Map>()
+            .map((item) => NotificationModel.fromJson(
+                  item.map((key, value) => MapEntry(key.toString(), value)),
+                ))
+            .toList(growable: false);
+      }
+      lastSyncedAt = DateTime.tryParse(decoded['synced_at']?.toString() ?? '');
+      isUsingCachedData = notifications.isNotEmpty;
+    } catch (_) {
+      // A corrupt cache is ignored and replaced after the next successful sync.
+    }
+  }
+
+  Future<void> _saveCache() async {
+    final payload = jsonEncode({
+      'synced_at': lastSyncedAt?.toIso8601String(),
+      'notifications': notifications.map((item) => item.toJson()).toList(),
+    });
+    await (await SharedPreferences.getInstance()).setString(_cacheKey, payload);
   }
 }

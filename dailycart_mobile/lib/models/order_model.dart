@@ -21,6 +21,7 @@ class OrderModel {
     this.serviceCharge = 0,
     this.grandTotal = 0,
     this.items = const [],
+    this.timeline = const [],
   });
 
   final int id;
@@ -44,6 +45,7 @@ class OrderModel {
   final double serviceCharge;
   final double grandTotal;
   final List<OrderItemModel> items;
+  final List<OrderTimelineEntry> timeline;
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     final rider = json['rider'];
@@ -92,6 +94,9 @@ class OrderModel {
       items: _listFrom(
         json['items'] ?? json['order_items'],
       ).map(OrderItemModel.fromJson).toList(growable: false),
+      timeline: _listFrom(json['timeline'])
+          .map(OrderTimelineEntry.fromJson)
+          .toList(growable: false),
     );
   }
 
@@ -142,6 +147,28 @@ class OrderModel {
       return null;
     }
     return DateTime.tryParse(value.toString());
+  }
+}
+
+class OrderTimelineEntry {
+  const OrderTimelineEntry({
+    required this.status,
+    this.remarks = '',
+    this.timestamp,
+  });
+
+  final String status;
+  final String remarks;
+  final DateTime? timestamp;
+
+  factory OrderTimelineEntry.fromJson(Map<String, dynamic> json) {
+    return OrderTimelineEntry(
+      status: (json['status'] ?? '').toString(),
+      remarks: (json['remarks'] ?? '').toString(),
+      timestamp: OrderModel._toNullableDate(
+        json['timestamp'] ?? json['created_at'],
+      ),
+    );
   }
 }
 

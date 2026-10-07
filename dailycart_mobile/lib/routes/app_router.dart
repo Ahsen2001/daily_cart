@@ -44,6 +44,7 @@ import '../screens/customer/profile_screen.dart';
 import '../screens/customer/product_details_screen.dart';
 import '../screens/customer/product_list_screen.dart';
 import '../screens/customer/product_reviews_screen.dart';
+import '../screens/customer/rider_rating_screen.dart';
 import '../screens/customer/promotion_details_screen.dart';
 import '../screens/customer/promotions_screen.dart';
 import '../screens/customer/search_screen.dart';
@@ -84,6 +85,7 @@ import '../screens/rider/rider_earnings_screen.dart';
 import '../screens/rider/rider_map_screen.dart';
 import '../screens/rider/rider_profile_screen.dart';
 import '../screens/rider/rider_report_screen.dart';
+import '../screens/rider/rider_ratings_screen.dart';
 import 'app_routes.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -366,6 +368,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       builder: (context, state) => const RiderReportScreen(),
     ),
     GoRoute(
+      path: AppRoutes.riderRatings,
+      name: 'rider-ratings',
+      builder: (context, state) => const RiderRatingsScreen(),
+    ),
+    GoRoute(
       path: AppRoutes.riderNotifications,
       builder: (context, state) => const NotificationsScreen(),
     ),
@@ -601,6 +608,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       },
     ),
     GoRoute(
+      path: '${AppRoutes.riderRating}/:orderId',
+      name: 'rider-rating',
+      builder: (context, state) {
+        final orderId = int.tryParse(state.pathParameters['orderId'] ?? '') ?? 0;
+        return RiderRatingScreen(orderId: orderId);
+      },
+    ),
+    GoRoute(
       path: AppRoutes.myReviews,
       name: 'my-reviews',
       builder: (context, state) => const MyReviewsScreen(),
@@ -785,6 +800,7 @@ UserRole? _requiredRoleFor(String location) {
     '/edit-profile',
     '/change-password',
     '/add-review',
+    '/rate-rider',
     '/my-reviews',
     '/product-reviews',
     '/support-',

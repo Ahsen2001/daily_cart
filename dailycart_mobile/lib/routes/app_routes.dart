@@ -44,6 +44,7 @@ class AppRoutes {
   static const riderProfile = '/rider-profile';
   static const editRiderProfile = '/edit-rider-profile';
   static const riderReports = '/rider-reports';
+  static const riderRatings = '/rider-ratings';
   static const riderNotifications = '/rider-notifications';
   static const riderSupportTickets = '/rider-support-tickets';
   static const riderCreateSupportTicket = '/rider-create-support-ticket';
@@ -75,6 +76,7 @@ class AppRoutes {
   static const editProfile = '/edit-profile';
   static const changePassword = '/change-password';
   static const addReview = '/add-review';
+  static const riderRating = '/rate-rider';
   static const myReviews = '/my-reviews';
   static const productReviews = '/product-reviews';
   static const supportTickets = '/support-tickets';

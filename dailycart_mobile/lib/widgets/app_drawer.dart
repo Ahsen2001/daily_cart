@@ -89,6 +89,18 @@ class AppDrawer extends ConsumerWidget {
                       }
                     },
                   ),
+                  ListTile(
+                    leading: const Icon(Icons.notifications_outlined),
+                    title: const Text('Notifications'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      context.push(isVendor
+                          ? AppRoutes.vendorNotifications
+                          : isRider
+                              ? AppRoutes.riderNotifications
+                              : AppRoutes.notifications);
+                    },
+                  ),
                   if (isVendor) ...[
                     ListTile(
                       leading: const Icon(Icons.inventory_2_outlined),
@@ -186,6 +198,14 @@ class AppDrawer extends ConsumerWidget {
                       onTap: () {
                         Navigator.of(context).pop();
                         context.push(AppRoutes.riderReports);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.star_outline_rounded),
+                      title: const Text('Customer Ratings'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.riderRatings);
                       },
                     ),
                     ListTile(
