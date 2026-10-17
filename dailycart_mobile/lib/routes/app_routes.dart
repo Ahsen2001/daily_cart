@@ -51,6 +51,8 @@ class AppRoutes {
   static const riderSupportTicketDetails = '/rider-support-ticket-details';
   static const riderChangePassword = '/rider-change-password';
   static const categories = '/categories';
+  static const stores = '/stores';
+  static const storeDetails = '/store-details';
   static const products = '/products';
   static const productDetails = '/product-details';
   static const search = '/search';

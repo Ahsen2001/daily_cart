@@ -28,10 +28,11 @@ class _RiderRatingScreenState extends State<RiderRatingScreen> {
 
   static const _availableTags = [
     'on_time',
-    'professional',
     'friendly',
     'careful_handling',
     'good_communication',
+    'late_delivery',
+    'poor_communication',
   ];
 
   @override

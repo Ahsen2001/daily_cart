@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/order_provider.dart';
 import '../../routes/app_routes.dart';
+import '../../widgets/customer_bottom_navigation.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/loading_widget.dart';
@@ -85,6 +86,8 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
           ),
         ],
       ),
+      bottomNavigationBar:
+          const CustomerBottomNavigation(currentIndex: 3),
     );
   }
 }

@@ -58,6 +58,18 @@ class CategoryCard extends StatelessWidget {
                         imageUrl: category.image,
                         fit: BoxFit.cover,
                         width: double.infinity,
+                        memCacheWidth: 320,
+                        memCacheHeight: 180,
+                        placeholder: (context, url) => const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        errorWidget: (context, url, error) => const Center(
+                          child: Icon(
+                            Icons.category_rounded,
+                            color: AppColors.primaryGreen,
+                            size: 34,
+                          ),
+                        ),
                       ),
                     ),
             ),

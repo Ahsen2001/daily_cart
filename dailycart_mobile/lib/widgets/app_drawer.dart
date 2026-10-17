@@ -94,11 +94,13 @@ class AppDrawer extends ConsumerWidget {
                     title: const Text('Notifications'),
                     onTap: () {
                       Navigator.of(context).pop();
-                      context.push(isVendor
-                          ? AppRoutes.vendorNotifications
-                          : isRider
-                              ? AppRoutes.riderNotifications
-                              : AppRoutes.notifications);
+                      context.push(
+                        isVendor
+                            ? AppRoutes.vendorNotifications
+                            : isRider
+                            ? AppRoutes.riderNotifications
+                            : AppRoutes.notifications,
+                      );
                     },
                   ),
                   if (isVendor) ...[
@@ -135,8 +137,9 @@ class AppDrawer extends ConsumerWidget {
                       },
                     ),
                     ListTile(
-                      leading:
-                          const Icon(Icons.account_balance_wallet_outlined),
+                      leading: const Icon(
+                        Icons.account_balance_wallet_outlined,
+                      ),
                       title: const Text('Wallet & Payouts'),
                       onTap: () {
                         Navigator.of(context).pop();
@@ -217,6 +220,14 @@ class AppDrawer extends ConsumerWidget {
                       },
                     ),
                   ] else ...[
+                    ListTile(
+                      leading: const Icon(Icons.storefront_outlined),
+                      title: const Text('Browse Stores'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.stores);
+                      },
+                    ),
                     ListTile(
                       leading: const Icon(Icons.receipt_long_outlined),
                       title: const Text('Orders'),

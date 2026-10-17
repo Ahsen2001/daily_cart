@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../routes/app_routes.dart';
+import '../../widgets/customer_bottom_navigation.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/dailycart_card.dart';
 import '../../widgets/loading_widget.dart';
@@ -146,6 +147,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ],
                 ),
+      bottomNavigationBar:
+          const CustomerBottomNavigation(currentIndex: 4),
     );
   }
 

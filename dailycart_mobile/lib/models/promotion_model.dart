@@ -9,6 +9,9 @@ class PromotionModel {
     this.startsAt,
     this.endsAt,
     this.isActive = true,
+    this.productId,
+    this.targetType = '',
+    this.vendorName = '',
   });
 
   final int id;
@@ -20,6 +23,9 @@ class PromotionModel {
   final DateTime? startsAt;
   final DateTime? endsAt;
   final bool isActive;
+  final int? productId;
+  final String targetType;
+  final String vendorName;
 
   factory PromotionModel.fromJson(Map<String, dynamic> json) {
     return PromotionModel(
@@ -28,11 +34,14 @@ class PromotionModel {
       type: (json['type'] ?? 'featured_offer').toString(),
       description: (json['description'] ?? '').toString(),
       image: (json['image'] ?? json['banner'] ?? '').toString(),
-      discountText:
-          (json['discount_text'] ?? json['offer_text'] ?? '').toString(),
+      discountText: (json['discount_text'] ?? json['offer_text'] ?? '')
+          .toString(),
       startsAt: _toNullableDate(json['starts_at'] ?? json['start_date']),
       endsAt: _toNullableDate(json['ends_at'] ?? json['end_date']),
       isActive: json['is_active'] != false,
+      productId: json['product_id'] == null ? null : _toInt(json['product_id']),
+      targetType: (json['target_type'] ?? '').toString(),
+      vendorName: (json['vendor_name'] ?? '').toString(),
     );
   }
 

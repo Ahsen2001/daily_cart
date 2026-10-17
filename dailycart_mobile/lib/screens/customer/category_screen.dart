@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/category_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/category_card.dart';
+import '../../widgets/customer_bottom_navigation.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/error_widget.dart';
@@ -30,41 +31,59 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
 
     return Scaffold(
       appBar: const CustomAppBar(title: 'Categories'),
-      body: state.isLoading
-          ? const LoadingWidget(message: 'Loading categories...')
-          : state.errorMessage != null
-              ? DailyCartErrorWidget(
-                  title: 'Unable to load categories',
-                  message: state.errorMessage!,
-                  onRetry: () =>
-                      ref.read(categoryProvider).getCategories(),
-                )
-          : state.categories.isEmpty
-              ? const EmptyStateWidget(
-                  title: 'No categories found',
-                  message: 'Categories will appear here once available.',
-                  icon: Icons.category_outlined,
-                )
-              : GridView.builder(
-                  padding: const EdgeInsets.all(20),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 14,
-                    childAspectRatio: 0.82,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => context.push(AppRoutes.stores),
+                icon: const Icon(Icons.storefront_rounded),
+                label: const Text('Browse Stores'),
+              ),
+            ),
+          ),
+          Expanded(
+            child: state.isLoading
+                ? const LoadingWidget(message: 'Loading categories...')
+                : state.errorMessage != null
+                ? DailyCartErrorWidget(
+                    title: 'Unable to load categories',
+                    message: state.errorMessage!,
+                    onRetry: () => ref.read(categoryProvider).getCategories(),
+                  )
+                : state.categories.isEmpty
+                ? const EmptyStateWidget(
+                    title: 'No categories found',
+                    message: 'Categories will appear here once available.',
+                    icon: Icons.category_outlined,
+                  )
+                : GridView.builder(
+                    padding: const EdgeInsets.all(20),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 14,
+                          crossAxisSpacing: 14,
+                          childAspectRatio: 0.82,
+                        ),
+                    itemCount: state.categories.length,
+                    itemBuilder: (context, index) {
+                      final category = state.categories[index];
+                      return CategoryCard(
+                        category: category,
+                        width: double.infinity,
+                        onTap: () => context.push(
+                          '${AppRoutes.products}?categoryId=${category.id}&categoryName=${Uri.encodeComponent(category.name)}',
+                        ),
+                      );
+                    },
                   ),
-                  itemCount: state.categories.length,
-                  itemBuilder: (context, index) {
-                    final category = state.categories[index];
-                    return CategoryCard(
-                      category: category,
-                      width: double.infinity,
-                      onTap: () => context.push(
-                        '${AppRoutes.products}?categoryId=${category.id}&categoryName=${Uri.encodeComponent(category.name)}',
-                      ),
-                    );
-                  },
-                ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const CustomerBottomNavigation(currentIndex: 1),
     );
   }
 }

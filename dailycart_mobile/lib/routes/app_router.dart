@@ -48,6 +48,8 @@ import '../screens/customer/rider_rating_screen.dart';
 import '../screens/customer/promotion_details_screen.dart';
 import '../screens/customer/promotions_screen.dart';
 import '../screens/customer/search_screen.dart';
+import '../screens/customer/store_details_screen.dart';
+import '../screens/customer/stores_screen.dart';
 import '../screens/customer/support_ticket_details_screen.dart';
 import '../screens/customer/support_tickets_screen.dart';
 import '../screens/customer/wishlist_screen.dart';
@@ -99,626 +101,635 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: auth,
     redirect: (context, state) => _redirectFor(auth, state),
     routes: [
-    GoRoute(
-      path: AppRoutes.splash,
-      name: 'splash',
-      builder: (context, state) => const SplashScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.onboarding,
-      name: 'onboarding',
-      builder: (context, state) => const OnboardingScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.login,
-      name: 'login',
-      builder: (context, state) => const LoginScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.register,
-      name: 'register',
-      builder: (context, state) => const RegisterScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.forgotPassword,
-      name: 'forgot-password',
-      builder: (context, state) => const ForgotPasswordScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.resetPassword,
-      name: 'reset-password',
-      builder: (context, state) => ResetPasswordScreen(
-        initialEmail: state.extra is String ? state.extra as String : '',
+      GoRoute(
+        path: AppRoutes.splash,
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.otpVerification,
-      name: 'otp-verification',
-      builder: (context, state) => const OtpVerificationScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.pendingApproval,
-      name: 'pending-approval',
-      builder: (context, state) {
-        final extra = state.extra;
-        final message = extra is String
-            ? extra
-            : 'Your account is waiting for admin approval.';
+      GoRoute(
+        path: AppRoutes.onboarding,
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.login,
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        name: 'register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        name: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.resetPassword,
+        name: 'reset-password',
+        builder: (context, state) => ResetPasswordScreen(
+          initialEmail: state.extra is String ? state.extra as String : '',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.otpVerification,
+        name: 'otp-verification',
+        builder: (context, state) => const OtpVerificationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.pendingApproval,
+        name: 'pending-approval',
+        builder: (context, state) {
+          final extra = state.extra;
+          final message = extra is String
+              ? extra
+              : 'Your account is waiting for admin approval.';
 
-        return PendingApprovalScreen(message: message);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.customerHome,
-      name: 'customer-home',
-      builder: (context, state) => const CustomerHomeScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorDashboard,
-      name: 'vendor-dashboard',
-      builder: (context, state) => const VendorDashboardScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorProducts,
-      name: 'vendor-products',
-      builder: (context, state) => const VendorProductListScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorAddProduct,
-      name: 'vendor-add-product',
-      builder: (context, state) => const AddProductScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.vendorEditProduct}/:id',
-      name: 'vendor-edit-product',
-      builder: (context, state) {
-        final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return EditProductScreen(productId: productId);
-      },
-    ),
-    GoRoute(
-      path: '${AppRoutes.vendorProductDetails}/:id',
-      name: 'vendor-product-details',
-      builder: (context, state) {
-        final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return VendorProductDetailsScreen(productId: productId);
-      },
-    ),
-    GoRoute(
-      path: '${AppRoutes.vendorProductImages}/:id',
-      name: 'vendor-product-images',
-      builder: (context, state) {
-        final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return ProductImagesScreen(productId: productId);
-      },
-    ),
-    GoRoute(
-      path: '${AppRoutes.vendorProductVariants}/:id',
-      name: 'vendor-product-variants',
-      builder: (context, state) {
-        final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return ProductVariantsScreen(productId: productId);
-      },
-    ),
-    GoRoute(
-      path: '${AppRoutes.vendorInventory}/:id',
-      name: 'vendor-inventory',
-      builder: (context, state) {
-        final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return InventoryScreen(productId: productId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.vendorOrders,
-      name: 'vendor-orders',
-      builder: (context, state) => const VendorOrdersScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.vendorOrderDetails}/:id',
-      name: 'vendor-order-details',
-      builder: (context, state) {
-        final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return VendorOrderDetailsScreen(orderId: orderId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.vendorEarnings,
-      name: 'vendor-earnings',
-      builder: (context, state) => const VendorEarningsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorEarningDetails,
-      name: 'vendor-earning-details',
-      builder: (context, state) => const VendorEarningDetailsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorReviews,
-      name: 'vendor-reviews',
-      builder: (context, state) => const VendorReviewsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorProfile,
-      name: 'vendor-profile',
-      builder: (context, state) => const VendorProfileScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorEditProfile,
-      name: 'vendor-edit-profile',
-      builder: (context, state) => const EditVendorProfileScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorWallet,
-      builder: (context, state) => const VendorBusinessScreen(
-        section: VendorBusinessSection.wallet,
+          return PendingApprovalScreen(message: message);
+        },
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorRefunds,
-      builder: (context, state) => const VendorBusinessScreen(
-        section: VendorBusinessSection.refunds,
+      GoRoute(
+        path: AppRoutes.customerHome,
+        name: 'customer-home',
+        builder: (context, state) => const CustomerHomeScreen(),
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorCoupons,
-      builder: (context, state) => const VendorBusinessScreen(
-        section: VendorBusinessSection.coupons,
+      GoRoute(
+        path: AppRoutes.vendorDashboard,
+        name: 'vendor-dashboard',
+        builder: (context, state) => const VendorDashboardScreen(),
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorPromotions,
-      builder: (context, state) => const VendorBusinessScreen(
-        section: VendorBusinessSection.promotions,
+      GoRoute(
+        path: AppRoutes.vendorProducts,
+        name: 'vendor-products',
+        builder: (context, state) => const VendorProductListScreen(),
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorSubscriptions,
-      builder: (context, state) => const VendorBusinessScreen(
-        section: VendorBusinessSection.subscriptions,
+      GoRoute(
+        path: AppRoutes.vendorAddProduct,
+        name: 'vendor-add-product',
+        builder: (context, state) => const AddProductScreen(),
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorScheduledOrders,
-      builder: (context, state) => const VendorBusinessScreen(
-        section: VendorBusinessSection.scheduledOrders,
+      GoRoute(
+        path: '${AppRoutes.vendorEditProduct}/:id',
+        name: 'vendor-edit-product',
+        builder: (context, state) {
+          final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return EditProductScreen(productId: productId);
+        },
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorReports,
-      builder: (context, state) => const VendorBusinessScreen(
-        section: VendorBusinessSection.reports,
+      GoRoute(
+        path: '${AppRoutes.vendorProductDetails}/:id',
+        name: 'vendor-product-details',
+        builder: (context, state) {
+          final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return VendorProductDetailsScreen(productId: productId);
+        },
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorNotifications,
-      builder: (context, state) => const NotificationsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorSupportTickets,
-      builder: (context, state) => const SupportTicketsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorChangePassword,
-      builder: (context, state) => const ChangePasswordScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.vendorCreateSupportTicket,
-      builder: (context, state) => const CreateSupportTicketScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.vendorSupportTicketDetails}/:id',
-      builder: (context, state) => SupportTicketDetailsScreen(
-        ticketId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+      GoRoute(
+        path: '${AppRoutes.vendorProductImages}/:id',
+        name: 'vendor-product-images',
+        builder: (context, state) {
+          final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return ProductImagesScreen(productId: productId);
+        },
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.riderDashboard,
-      name: 'rider-dashboard',
-      builder: (context, state) => const RiderDashboardScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.assignedDeliveries,
-      name: 'assigned-deliveries',
-      builder: (context, state) => const AssignedDeliveriesScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.deliveryDetails}/:id',
-      name: 'delivery-details',
-      builder: (context, state) {
-        final deliveryId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return DeliveryDetailsScreen(deliveryId: deliveryId);
-      },
-    ),
-    GoRoute(
-      path: '${AppRoutes.deliveryProof}/:id',
-      name: 'delivery-proof',
-      builder: (context, state) {
-        final deliveryId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return DeliveryProofScreen(
-          deliveryId: deliveryId,
-          replaceExisting:
-              state.uri.queryParameters['replace'] == 'true',
-        );
-      },
-    ),
-    GoRoute(
-      path: '${AppRoutes.riderMap}/:id',
-      name: 'rider-map',
-      builder: (context, state) {
-        final deliveryId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return RiderMapScreen(deliveryId: deliveryId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.riderEarnings,
-      name: 'rider-earnings',
-      builder: (context, state) => const RiderEarningsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.riderProfile,
-      name: 'rider-profile',
-      builder: (context, state) => const RiderProfileScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.editRiderProfile,
-      name: 'edit-rider-profile',
-      builder: (context, state) => const EditRiderProfileScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.riderReports,
-      builder: (context, state) => const RiderReportScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.riderRatings,
-      name: 'rider-ratings',
-      builder: (context, state) => const RiderRatingsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.riderNotifications,
-      builder: (context, state) => const NotificationsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.riderSupportTickets,
-      builder: (context, state) => const SupportTicketsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.riderCreateSupportTicket,
-      builder: (context, state) => const CreateSupportTicketScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.riderSupportTicketDetails}/:id',
-      builder: (context, state) => SupportTicketDetailsScreen(
-        ticketId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+      GoRoute(
+        path: '${AppRoutes.vendorProductVariants}/:id',
+        name: 'vendor-product-variants',
+        builder: (context, state) {
+          final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return ProductVariantsScreen(productId: productId);
+        },
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.riderChangePassword,
-      builder: (context, state) => const ChangePasswordScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.categories,
-      name: 'categories',
-      builder: (context, state) => const CategoryScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.products,
-      name: 'products',
-      builder: (context, state) {
-        final categoryId = int.tryParse(
-          state.uri.queryParameters['categoryId'] ?? '',
-        );
-        final categoryName = state.uri.queryParameters['categoryName'];
-
-        return ProductListScreen(
-          categoryId: categoryId,
-          categoryName: categoryName,
-        );
-      },
-    ),
-    GoRoute(
-      path: '${AppRoutes.productDetails}/:id',
-      name: 'product-details',
-      builder: (context, state) {
-        final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return ProductDetailsScreen(productId: productId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.search,
-      name: 'search',
-      builder: (context, state) => const SearchScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.wishlist,
-      name: 'wishlist',
-      builder: (context, state) => const WishlistScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.cart,
-      name: 'cart',
-      builder: (context, state) => const CartScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.checkoutPreparation,
-      name: 'checkout-preparation',
-      builder: (context, state) => const CheckoutPreparationScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.checkout,
-      name: 'checkout',
-      builder: (context, state) => const CheckoutScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.addresses,
-      name: 'addresses',
-      builder: (context, state) => const AddressListScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.addressForm,
-      name: 'address-form',
-      builder: (context, state) {
-        final extra = state.extra;
-        return AddEditAddressScreen(
-          address: extra is AddressModel ? extra : null,
-        );
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.deliverySchedule,
-      name: 'delivery-schedule',
-      builder: (context, state) => const DeliveryScheduleScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.paymentMethod,
-      name: 'payment-method',
-      builder: (context, state) => const PaymentMethodScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.bankTransfer,
-      name: 'bank-transfer',
-      builder: (context, state) {
-        final extra = state.extra;
-        final orders = extra is List
-            ? extra.whereType<OrderModel>().toList(growable: false)
-            : const <OrderModel>[];
-        return BankTransferScreen(orders: orders);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.payHereWebView,
-      name: 'payhere-webview',
-      builder: (context, state) {
-        final extra = state.extra;
-        if (extra is Map) {
-          return PayHereWebViewScreen(
-            orderId: extra['orderId'] as int,
-            paymentUrl: extra['paymentUrl'] as String,
+      GoRoute(
+        path: '${AppRoutes.vendorInventory}/:id',
+        name: 'vendor-inventory',
+        builder: (context, state) {
+          final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return InventoryScreen(productId: productId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.vendorOrders,
+        name: 'vendor-orders',
+        builder: (context, state) => const VendorOrdersScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.vendorOrderDetails}/:id',
+        name: 'vendor-order-details',
+        builder: (context, state) {
+          final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return VendorOrderDetailsScreen(orderId: orderId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.vendorEarnings,
+        name: 'vendor-earnings',
+        builder: (context, state) => const VendorEarningsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorEarningDetails,
+        name: 'vendor-earning-details',
+        builder: (context, state) => const VendorEarningDetailsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorReviews,
+        name: 'vendor-reviews',
+        builder: (context, state) => const VendorReviewsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorProfile,
+        name: 'vendor-profile',
+        builder: (context, state) => const VendorProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorEditProfile,
+        name: 'vendor-edit-profile',
+        builder: (context, state) => const EditVendorProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorWallet,
+        builder: (context, state) =>
+            const VendorBusinessScreen(section: VendorBusinessSection.wallet),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorRefunds,
+        builder: (context, state) =>
+            const VendorBusinessScreen(section: VendorBusinessSection.refunds),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorCoupons,
+        builder: (context, state) =>
+            const VendorBusinessScreen(section: VendorBusinessSection.coupons),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorPromotions,
+        builder: (context, state) => const VendorBusinessScreen(
+          section: VendorBusinessSection.promotions,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorSubscriptions,
+        builder: (context, state) => const VendorBusinessScreen(
+          section: VendorBusinessSection.subscriptions,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorScheduledOrders,
+        builder: (context, state) => const VendorBusinessScreen(
+          section: VendorBusinessSection.scheduledOrders,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorReports,
+        builder: (context, state) =>
+            const VendorBusinessScreen(section: VendorBusinessSection.reports),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorNotifications,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorSupportTickets,
+        builder: (context, state) => const SupportTicketsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorChangePassword,
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorCreateSupportTicket,
+        builder: (context, state) => const CreateSupportTicketScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.vendorSupportTicketDetails}/:id',
+        builder: (context, state) => SupportTicketDetailsScreen(
+          ticketId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.riderDashboard,
+        name: 'rider-dashboard',
+        builder: (context, state) => const RiderDashboardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.assignedDeliveries,
+        name: 'assigned-deliveries',
+        builder: (context, state) => const AssignedDeliveriesScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.deliveryDetails}/:id',
+        name: 'delivery-details',
+        builder: (context, state) {
+          final deliveryId =
+              int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return DeliveryDetailsScreen(deliveryId: deliveryId);
+        },
+      ),
+      GoRoute(
+        path: '${AppRoutes.deliveryProof}/:id',
+        name: 'delivery-proof',
+        builder: (context, state) {
+          final deliveryId =
+              int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return DeliveryProofScreen(
+            deliveryId: deliveryId,
+            replaceExisting: state.uri.queryParameters['replace'] == 'true',
           );
-        }
-        return const PaymentFailedScreen();
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.paymentSuccess,
-      name: 'payment-success',
-      builder: (context, state) {
-        final extra = state.extra;
-        return PaymentSuccessScreen(
-          order: extra is OrderModel ? extra : null,
-        );
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.paymentFailed,
-      name: 'payment-failed',
-      builder: (context, state) {
-        final extra = state.extra;
-        return PaymentFailedScreen(
-          order: extra is OrderModel ? extra : null,
-        );
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.orderSuccess,
-      name: 'order-success',
-      builder: (context, state) {
-        final extra = state.extra;
-        if (extra is Map && extra['orders'] is List) {
-          final orders = (extra['orders'] as List)
-              .whereType<OrderModel>()
-              .toList(growable: false);
+        },
+      ),
+      GoRoute(
+        path: '${AppRoutes.riderMap}/:id',
+        name: 'rider-map',
+        builder: (context, state) {
+          final deliveryId =
+              int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return RiderMapScreen(deliveryId: deliveryId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.riderEarnings,
+        name: 'rider-earnings',
+        builder: (context, state) => const RiderEarningsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.riderProfile,
+        name: 'rider-profile',
+        builder: (context, state) => const RiderProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.editRiderProfile,
+        name: 'edit-rider-profile',
+        builder: (context, state) => const EditRiderProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.riderReports,
+        builder: (context, state) => const RiderReportScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.riderRatings,
+        name: 'rider-ratings',
+        builder: (context, state) => const RiderRatingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.riderNotifications,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.riderSupportTickets,
+        builder: (context, state) => const SupportTicketsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.riderCreateSupportTicket,
+        builder: (context, state) => const CreateSupportTicketScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.riderSupportTicketDetails}/:id',
+        builder: (context, state) => SupportTicketDetailsScreen(
+          ticketId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.riderChangePassword,
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.categories,
+        name: 'categories',
+        builder: (context, state) => const CategoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.stores,
+        name: 'stores',
+        builder: (context, state) => StoresScreen(
+          initialFeatured: state.uri.queryParameters['featured'] == '1',
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.storeDetails}/:slug',
+        name: 'store-details',
+        builder: (context, state) =>
+            StoreDetailsScreen(slug: state.pathParameters['slug'] ?? ''),
+      ),
+      GoRoute(
+        path: AppRoutes.products,
+        name: 'products',
+        builder: (context, state) {
+          final categoryId = int.tryParse(
+            state.uri.queryParameters['categoryId'] ?? '',
+          );
+          final categoryName = state.uri.queryParameters['categoryName'];
+
+          return ProductListScreen(
+            categoryId: categoryId,
+            categoryName: categoryName,
+          );
+        },
+      ),
+      GoRoute(
+        path: '${AppRoutes.productDetails}/:id',
+        name: 'product-details',
+        builder: (context, state) {
+          final productId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return ProductDetailsScreen(productId: productId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.search,
+        name: 'search',
+        builder: (context, state) => const SearchScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.wishlist,
+        name: 'wishlist',
+        builder: (context, state) => const WishlistScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.cart,
+        name: 'cart',
+        builder: (context, state) => const CartScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.checkoutPreparation,
+        name: 'checkout-preparation',
+        builder: (context, state) => const CheckoutPreparationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.checkout,
+        name: 'checkout',
+        builder: (context, state) => const CheckoutScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.addresses,
+        name: 'addresses',
+        builder: (context, state) => const AddressListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.addressForm,
+        name: 'address-form',
+        builder: (context, state) {
+          final extra = state.extra;
+          return AddEditAddressScreen(
+            address: extra is AddressModel ? extra : null,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.deliverySchedule,
+        name: 'delivery-schedule',
+        builder: (context, state) => const DeliveryScheduleScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.paymentMethod,
+        name: 'payment-method',
+        builder: (context, state) => const PaymentMethodScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.bankTransfer,
+        name: 'bank-transfer',
+        builder: (context, state) {
+          final extra = state.extra;
+          final orders = extra is List
+              ? extra.whereType<OrderModel>().toList(growable: false)
+              : const <OrderModel>[];
+          return BankTransferScreen(orders: orders);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.payHereWebView,
+        name: 'payhere-webview',
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is Map) {
+            return PayHereWebViewScreen(
+              orderId: extra['orderId'] as int,
+              paymentUrl: extra['paymentUrl'] as String,
+            );
+          }
+          return const PaymentFailedScreen();
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.paymentSuccess,
+        name: 'payment-success',
+        builder: (context, state) {
+          final extra = state.extra;
+          return PaymentSuccessScreen(
+            order: extra is OrderModel ? extra : null,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.paymentFailed,
+        name: 'payment-failed',
+        builder: (context, state) {
+          final extra = state.extra;
+          return PaymentFailedScreen(order: extra is OrderModel ? extra : null);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.orderSuccess,
+        name: 'order-success',
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is Map && extra['orders'] is List) {
+            final orders = (extra['orders'] as List)
+                .whereType<OrderModel>()
+                .toList(growable: false);
+            return OrderSuccessScreen(
+              orders: orders,
+              payHere: extra['payHere'] == true,
+              message: extra['message']?.toString(),
+            );
+          }
           return OrderSuccessScreen(
-            orders: orders,
-            payHere: extra['payHere'] == true,
-            message: extra['message']?.toString(),
+            orders: [
+              extra is OrderModel
+                  ? extra
+                  : const OrderModel(
+                      id: 0,
+                      orderNumber: '',
+                      status: 'pending',
+                      paymentStatus: 'pending',
+                      grandTotal: 0,
+                    ),
+            ],
           );
-        }
-        return OrderSuccessScreen(
-          orders: [
-            extra is OrderModel
-                ? extra
-                : const OrderModel(
-                  id: 0,
-                  orderNumber: '',
-                  status: 'pending',
-                  paymentStatus: 'pending',
-                  grandTotal: 0,
-                ),
-          ],
-        );
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.myOrders,
-      name: 'my-orders',
-      builder: (context, state) => const MyOrdersScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.orderDetails}/:id',
-      name: 'order-details',
-      builder: (context, state) {
-        final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return OrderDetailsScreen(orderId: orderId);
-      },
-    ),
-    GoRoute(
-      path: '${AppRoutes.orderReceipt}/:id',
-      name: 'order-receipt',
-      builder: (context, state) {
-        final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return OrderReceiptScreen(orderId: orderId);
-      },
-    ),
-    GoRoute(
-      path: '${AppRoutes.orderTracking}/:id',
-      name: 'order-tracking',
-      builder: (context, state) {
-        final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return OrderTrackingScreen(orderId: orderId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.notifications,
-      name: 'notifications',
-      builder: (context, state) => const NotificationsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.profile,
-      name: 'profile',
-      builder: (context, state) => const ProfileScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.editProfile,
-      name: 'edit-profile',
-      builder: (context, state) => const EditProfileScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.changePassword,
-      name: 'change-password',
-      builder: (context, state) => const ChangePasswordScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.addReview}/:orderId/:productId',
-      name: 'add-review',
-      builder: (context, state) {
-        final orderId =
-            int.tryParse(state.pathParameters['orderId'] ?? '') ?? 0;
-        final productId =
-            int.tryParse(state.pathParameters['productId'] ?? '') ?? 0;
-        return AddReviewScreen(orderId: orderId, productId: productId);
-      },
-    ),
-    GoRoute(
-      path: '${AppRoutes.riderRating}/:orderId',
-      name: 'rider-rating',
-      builder: (context, state) {
-        final orderId = int.tryParse(state.pathParameters['orderId'] ?? '') ?? 0;
-        return RiderRatingScreen(orderId: orderId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.myReviews,
-      name: 'my-reviews',
-      builder: (context, state) => const MyReviewsScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.productReviews}/:productId',
-      name: 'product-reviews',
-      builder: (context, state) {
-        final productId =
-            int.tryParse(state.pathParameters['productId'] ?? '') ?? 0;
-        return ProductReviewsScreen(productId: productId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.supportTickets,
-      name: 'support-tickets',
-      builder: (context, state) => const SupportTicketsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.createSupportTicket,
-      name: 'create-support-ticket',
-      builder: (context, state) => const CreateSupportTicketScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.supportTicketDetails}/:id',
-      name: 'support-ticket-details',
-      builder: (context, state) {
-        final ticketId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return SupportTicketDetailsScreen(ticketId: ticketId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.loyaltyPoints,
-      name: 'loyalty-points',
-      builder: (context, state) => const LoyaltyPointsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.loyaltyHistory,
-      name: 'loyalty-history',
-      builder: (context, state) => const LoyaltyHistoryScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.availableCoupons,
-      name: 'available-coupons',
-      builder: (context, state) => const AvailableCouponsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.promotions,
-      name: 'promotions',
-      builder: (context, state) => const PromotionsScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.promotionDetails}/:id',
-      name: 'promotion-details',
-      builder: (context, state) {
-        final promotionId =
-            int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-        return PromotionDetailsScreen(promotionId: promotionId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.wallet,
-      name: 'wallet',
-      builder: (context, state) => const WalletScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.refunds,
-      name: 'refunds',
-      builder: (context, state) => const RefundsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.subscriptions,
-      name: 'subscriptions',
-      builder: (context, state) => const SubscriptionsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.createSubscription,
-      name: 'create-subscription',
-      builder: (context, state) {
-        final extra = state.extra;
-        if (extra is Map && extra['product'] is ProductModel) {
-          return CreateSubscriptionScreen(
-            product: extra['product'] as ProductModel,
-            variant: extra['variant'] is ProductVariantModel
-                ? extra['variant'] as ProductVariantModel
-                : null,
-          );
-        }
-        return const SubscriptionsScreen();
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.scheduledOrders,
-      name: 'scheduled-orders',
-      builder: (context, state) => const ScheduledOrdersScreen(),
-    ),
-    GoRoute(
-      path: '${AppRoutes.policy}/:key',
-      name: 'policy',
-      builder: (context, state) => PolicyScreen(
-        policyKey: state.pathParameters['key'] ?? 'privacy',
+        },
       ),
-    ),
+      GoRoute(
+        path: AppRoutes.myOrders,
+        name: 'my-orders',
+        builder: (context, state) => const MyOrdersScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.orderDetails}/:id',
+        name: 'order-details',
+        builder: (context, state) {
+          final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return OrderDetailsScreen(orderId: orderId);
+        },
+      ),
+      GoRoute(
+        path: '${AppRoutes.orderReceipt}/:id',
+        name: 'order-receipt',
+        builder: (context, state) {
+          final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return OrderReceiptScreen(orderId: orderId);
+        },
+      ),
+      GoRoute(
+        path: '${AppRoutes.orderTracking}/:id',
+        name: 'order-tracking',
+        builder: (context, state) {
+          final orderId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return OrderTrackingScreen(orderId: orderId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        name: 'notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.profile,
+        name: 'profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.editProfile,
+        name: 'edit-profile',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.changePassword,
+        name: 'change-password',
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.addReview}/:orderId/:productId',
+        name: 'add-review',
+        builder: (context, state) {
+          final orderId =
+              int.tryParse(state.pathParameters['orderId'] ?? '') ?? 0;
+          final productId =
+              int.tryParse(state.pathParameters['productId'] ?? '') ?? 0;
+          return AddReviewScreen(orderId: orderId, productId: productId);
+        },
+      ),
+      GoRoute(
+        path: '${AppRoutes.riderRating}/:orderId',
+        name: 'rider-rating',
+        builder: (context, state) {
+          final orderId =
+              int.tryParse(state.pathParameters['orderId'] ?? '') ?? 0;
+          return RiderRatingScreen(orderId: orderId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.myReviews,
+        name: 'my-reviews',
+        builder: (context, state) => const MyReviewsScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.productReviews}/:productId',
+        name: 'product-reviews',
+        builder: (context, state) {
+          final productId =
+              int.tryParse(state.pathParameters['productId'] ?? '') ?? 0;
+          return ProductReviewsScreen(productId: productId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.supportTickets,
+        name: 'support-tickets',
+        builder: (context, state) => const SupportTicketsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.createSupportTicket,
+        name: 'create-support-ticket',
+        builder: (context, state) => const CreateSupportTicketScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.supportTicketDetails}/:id',
+        name: 'support-ticket-details',
+        builder: (context, state) {
+          final ticketId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return SupportTicketDetailsScreen(ticketId: ticketId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.loyaltyPoints,
+        name: 'loyalty-points',
+        builder: (context, state) => const LoyaltyPointsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.loyaltyHistory,
+        name: 'loyalty-history',
+        builder: (context, state) => const LoyaltyHistoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.availableCoupons,
+        name: 'available-coupons',
+        builder: (context, state) => const AvailableCouponsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.promotions,
+        name: 'promotions',
+        builder: (context, state) => const PromotionsScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.promotionDetails}/:id',
+        name: 'promotion-details',
+        builder: (context, state) {
+          final promotionId =
+              int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return PromotionDetailsScreen(promotionId: promotionId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.wallet,
+        name: 'wallet',
+        builder: (context, state) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.refunds,
+        name: 'refunds',
+        builder: (context, state) => const RefundsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.subscriptions,
+        name: 'subscriptions',
+        builder: (context, state) => const SubscriptionsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.createSubscription,
+        name: 'create-subscription',
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is Map && extra['product'] is ProductModel) {
+            return CreateSubscriptionScreen(
+              product: extra['product'] as ProductModel,
+              variant: extra['variant'] is ProductVariantModel
+                  ? extra['variant'] as ProductVariantModel
+                  : null,
+            );
+          }
+          return const SubscriptionsScreen();
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.scheduledOrders,
+        name: 'scheduled-orders',
+        builder: (context, state) => const ScheduledOrdersScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.policy}/:key',
+        name: 'policy',
+        builder: (context, state) =>
+            PolicyScreen(policyKey: state.pathParameters['key'] ?? 'privacy'),
+      ),
     ],
   );
 });
@@ -769,9 +780,7 @@ String? _redirectFor(AuthProvider auth, GoRouterState state) {
 }
 
 UserRole? _requiredRoleFor(String location) {
-  const vendorPrefixes = [
-    '/vendor-',
-  ];
+  const vendorPrefixes = ['/vendor-'];
   const riderPrefixes = [
     '/rider-',
     '/edit-rider-profile',
@@ -782,6 +791,8 @@ UserRole? _requiredRoleFor(String location) {
   const customerPrefixes = [
     '/customer-',
     '/categories',
+    '/stores',
+    '/store-details',
     '/products',
     '/product-details',
     '/search',

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\v1\PayHereMobileController;
 use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\v1\RiderController;
 use App\Http\Controllers\Api\v1\RiderRatingController;
+use App\Http\Controllers\Api\v1\StorefrontController;
 use App\Http\Controllers\Api\v1\VendorController;
 use App\Http\Controllers\Api\v1\VendorBusinessController;
 use App\Http\Controllers\Api\v1\VendorCatalogController;
@@ -42,6 +43,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/catalog/home', [ProductController::class, 'home']);
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{product}', [ProductController::class, 'show']);
+    Route::get('/stores/home', [StorefrontController::class, 'home']);
+    Route::get('/stores', [StorefrontController::class, 'index']);
+    Route::get('/stores/{store:slug}', [StorefrontController::class, 'show']);
+    Route::get('/promotions', [StorefrontController::class, 'promotions']);
+    Route::get('/promotions/{promotion}', [StorefrontController::class, 'promotion']);
     Route::get('/delivery/zones', [DeliveryPricingController::class, 'zones']);
     Route::get('/delivery/promotions', [DeliveryPricingController::class, 'promotions']);
     Route::post('/delivery/estimate', [DeliveryPricingController::class, 'estimate']);
@@ -82,6 +88,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/wishlist', [WishlistController::class, 'store']);
             Route::delete('/wishlist/{product}', [WishlistController::class, 'destroy']);
             Route::post('/wishlist/{product}/move-to-cart', [WishlistController::class, 'moveToCart']);
+            Route::post('/stores/{store:slug}/follow', [StorefrontController::class, 'follow']);
+            Route::delete('/stores/{store:slug}/follow', [StorefrontController::class, 'unfollow']);
 
             Route::get('/addresses', [AddressController::class, 'index']);
             Route::post('/addresses', [AddressController::class, 'store']);

@@ -259,6 +259,16 @@ class _ProductImage extends StatelessWidget {
               child: CachedNetworkImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.cover,
+                memCacheWidth: 480,
+                memCacheHeight: 480,
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                errorWidget: (context, url, error) => const Icon(
+                  Icons.shopping_basket_rounded,
+                  color: AppColors.primaryGreen,
+                  size: 42,
+                ),
               ),
             ),
     );

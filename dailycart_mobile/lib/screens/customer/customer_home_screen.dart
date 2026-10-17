@@ -3,27 +3,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/product_model.dart';
+import '../../models/promotion_model.dart';
+import '../../models/store_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/category_provider.dart';
 import '../../providers/coupon_provider.dart';
 import '../../providers/loyalty_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/product_provider.dart';
-import '../../providers/promotion_provider.dart';
+import '../../providers/store_provider.dart';
 import '../../providers/wishlist_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/category_card.dart';
 import '../../widgets/coupon_card.dart';
+import '../../widgets/customer_bottom_navigation.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/dailycart_card.dart';
 import '../../widgets/empty_products_widget.dart';
 import '../../widgets/error_widget.dart';
 import '../../widgets/loyalty_balance_card.dart';
 import '../../widgets/product_card.dart';
-import '../../widgets/promotion_banner.dart';
+import '../../widgets/promotion_card.dart';
 import '../../widgets/search_bar_widget.dart';
+import '../../widgets/store_card.dart';
 
 class CustomerHomeScreen extends ConsumerStatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -33,8 +37,6 @@ class CustomerHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
-  int _selectedIndex = 0;
-
   @override
   void initState() {
     super.initState();
@@ -50,7 +52,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     await Future.wait([
       ref.read(loyaltyProvider).getBalance(),
       ref.read(couponProvider).getAvailableCoupons(),
-      ref.read(promotionProvider).getPromotions(),
+      ref.read(storeProvider).loadHomeDiscovery(),
     ]);
   }
 
@@ -61,7 +63,166 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     final notifications = ref.watch(notificationProvider);
     final loyalty = ref.watch(loyaltyProvider);
     final coupons = ref.watch(couponProvider);
-    final promotions = ref.watch(promotionProvider);
+    final storefront = ref.watch(storeProvider);
+
+    final sections = <Widget Function()>[
+      () => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _WelcomeBanner(),
+          const SizedBox(height: 18),
+          SearchBarWidget(
+            hintText: 'Search products, brands, SKU, barcode',
+            readOnly: true,
+            onTap: () => context.push(AppRoutes.search),
+          ),
+          const SizedBox(height: 18),
+          _DashboardActions(),
+          const SizedBox(height: 24),
+          _SectionHeader(
+            title: 'Categories',
+            onViewAll: () => context.push(AppRoutes.categories),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 176,
+            child: categories.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) {
+                      final category = categories.categories[index];
+                      return CategoryCard(
+                        category: category,
+                        onTap: () => context.push(
+                          '${AppRoutes.products}?categoryId=${category.id}&categoryName=${Uri.encodeComponent(category.name)}',
+                        ),
+                      );
+                    },
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 12),
+                    itemCount: categories.categories.length,
+                  ),
+          ),
+        ],
+      ),
+      () => Padding(
+        padding: const EdgeInsets.only(top: 24),
+        child: _ProductSection(
+          title: 'Latest Products',
+          products: products.newArrivals,
+          isLoading: products.isLoading,
+        ),
+      ),
+      () => categories.errorMessage == null && products.errorMessage == null
+          ? const SizedBox.shrink()
+          : DailyCartErrorWidget(
+              title: 'Unable to refresh the catalog',
+              message:
+                  products.errorMessage ??
+                  categories.errorMessage ??
+                  'Please try again.',
+              onRetry: () {
+                ref.read(categoryProvider).getCategories();
+                ref.read(productProvider).loadHomeProducts();
+              },
+            ),
+      () => LoyaltyBalanceCard(
+        points: loyalty.loyaltyBalance,
+        onHistory: () => context.push(AppRoutes.loyaltyHistory),
+        onRedeem: loyalty.loyaltyBalance > 0
+            ? () => context.push(AppRoutes.checkoutPreparation)
+            : null,
+      ),
+      () => _OffersTodaySection(
+        offers: storefront.offers,
+        isLoading: storefront.isHomeLoading,
+      ),
+      () => coupons.coupons.isEmpty
+          ? const SizedBox.shrink()
+          : Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: Column(
+                children: [
+                  _SectionHeader(
+                    title: 'Available Coupons',
+                    onViewAll: () => context.push(AppRoutes.availableCoupons),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 230,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (context, index) {
+                        final coupon = coupons.coupons[index];
+                        return SizedBox(
+                          width: 300,
+                          child: CouponCard(
+                            coupon: coupon,
+                            onCopy: () => _showPlaceholder(
+                              context,
+                              '${coupon.code} is ready to use at checkout.',
+                            ),
+                            onApply: () => context.push(AppRoutes.checkout),
+                          ),
+                        );
+                      },
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 12),
+                      itemCount: coupons.coupons.take(5).length,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      () => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: _AdvertisementBanner(),
+      ),
+      () => _StoreSection(
+        title: 'Featured Stores',
+        subtitle: 'Shop trusted local vendors',
+        stores: storefront.featuredStores,
+        isLoading: storefront.isHomeLoading,
+        featuredOnly: true,
+      ),
+      () => _StoreSection(
+        title: 'Popular Stores',
+        subtitle: 'Discover more DailyCart vendors',
+        stores: storefront.popularStores,
+        isLoading: storefront.isHomeLoading,
+      ),
+      () => _ProductSection(
+        title: 'Featured Products',
+        products: products.featuredProducts,
+        isLoading: products.isLoading,
+      ),
+      () => _ProductSection(
+        title: 'Best Selling Products',
+        products: products.bestSellingProducts,
+        isLoading: products.isLoading,
+      ),
+      () => _ProductSection(
+        title: 'Flash Deals',
+        products: products.flashDeals,
+        isLoading: products.isLoading,
+        showBadge: true,
+      ),
+      () => _ProductSection(
+        title: 'Recommended Products',
+        products: products.recommendedProducts,
+        isLoading: products.isLoading,
+      ),
+      () => _ProductSection(
+        title: 'Recently Viewed Products',
+        products: products.recentlyViewedProducts,
+        isLoading: products.isLoading,
+      ),
+      () => _RecentlyPurchasedSection(
+        products: products.recentlyViewedProducts,
+        isLoading: products.isLoading,
+      ),
+    ];
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -90,190 +251,125 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       drawer: const AppDrawer(roleName: 'Customer'),
       body: RefreshIndicator(
         onRefresh: _loadHomeData,
-        child: ListView(
+        child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: ClampingScrollPhysics(),
+          ),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          children: [
-            _WelcomeBanner(),
-            const SizedBox(height: 18),
-            SearchBarWidget(
-              hintText: 'Search products, brands, SKU, barcode',
-              readOnly: true,
-              onTap: () => context.push(AppRoutes.search),
-            ),
-            const SizedBox(height: 18),
-            _DashboardActions(),
-            const SizedBox(height: 24),
-            _SectionHeader(
-              title: 'Categories',
-              onViewAll: () => context.push(AppRoutes.categories),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 176,
-              child: categories.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (context, index) {
-                        final category = categories.categories[index];
-                        return CategoryCard(
-                          category: category,
-                          onTap: () => context.push(
-                            '${AppRoutes.products}?categoryId=${category.id}&categoryName=${Uri.encodeComponent(category.name)}',
-                          ),
-                        );
-                      },
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 12),
-                      itemCount: categories.categories.length,
-                    ),
-            ),
-            const SizedBox(height: 24),
-            _ProductSection(
-              title: 'Latest Products',
-              products: products.newArrivals,
-              isLoading: products.isLoading,
-            ),
-            if (categories.errorMessage != null ||
-                products.errorMessage != null) ...[
-              const SizedBox(height: 18),
-              DailyCartErrorWidget(
-                title: 'Unable to refresh the catalog',
-                message:
-                    products.errorMessage ??
-                    categories.errorMessage ??
-                    'Please try again.',
-                onRetry: () {
-                  ref.read(categoryProvider).getCategories();
-                  ref.read(productProvider).loadHomeProducts();
-                },
-              ),
-            ],
-            const SizedBox(height: 18),
-            LoyaltyBalanceCard(
-              points: loyalty.loyaltyBalance,
-              onHistory: () => context.push(AppRoutes.loyaltyHistory),
-              onRedeem: loyalty.loyaltyBalance > 0
-                  ? () => context.push(AppRoutes.checkoutPreparation)
-                  : null,
-            ),
-            if (promotions.promotions.isNotEmpty) ...[
-              const SizedBox(height: 18),
-              PromotionBanner(
-                promotion: promotions.promotions.first,
-                onTap: () => context.push(
-                  '${AppRoutes.promotionDetails}/${promotions.promotions.first.id}',
-                ),
-              ),
-            ],
-            if (coupons.coupons.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              _SectionHeader(
-                title: 'Available Coupons',
-                onViewAll: () => context.push(AppRoutes.availableCoupons),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 230,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, index) {
-                    final coupon = coupons.coupons[index];
-                    return SizedBox(
-                      width: 300,
-                      child: CouponCard(
-                        coupon: coupon,
-                        onCopy: () => _showPlaceholder(
-                          context,
-                          '${coupon.code} is ready to use at checkout.',
-                        ),
-                        onApply: () => context.push(AppRoutes.checkout),
-                      ),
-                    );
-                  },
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(width: 12),
-                  itemCount: coupons.coupons.take(5).length,
-                ),
-              ),
-            ],
-            _AdvertisementBanner(),
-            const SizedBox(height: 24),
-            _ProductSection(
-              title: 'Featured Products',
-              products: products.featuredProducts,
-              isLoading: products.isLoading,
-            ),
-            _ProductSection(
-              title: 'Best Selling Products',
-              products: products.bestSellingProducts,
-              isLoading: products.isLoading,
-            ),
-            _ProductSection(
-              title: 'Flash Deals',
-              products: products.flashDeals,
-              isLoading: products.isLoading,
-              showBadge: true,
-            ),
-            _ProductSection(
-              title: 'Recommended Products',
-              products: products.recommendedProducts,
-              isLoading: products.isLoading,
-            ),
-            _ProductSection(
-              title: 'Recently Viewed Products',
-              products: products.recentlyViewedProducts,
-              isLoading: products.isLoading,
-            ),
-            _RecentlyPurchasedSection(
-              products: products.recentlyViewedProducts,
-              isLoading: products.isLoading,
-            ),
-          ],
+          itemCount: sections.length,
+          itemBuilder: (context, index) => sections[index](),
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
-          if (index == 1) {
-            context.push(AppRoutes.categories);
-          }
-          if (index == 2) {
-            context.push(AppRoutes.wishlist);
-          }
-          if (index == 3) {
-            context.push(AppRoutes.myOrders);
-          }
-          if (index == 4) {
-            context.push(AppRoutes.profile);
-          }
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Home',
+      bottomNavigationBar: const CustomerBottomNavigation(currentIndex: 0),
+    );
+  }
+}
+
+class _OffersTodaySection extends StatelessWidget {
+  const _OffersTodaySection({required this.offers, required this.isLoading});
+
+  final List<PromotionModel> offers;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isLoading && offers.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Column(
+        children: [
+          _SectionHeader(
+            title: 'Offers Today',
+            showBadge: true,
+            onViewAll: () => context.push(AppRoutes.promotions),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.category_outlined),
-            selectedIcon: Icon(Icons.category_rounded),
-            label: 'Shop',
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 270,
+            child: isLoading && offers.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: offers.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final offer = offers[index];
+                      return SizedBox(
+                        width: 300,
+                        child: PromotionCard(
+                          promotion: offer,
+                          onTap: () => context.push(
+                            offer.productId == null
+                                ? '${AppRoutes.promotionDetails}/${offer.id}'
+                                : '${AppRoutes.productDetails}/${offer.productId}',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.favorite_border_rounded),
-            selectedIcon: Icon(Icons.favorite_rounded),
-            label: 'Wishlist',
+        ],
+      ),
+    );
+  }
+}
+
+class _StoreSection extends StatelessWidget {
+  const _StoreSection({
+    required this.title,
+    required this.subtitle,
+    required this.stores,
+    required this.isLoading,
+    this.featuredOnly = false,
+  });
+
+  final String title;
+  final String subtitle;
+  final List<StoreModel> stores;
+  final bool isLoading;
+  final bool featuredOnly;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isLoading && stores.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(
+            title: title,
+            onViewAll: () => context.push(
+              featuredOnly
+                  ? '${AppRoutes.stores}?featured=1'
+                  : AppRoutes.stores,
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long_rounded),
-            label: 'Orders',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person_rounded),
-            label: 'Profile',
+          const SizedBox(height: 2),
+          Text(subtitle, style: const TextStyle(color: AppColors.mutedText)),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 228,
+            child: isLoading && stores.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: stores.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final store = stores[index];
+                      return SizedBox(
+                        width: 290,
+                        child: StoreCard(
+                          store: store,
+                          onTap: () => context.push(
+                            '${AppRoutes.storeDetails}/${store.slug}',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

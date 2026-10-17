@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/wishlist_provider.dart';
+import '../../widgets/customer_bottom_navigation.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/empty_wishlist_widget.dart';
 import '../../widgets/loading_widget.dart';
@@ -58,6 +59,8 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen> {
                     itemCount: state.wishlistItems.length,
                   ),
                 ),
+      bottomNavigationBar:
+          const CustomerBottomNavigation(currentIndex: 2),
     );
   }
 
