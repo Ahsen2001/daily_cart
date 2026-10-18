@@ -12,6 +12,7 @@ class PromotionModel {
     this.productId,
     this.targetType = '',
     this.vendorName = '',
+    this.productSlug = '',
   });
 
   final int id;
@@ -26,6 +27,7 @@ class PromotionModel {
   final int? productId;
   final String targetType;
   final String vendorName;
+  final String productSlug;
 
   factory PromotionModel.fromJson(Map<String, dynamic> json) {
     return PromotionModel(
@@ -42,6 +44,7 @@ class PromotionModel {
       productId: json['product_id'] == null ? null : _toInt(json['product_id']),
       targetType: (json['target_type'] ?? '').toString(),
       vendorName: (json['vendor_name'] ?? '').toString(),
+      productSlug: (json['product_slug'] ?? '').toString(),
     );
   }
 

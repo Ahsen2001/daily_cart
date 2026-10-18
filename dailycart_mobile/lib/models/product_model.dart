@@ -6,6 +6,7 @@ class ProductModel {
     required this.name,
     required this.price,
     required this.image,
+    this.slug = '',
     this.discountPrice,
     this.rating = 0,
     this.vendorName = '',
@@ -30,6 +31,7 @@ class ProductModel {
   final double price;
   final double? discountPrice;
   final String image;
+  final String slug;
   final double rating;
   final String vendorName;
   final String brand;
@@ -57,6 +59,7 @@ class ProductModel {
       price: _toDouble(json['price']),
       discountPrice: _nullableDouble(json['discount_price']),
       image: (json['image'] ?? json['image_url'] ?? '').toString(),
+      slug: (json['slug'] ?? '').toString(),
       rating: _toDouble(json['rating'] ?? json['average_rating']),
       vendorName: vendor is Map<String, dynamic>
           ? (vendor['name'] ?? '').toString()
@@ -70,27 +73,29 @@ class ProductModel {
       sku: (json['sku'] ?? '').toString(),
       barcode: (json['barcode'] ?? '').toString(),
       status: (json['status'] ?? 'active').toString(),
-      approvalStatus: (json['approval_status'] ??
-              json['approvalStatus'] ??
-              json['moderation_status'] ??
-              'approved')
-          .toString(),
-      images: _listFrom(json['images'])
-          .map(ProductImageModel.fromJson)
-          .toList(growable: false),
-      variants: _listFrom(json['variants'])
-          .map(ProductVariantModel.fromJson)
-          .toList(growable: false),
-      reviews: _listFrom(json['reviews'])
-          .map(ReviewModel.fromJson)
-          .toList(growable: false),
-      similarProducts: _listFrom(json['similar_products'])
-          .map(ProductModel.fromJson)
-          .toList(growable: false),
-      isSubscriptionEligible: json['is_subscription_eligible'] == true ||
+      approvalStatus:
+          (json['approval_status'] ??
+                  json['approvalStatus'] ??
+                  json['moderation_status'] ??
+                  'approved')
+              .toString(),
+      images: _listFrom(
+        json['images'],
+      ).map(ProductImageModel.fromJson).toList(growable: false),
+      variants: _listFrom(
+        json['variants'],
+      ).map(ProductVariantModel.fromJson).toList(growable: false),
+      reviews: _listFrom(
+        json['reviews'],
+      ).map(ReviewModel.fromJson).toList(growable: false),
+      similarProducts: _listFrom(
+        json['similar_products'],
+      ).map(ProductModel.fromJson).toList(growable: false),
+      isSubscriptionEligible:
+          json['is_subscription_eligible'] == true ||
           json['is_subscription_eligible']?.toString() == '1',
-      isFeatured: json['is_featured'] == true ||
-          json['is_featured']?.toString() == '1',
+      isFeatured:
+          json['is_featured'] == true || json['is_featured']?.toString() == '1',
     );
   }
 
@@ -103,8 +108,11 @@ class ProductModel {
   bool get isVisibleForCustomer {
     final normalizedStatus = status.toLowerCase();
     return (normalizedStatus == 'active' || normalizedStatus == 'approved') &&
-        !const {'pending', 'rejected', 'inactive'}
-            .contains(approvalStatus.toLowerCase());
+        !const {
+          'pending',
+          'rejected',
+          'inactive',
+        }.contains(approvalStatus.toLowerCase());
   }
 
   List<String> get imageUrls {
@@ -145,10 +153,7 @@ class ProductModel {
 }
 
 class ProductImageModel {
-  const ProductImageModel({
-    required this.id,
-    required this.url,
-  });
+  const ProductImageModel({required this.id, required this.url});
 
   final int id;
   final String url;
@@ -182,7 +187,9 @@ class ProductVariantModel {
       name: (json['name'] ?? json['variant_name'] ?? '').toString(),
       value: (json['value'] ?? json['variant_value'] ?? '').toString(),
       price: ProductModel._nullableDouble(json['price']),
-      stockQuantity: ProductModel._toInt(json['stock'] ?? json['stock_quantity']),
+      stockQuantity: ProductModel._toInt(
+        json['stock'] ?? json['stock_quantity'],
+      ),
     );
   }
 }

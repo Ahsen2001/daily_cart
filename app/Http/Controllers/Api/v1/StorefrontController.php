@@ -221,6 +221,7 @@ class StorefrontController extends Controller
             'target_type' => $promotion->target_type,
             'target_id' => $promotion->target_id,
             'product_id' => $product?->id,
+            'product_slug' => $product?->slug,
             'vendor_name' => $promotion->vendor?->store_name,
             'image' => $promotion->banner_image
                 ? url(Storage::url($promotion->banner_image))

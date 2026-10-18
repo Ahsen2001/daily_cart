@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/product_model.dart';
+import '../../config/app_config.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/wishlist_provider.dart';
 import '../../routes/app_routes.dart';
+import '../../services/app_share_service.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../widgets/custom_button.dart';
@@ -182,13 +183,14 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       return;
     }
     final text =
-        '${product.name}\n'
+        'Check out ${product.name} on DailyCart\n'
         '${CurrencyFormatter.lkr(product.displayPrice)}\n'
-        'DailyCart product #${product.id}';
-    await Clipboard.setData(ClipboardData(text: text));
-    if (mounted) {
-      _showMessage('Product details copied. You can paste them into any app.');
-    }
+        '${AppConfig.webBaseUrl}/products/${product.slug.isEmpty ? product.id : product.slug}';
+    await AppShareService.shareText(
+      context,
+      text: text,
+      subject: '${product.name} on DailyCart',
+    );
   }
 
   void _showMessage(String message) {

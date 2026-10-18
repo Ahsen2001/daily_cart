@@ -38,9 +38,12 @@ class LoyaltyBalanceCard extends StatelessWidget {
                 TextButton(onPressed: onHistory, child: const Text('History')),
               const Spacer(),
               if (onRedeem != null)
-                ElevatedButton(
-                  onPressed: onRedeem,
-                  child: const Text('Redeem'),
+                SizedBox(
+                  width: 124,
+                  child: ElevatedButton(
+                    onPressed: onRedeem,
+                    child: const Text('Redeem'),
+                  ),
                 ),
             ],
           ),

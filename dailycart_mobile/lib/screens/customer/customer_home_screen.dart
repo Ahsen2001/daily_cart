@@ -37,10 +37,31 @@ class CustomerHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
+  late final ScrollController _scrollController;
+  bool _showBackToTop = false;
+
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController(keepScrollOffset: false)
+      ..addListener(_handleScroll);
     Future.microtask(_loadHomeData);
+  }
+
+  void _handleScroll() {
+    final shouldShow =
+        _scrollController.hasClients && _scrollController.offset > 700;
+    if (shouldShow != _showBackToTop && mounted) {
+      setState(() => _showBackToTop = shouldShow);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
   }
 
   Future<void> _loadHomeData() async {
@@ -65,8 +86,8 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     final coupons = ref.watch(couponProvider);
     final storefront = ref.watch(storeProvider);
 
-    final sections = <Widget Function()>[
-      () => Column(
+    final sections = <Widget>[
+      Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _WelcomeBanner(),
@@ -106,7 +127,30 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           ),
         ],
       ),
-      () => Padding(
+      _LoyaltySection(
+        points: loyalty.loyaltyBalance,
+        isLoading: loyalty.isLoading,
+        errorMessage: loyalty.errorMessage,
+        onRetry: () => ref.read(loyaltyProvider).getBalance(),
+      ),
+      _OffersTodaySection(
+        offers: storefront.offers,
+        isLoading: storefront.isHomeLoading,
+      ),
+      _StoreSection(
+        title: 'Featured Stores',
+        subtitle: 'Shop trusted local vendors',
+        stores: storefront.featuredStores,
+        isLoading: storefront.isHomeLoading,
+        featuredOnly: true,
+      ),
+      _StoreSection(
+        title: 'Popular Stores',
+        subtitle: 'Discover more DailyCart vendors',
+        stores: storefront.popularStores,
+        isLoading: storefront.isHomeLoading,
+      ),
+      Padding(
         padding: const EdgeInsets.only(top: 24),
         child: _ProductSection(
           title: 'Latest Products',
@@ -114,7 +158,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           isLoading: products.isLoading,
         ),
       ),
-      () => categories.errorMessage == null && products.errorMessage == null
+      categories.errorMessage == null && products.errorMessage == null
           ? const SizedBox.shrink()
           : DailyCartErrorWidget(
               title: 'Unable to refresh the catalog',
@@ -127,18 +171,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                 ref.read(productProvider).loadHomeProducts();
               },
             ),
-      () => LoyaltyBalanceCard(
-        points: loyalty.loyaltyBalance,
-        onHistory: () => context.push(AppRoutes.loyaltyHistory),
-        onRedeem: loyalty.loyaltyBalance > 0
-            ? () => context.push(AppRoutes.checkoutPreparation)
-            : null,
-      ),
-      () => _OffersTodaySection(
-        offers: storefront.offers,
-        isLoading: storefront.isHomeLoading,
-      ),
-      () => coupons.coupons.isEmpty
+      coupons.coupons.isEmpty
           ? const SizedBox.shrink()
           : Padding(
               padding: const EdgeInsets.only(top: 24),
@@ -175,50 +208,37 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                 ],
               ),
             ),
-      () => Padding(
+      Padding(
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: _AdvertisementBanner(),
       ),
-      () => _StoreSection(
-        title: 'Featured Stores',
-        subtitle: 'Shop trusted local vendors',
-        stores: storefront.featuredStores,
-        isLoading: storefront.isHomeLoading,
-        featuredOnly: true,
-      ),
-      () => _StoreSection(
-        title: 'Popular Stores',
-        subtitle: 'Discover more DailyCart vendors',
-        stores: storefront.popularStores,
-        isLoading: storefront.isHomeLoading,
-      ),
-      () => _ProductSection(
+      _ProductSection(
         title: 'Featured Products',
         products: products.featuredProducts,
         isLoading: products.isLoading,
       ),
-      () => _ProductSection(
+      _ProductSection(
         title: 'Best Selling Products',
         products: products.bestSellingProducts,
         isLoading: products.isLoading,
       ),
-      () => _ProductSection(
+      _ProductSection(
         title: 'Flash Deals',
         products: products.flashDeals,
         isLoading: products.isLoading,
         showBadge: true,
       ),
-      () => _ProductSection(
+      _ProductSection(
         title: 'Recommended Products',
         products: products.recommendedProducts,
         isLoading: products.isLoading,
       ),
-      () => _ProductSection(
+      _ProductSection(
         title: 'Recently Viewed Products',
         products: products.recentlyViewedProducts,
         isLoading: products.isLoading,
       ),
-      () => _RecentlyPurchasedSection(
+      _RecentlyPurchasedSection(
         products: products.recentlyViewedProducts,
         isLoading: products.isLoading,
       ),
@@ -251,17 +271,79 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       drawer: const AppDrawer(roleName: 'Customer'),
       body: RefreshIndicator(
         onRefresh: _loadHomeData,
-        child: ListView.builder(
+        child: ListView(
+          controller: _scrollController,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
           physics: const AlwaysScrollableScrollPhysics(
-            parent: ClampingScrollPhysics(),
+            parent: BouncingScrollPhysics(),
           ),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          itemCount: sections.length,
-          itemBuilder: (context, index) => sections[index](),
+          children: sections,
         ),
       ),
+      floatingActionButton: _showBackToTop
+          ? FloatingActionButton.small(
+              tooltip: 'Back to top',
+              onPressed: () => _scrollController.animateTo(
+                0,
+                duration: const Duration(milliseconds: 450),
+                curve: Curves.easeOutCubic,
+              ),
+              child: const Icon(Icons.keyboard_arrow_up_rounded),
+            )
+          : null,
       bottomNavigationBar: const CustomerBottomNavigation(currentIndex: 0),
+    );
+  }
+}
+
+class _LoyaltySection extends StatelessWidget {
+  const _LoyaltySection({
+    required this.points,
+    required this.isLoading,
+    required this.errorMessage,
+    required this.onRetry,
+  });
+
+  final int points;
+  final bool isLoading;
+  final String? errorMessage;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionHeader(title: 'Loyalty Rewards'),
+          const SizedBox(height: 4),
+          const Text(
+            'Earn points from eligible orders and redeem them at checkout.',
+            style: TextStyle(color: AppColors.mutedText),
+          ),
+          const SizedBox(height: 12),
+          if (isLoading && points == 0)
+            const DailyCartCard(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (errorMessage != null)
+            DailyCartErrorWidget(
+              title: 'Loyalty balance unavailable',
+              message: errorMessage!,
+              onRetry: onRetry,
+            )
+          else
+            LoyaltyBalanceCard(
+              points: points,
+              onHistory: () => context.push(AppRoutes.loyaltyHistory),
+              onRedeem: points > 0
+                  ? () => context.push(AppRoutes.checkoutPreparation)
+                  : null,
+            ),
+        ],
+      ),
     );
   }
 }

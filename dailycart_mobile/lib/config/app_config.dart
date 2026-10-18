@@ -10,6 +10,14 @@ class AppConfig {
         'https://your-laravel-cloud-url.laravel.cloud/api/v1';
   }
 
+  static String get webBaseUrl {
+    final configured = dotenv.env['WEB_BASE_URL']?.trim();
+    if (configured != null && configured.isNotEmpty) {
+      return configured.replaceFirst(RegExp(r'/$'), '');
+    }
+    return apiBaseUrl.replaceFirst(RegExp(r'/api/v1/?$'), '');
+  }
+
   static String get googleMapsApiKey {
     return dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
   }
