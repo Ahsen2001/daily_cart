@@ -12,6 +12,10 @@ class VendorOrderModel {
     this.scheduledDeliveryTime,
     this.totalAmount = 0,
     this.items = const [],
+    this.riderName = '',
+    this.riderPhone = '',
+    this.deliveryStatus = '',
+    this.timeline = const [],
   });
 
   final int id;
@@ -26,6 +30,10 @@ class VendorOrderModel {
   final DateTime createdAt;
   final double totalAmount;
   final List<VendorOrderItemModel> items;
+  final String riderName;
+  final String riderPhone;
+  final String deliveryStatus;
+  final List<VendorOrderTimelineModel> timeline;
 
   bool get canConfirm => status.toLowerCase() == 'pending';
   bool get canPack => status.toLowerCase() == 'confirmed';
@@ -36,22 +44,30 @@ class VendorOrderModel {
 
   factory VendorOrderModel.fromJson(Map<String, dynamic> json) {
     final customer = json['customer'] ?? json['user'];
+    final rider = json['rider'];
+    final delivery = json['delivery'];
     return VendorOrderModel(
       id: _toInt(json['id']),
       orderNumber: (json['order_number'] ?? '').toString(),
       status: (json['order_status'] ?? json['status'] ?? 'pending').toString(),
       paymentStatus: (json['payment_status'] ?? 'pending').toString(),
       paymentMethod: (json['payment_method'] ?? '').toString(),
-      customerName: (json['customer_name'] ??
-              (customer is Map<String, dynamic> ? customer['name'] : null) ??
-              '')
+      customerName:
+          (json['customer_name'] ??
+                  (customer is Map<String, dynamic>
+                      ? customer['name']
+                      : null) ??
+                  '')
+              .toString(),
+      customerPhone:
+          (json['customer_phone'] ??
+                  (customer is Map<String, dynamic>
+                      ? customer['phone']
+                      : null) ??
+                  '')
+              .toString(),
+      deliveryAddress: (json['delivery_address'] ?? json['address'] ?? '')
           .toString(),
-      customerPhone: (json['customer_phone'] ??
-              (customer is Map<String, dynamic> ? customer['phone'] : null) ??
-              '')
-          .toString(),
-      deliveryAddress:
-          (json['delivery_address'] ?? json['address'] ?? '').toString(),
       scheduledDeliveryTime: _nullableDate(
         json['scheduled_delivery_at'] ??
             json['scheduled_delivery_time'] ??
@@ -59,11 +75,18 @@ class VendorOrderModel {
       ),
       createdAt:
           DateTime.tryParse((json['created_at'] ?? '').toString()) ??
-              DateTime.now(),
+          DateTime.now(),
       totalAmount: _toDouble(json['total_amount'] ?? json['grand_total']),
-      items: _listFrom(json['items'] ?? json['order_items'])
-          .map(VendorOrderItemModel.fromJson)
-          .toList(growable: false),
+      items: _listFrom(
+        json['items'] ?? json['order_items'],
+      ).map(VendorOrderItemModel.fromJson).toList(growable: false),
+      riderName: (rider is Map ? rider['name'] ?? '' : '').toString(),
+      riderPhone: (rider is Map ? rider['phone'] ?? '' : '').toString(),
+      deliveryStatus: (delivery is Map ? delivery['status'] ?? '' : '')
+          .toString(),
+      timeline: _listFrom(
+        json['timeline'],
+      ).map(VendorOrderTimelineModel.fromJson).toList(growable: false),
     );
   }
 
@@ -94,6 +117,24 @@ class VendorOrderModel {
     }
     return DateTime.tryParse(value.toString());
   }
+}
+
+class VendorOrderTimelineModel {
+  const VendorOrderTimelineModel({
+    required this.status,
+    required this.timestamp,
+    this.remarks = '',
+  });
+  final String status;
+  final String remarks;
+  final DateTime? timestamp;
+
+  factory VendorOrderTimelineModel.fromJson(Map<String, dynamic> json) =>
+      VendorOrderTimelineModel(
+        status: (json['status'] ?? '').toString(),
+        remarks: (json['remarks'] ?? '').toString(),
+        timestamp: VendorOrderModel._nullableDate(json['timestamp']),
+      );
 }
 
 class VendorOrderItemModel {

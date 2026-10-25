@@ -7,6 +7,8 @@ import '../../routes/app_routes.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/error_widget.dart';
+import '../../widgets/vendor_bottom_navigation.dart';
 import '../../widgets/vendor_order_card.dart';
 
 class VendorOrdersScreen extends ConsumerStatefulWidget {
@@ -58,33 +60,40 @@ class _VendorOrdersScreenState extends ConsumerState<VendorOrdersScreen> {
           Expanded(
             child: state.isLoading && state.orders.isEmpty
                 ? const LoadingWidget(message: 'Loading vendor orders...')
+                : state.errorMessage != null && state.orders.isEmpty
+                ? DailyCartErrorWidget(
+                    title: 'Orders unavailable',
+                    message: state.errorMessage!,
+                    onRetry: _load,
+                  )
                 : state.orders.isEmpty
-                    ? const EmptyStateWidget(
-                        title: 'No orders',
-                        message: 'Orders for your products will appear here.',
-                        icon: Icons.receipt_long_outlined,
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _load,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.all(20),
-                          itemBuilder: (context, index) {
-                            final order = state.orders[index];
-                            return VendorOrderCard(
-                              order: order,
-                              onTap: () => context.push(
-                                '${AppRoutes.vendorOrderDetails}/${order.id}',
-                              ),
-                            );
-                          },
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 14),
-                          itemCount: state.orders.length,
-                        ),
-                      ),
+                ? const EmptyStateWidget(
+                    title: 'No orders',
+                    message: 'Orders for your products will appear here.',
+                    icon: Icons.receipt_long_outlined,
+                  )
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      itemBuilder: (context, index) {
+                        final order = state.orders[index];
+                        return VendorOrderCard(
+                          order: order,
+                          onTap: () => context.push(
+                            '${AppRoutes.vendorOrderDetails}/${order.id}',
+                          ),
+                        );
+                      },
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 14),
+                      itemCount: state.orders.length,
+                    ),
+                  ),
           ),
         ],
       ),
+      bottomNavigationBar: const VendorBottomNavigation(currentIndex: 2),
     );
   }
 }

@@ -205,6 +205,12 @@ Route::prefix('v1')->group(function () {
             Route::post('/profile/photo', [CustomerAccountController::class, 'uploadPhoto']);
             Route::patch('/profile/password', [CustomerAccountController::class, 'changePassword']);
             Route::delete('/profile', [CustomerAccountController::class, 'destroyAccount']);
+            Route::get('/store', [VendorBusinessController::class, 'storefront']);
+            Route::post('/store', [VendorBusinessController::class, 'updateStorefront']);
+            Route::get('/store/banners', [VendorBusinessController::class, 'storeBanners']);
+            Route::post('/store/banners', [VendorBusinessController::class, 'uploadStoreBanner']);
+            Route::delete('/store/banners/{banner}', [VendorBusinessController::class, 'destroyStoreBanner']);
+            Route::get('/store/analytics', [VendorBusinessController::class, 'storeAnalytics']);
 
             Route::get('/products', [VendorCatalogController::class, 'index']);
             Route::post('/products', [VendorCatalogController::class, 'store']);

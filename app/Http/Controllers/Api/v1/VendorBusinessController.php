@@ -11,6 +11,7 @@ use App\Models\Refund;
 use App\Models\Review;
 use App\Models\Subscription;
 use App\Models\VendorPayoutRequest;
+use App\Models\StoreBanner;
 use App\Services\AnalyticsService;
 use App\Services\CurrencyService;
 use App\Services\DashboardService;
@@ -22,10 +23,110 @@ use App\Services\ScheduledOrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class VendorBusinessController extends Controller
 {
+    public function storefront(Request $request): JsonResponse
+    {
+        $profile = $this->storefrontFor($request)->load('banners');
+
+        return response()->json([
+            'store' => $this->storefrontPayload($profile),
+        ]);
+    }
+
+    public function updateStorefront(Request $request): JsonResponse
+    {
+        $profile = $this->storefrontFor($request);
+        $data = $request->validate([
+            'slug' => ['nullable', 'string', 'max:120', 'alpha_dash', Rule::unique('vendor_profiles', 'slug')->ignore($profile->id)],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'opening_hours' => ['nullable', 'string', 'max:1000'],
+            'delivery_estimate' => ['nullable', 'string', 'max:100'],
+            'minimum_order' => ['nullable', 'numeric', 'min:0'],
+            'contact_phone' => ['nullable', 'string', 'max:60'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
+            'logo' => ['nullable', 'image', 'max:4096'],
+            'cover_image' => ['nullable', 'image', 'max:6144'],
+        ]);
+        $profileData = collect($data)->except(['opening_hours', 'logo', 'cover_image'])->all();
+        $profileData['slug'] = filled($data['slug'] ?? null)
+            ? $data['slug']
+            : Str::slug($request->user()->vendor->store_name).'-'.$request->user()->vendor->id;
+        $profileData['opening_hours'] = filled($data['opening_hours'] ?? null) ? ['summary' => $data['opening_hours']] : null;
+
+        foreach (['logo' => 'logo_path', 'cover_image' => 'cover_image_path'] as $input => $column) {
+            if ($request->hasFile($input)) {
+                if ($profile->{$column}) {
+                    Storage::disk('public')->delete($profile->{$column});
+                }
+                $profileData[$column] = $request->file($input)->store('stores/'.$profile->vendor_id, 'public');
+            }
+        }
+        $profile->update($profileData);
+
+        return response()->json([
+            'message' => 'Store settings updated.',
+            'store' => $this->storefrontPayload($profile->refresh()->load('banners')),
+        ]);
+    }
+
+    public function storeBanners(Request $request): JsonResponse
+    {
+        $profile = $this->storefrontFor($request)->load('banners');
+
+        return response()->json([
+            'banners' => $profile->banners->map(fn (StoreBanner $banner) => $this->bannerPayload($banner)),
+        ]);
+    }
+
+    public function uploadStoreBanner(Request $request): JsonResponse
+    {
+        $profile = $this->storefrontFor($request);
+        $data = $request->validate([
+            'title' => ['nullable', 'string', 'max:255'],
+            'link_url' => ['nullable', 'url', 'max:2048'],
+            'image' => ['required', 'image', 'max:6144'],
+        ]);
+        $banner = $profile->banners()->create([
+            'title' => $data['title'] ?? null,
+            'link_url' => $data['link_url'] ?? null,
+            'image_path' => $request->file('image')->store('stores/'.$profile->vendor_id.'/banners', 'public'),
+            'sort_order' => (int) ($profile->banners()->max('sort_order') ?? -1) + 1,
+        ]);
+
+        return response()->json([
+            'message' => 'Store banner uploaded.',
+            'banner' => $this->bannerPayload($banner),
+        ], 201);
+    }
+
+    public function destroyStoreBanner(Request $request, StoreBanner $banner): JsonResponse
+    {
+        $profile = $this->storefrontFor($request);
+        abort_unless($banner->vendor_profile_id === $profile->id, 404);
+        Storage::disk('public')->delete($banner->image_path);
+        $banner->delete();
+
+        return response()->json(['message' => 'Store banner removed.']);
+    }
+
+    public function storeAnalytics(Request $request): JsonResponse
+    {
+        $profile = $this->storefrontFor($request);
+        $vendor = $profile->vendor;
+
+        return response()->json(['analytics' => [
+            'approved_products' => $vendor->products()->visibleToCustomers()->count(),
+            'followers' => $profile->followers()->count(),
+            'orders' => $vendor->orders()->count(),
+            'revenue' => (float) $vendor->orders()->whereNotIn('order_status', ['cancelled'])->sum('total_amount'),
+            'average_rating' => round((float) $vendor->reviews()->where('status', 'visible')->avg('rating'), 1),
+        ]]);
+    }
+
     public function dashboard(
         Request $request,
         DashboardService $dashboards,
@@ -509,6 +610,59 @@ class VendorBusinessController extends Controller
             'message' => $message,
             'order' => $this->orderPayload($order->refresh()->load($this->orderRelations())),
         ]);
+    }
+
+    private function storefrontFor(Request $request)
+    {
+        $vendor = $request->user()->vendor;
+        abort_unless($vendor, 403);
+
+        $profile = $vendor->storeProfile()->first();
+        if ($profile) {
+            return $profile;
+        }
+
+        return $vendor->storeProfile()->create([
+            'slug' => Str::slug($vendor->store_name).'-'.$vendor->id,
+            'delivery_estimate' => '30-60 minutes',
+            'contact_phone' => $vendor->phone,
+            'profile_status' => $vendor->status === 'approved' ? 'approved' : 'pending',
+            'is_enabled' => $vendor->status === 'approved',
+        ]);
+    }
+
+    private function storefrontPayload($profile): array
+    {
+        return [
+            'id' => $profile->id,
+            'slug' => $profile->slug,
+            'description' => $profile->description,
+            'opening_hours' => data_get($profile->opening_hours, 'summary'),
+            'delivery_estimate' => $profile->delivery_estimate,
+            'minimum_order' => (float) ($profile->minimum_order ?? 0),
+            'contact_phone' => $profile->contact_phone,
+            'contact_email' => $profile->contact_email,
+            'logo' => $profile->logo_url,
+            'cover_image' => $profile->cover_image_url,
+            'profile_status' => $profile->profile_status,
+            'is_enabled' => (bool) $profile->is_enabled,
+            'is_featured' => (bool) $profile->is_featured,
+            'banners' => $profile->relationLoaded('banners')
+                ? $profile->banners->map(fn (StoreBanner $banner) => $this->bannerPayload($banner))
+                : [],
+        ];
+    }
+
+    private function bannerPayload(StoreBanner $banner): array
+    {
+        return [
+            'id' => $banner->id,
+            'title' => $banner->title,
+            'link_url' => $banner->link_url,
+            'image' => $banner->image_url,
+            'sort_order' => (int) $banner->sort_order,
+            'is_active' => (bool) $banner->is_active,
+        ];
     }
 
     private function orderPayload(Order $order): array

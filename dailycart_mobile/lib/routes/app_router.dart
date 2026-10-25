@@ -78,6 +78,7 @@ import '../screens/vendor/vendor_product_list_screen.dart';
 import '../screens/vendor/vendor_profile_screen.dart';
 import '../screens/vendor/vendor_reviews_screen.dart';
 import '../screens/vendor/vendor_business_screen.dart';
+import '../screens/vendor/vendor_store_screen.dart';
 import '../screens/rider/assigned_deliveries_screen.dart';
 import '../screens/rider/delivery_details_screen.dart';
 import '../screens/rider/delivery_proof_screen.dart';
@@ -247,6 +248,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.vendorEditProfile,
         name: 'vendor-edit-profile',
         builder: (context, state) => const EditVendorProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vendorStore,
+        builder: (context, state) => const VendorStoreScreen(),
       ),
       GoRoute(
         path: AppRoutes.vendorWallet,

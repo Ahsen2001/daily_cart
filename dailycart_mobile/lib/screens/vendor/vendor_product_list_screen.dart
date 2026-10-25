@@ -8,6 +8,8 @@ import '../../widgets/custom_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/vendor_product_card.dart';
+import '../../widgets/vendor_bottom_navigation.dart';
+import '../../widgets/error_widget.dart';
 
 class VendorProductListScreen extends ConsumerStatefulWidget {
   const VendorProductListScreen({super.key});
@@ -69,36 +71,41 @@ class _VendorProductListScreenState
           Expanded(
             child: state.isLoading && state.products.isEmpty
                 ? const LoadingWidget(message: 'Loading products...')
+                : state.errorMessage != null && state.products.isEmpty
+                ? DailyCartErrorWidget(
+                    title: 'Products unavailable',
+                    message: state.errorMessage!,
+                    onRetry: _load,
+                  )
                 : state.products.isEmpty
-                    ? const EmptyStateWidget(
-                        title: 'No products',
-                        message: 'Add products for admin approval.',
-                        icon: Icons.inventory_2_outlined,
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _load,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.all(20),
-                          itemBuilder: (context, index) {
-                            final product = state.products[index];
-                            return VendorProductCard(
-                              product: product,
-                              onTap: () => context.push(
-                                '${AppRoutes.vendorProductDetails}/${product.id}',
-                              ),
-                              onEdit: () => context.push(
-                                '${AppRoutes.vendorEditProduct}/${product.id}',
-                              ),
-                              onDelete: () => ref
-                                  .read(vendorProductProvider)
-                                  .deleteProduct(product.id),
-                            );
-                          },
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 14),
-                          itemCount: state.products.length,
-                        ),
-                      ),
+                ? const EmptyStateWidget(
+                    title: 'No products',
+                    message: 'Add products for admin approval.',
+                    icon: Icons.inventory_2_outlined,
+                  )
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      itemBuilder: (context, index) {
+                        final product = state.products[index];
+                        return VendorProductCard(
+                          product: product,
+                          onTap: () => context.push(
+                            '${AppRoutes.vendorProductDetails}/${product.id}',
+                          ),
+                          onEdit: () => context.push(
+                            '${AppRoutes.vendorEditProduct}/${product.id}',
+                          ),
+                          onDelete: () =>
+                              _deleteProduct(product.id, product.name),
+                        );
+                      },
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 14),
+                      itemCount: state.products.length,
+                    ),
+                  ),
           ),
         ],
       ),
@@ -106,6 +113,40 @@ class _VendorProductListScreenState
         onPressed: () => context.push(AppRoutes.vendorAddProduct),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Product'),
+      ),
+      bottomNavigationBar: const VendorBottomNavigation(currentIndex: 1),
+    );
+  }
+
+  Future<void> _deleteProduct(int id, String name) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete product?'),
+        content: Text('Delete "$name"? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final ok = await ref.read(vendorProductProvider).deleteProduct(id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'Product deleted.'
+              : ref.read(vendorProductProvider).errorMessage ??
+                    'Unable to delete product.',
+        ),
       ),
     );
   }

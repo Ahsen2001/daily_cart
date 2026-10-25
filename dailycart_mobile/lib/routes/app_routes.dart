@@ -23,6 +23,7 @@ class AppRoutes {
   static const vendorReviews = '/vendor-reviews';
   static const vendorProfile = '/vendor-profile';
   static const vendorEditProfile = '/vendor-edit-profile';
+  static const vendorStore = '/vendor-store';
   static const vendorWallet = '/vendor-wallet';
   static const vendorRefunds = '/vendor-refunds';
   static const vendorCoupons = '/vendor-coupons';

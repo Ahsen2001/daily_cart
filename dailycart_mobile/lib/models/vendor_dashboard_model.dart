@@ -6,9 +6,11 @@ class VendorDashboardModel {
     this.totalOrders = 0,
     this.pendingOrders = 0,
     this.completedOrders = 0,
-    this.todaySales = 0,
+    this.cancelledOrders = 0,
+    this.todayEarnings = 0,
     this.totalEarnings = 0,
     this.lowStockProducts = 0,
+    this.customerReviews = 0,
     this.approvalStatus = 'pending',
   });
 
@@ -18,12 +20,15 @@ class VendorDashboardModel {
   final int totalOrders;
   final int pendingOrders;
   final int completedOrders;
-  final double todaySales;
+  final int cancelledOrders;
+  final double todayEarnings;
   final double totalEarnings;
   final int lowStockProducts;
+  final int customerReviews;
   final String approvalStatus;
 
-  bool get isApproved => approvalStatus.toLowerCase() == 'approved';
+  bool get isApproved =>
+      const {'approved', 'verified'}.contains(approvalStatus.toLowerCase());
 
   factory VendorDashboardModel.fromJson(Map<String, dynamic> json) {
     return VendorDashboardModel(
@@ -33,11 +38,13 @@ class VendorDashboardModel {
       totalOrders: _toInt(json['total_orders']),
       pendingOrders: _toInt(json['pending_orders']),
       completedOrders: _toInt(json['completed_orders']),
-      todaySales: _toDouble(json['today_sales']),
-      totalEarnings: _toDouble(json['total_earnings']),
+      cancelledOrders: _toInt(json['cancelled_orders']),
+      todayEarnings: _toDouble(json['today_earnings'] ?? json['today_sales']),
+      totalEarnings: _toDouble(json['total_earnings'] ?? json['earnings']),
       lowStockProducts: _toInt(json['low_stock_products']),
-      approvalStatus:
-          (json['approval_status'] ?? json['status'] ?? 'pending').toString(),
+      customerReviews: _toInt(json['customer_reviews']),
+      approvalStatus: (json['approval_status'] ?? json['status'] ?? 'pending')
+          .toString(),
     );
   }
 

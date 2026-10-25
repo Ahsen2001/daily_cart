@@ -9,6 +9,12 @@ class VendorProfileModel {
     this.businessRegistrationNumber = '',
     this.approvalStatus = 'pending',
     this.shopLogo = '',
+    this.city = '',
+    this.district = '',
+    this.province = '',
+    this.latitude,
+    this.longitude,
+    this.commissionRate = 0,
   });
 
   final int id;
@@ -20,6 +26,12 @@ class VendorProfileModel {
   final String businessRegistrationNumber;
   final String approvalStatus;
   final String shopLogo;
+  final String city;
+  final String district;
+  final String province;
+  final double? latitude;
+  final double? longitude;
+  final double commissionRate;
 
   bool get isApproved => approvalStatus.toLowerCase() == 'approved';
 
@@ -34,9 +46,15 @@ class VendorProfileModel {
       businessRegistrationNumber:
           (json['business_registration_number'] ?? json['brn'] ?? '')
               .toString(),
-      approvalStatus:
-          (json['approval_status'] ?? json['status'] ?? 'pending').toString(),
+      approvalStatus: (json['approval_status'] ?? json['status'] ?? 'pending')
+          .toString(),
       shopLogo: (json['shop_logo'] ?? json['logo'] ?? '').toString(),
+      city: (json['city'] ?? '').toString(),
+      district: (json['district'] ?? '').toString(),
+      province: (json['province'] ?? '').toString(),
+      latitude: _toNullableDouble(json['latitude']),
+      longitude: _toNullableDouble(json['longitude']),
+      commissionRate: _toDouble(json['commission_rate']),
     );
   }
 
@@ -48,6 +66,11 @@ class VendorProfileModel {
       'phone': phone,
       'address': address,
       'business_registration_number': businessRegistrationNumber,
+      'city': city,
+      'district': district,
+      'province': province,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -56,5 +79,14 @@ class VendorProfileModel {
       return value;
     }
     return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static double _toDouble(Object? value) => value is num
+      ? value.toDouble()
+      : double.tryParse(value?.toString() ?? '') ?? 0;
+
+  static double? _toNullableDouble(Object? value) {
+    if (value == null || value.toString().isEmpty) return null;
+    return _toDouble(value);
   }
 }

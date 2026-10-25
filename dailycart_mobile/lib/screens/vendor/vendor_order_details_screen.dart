@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../providers/vendor_order_provider.dart';
 import '../../theme/app_colors.dart';
@@ -9,12 +10,10 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/dailycart_card.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/stock_status_badge.dart';
+import '../../widgets/error_widget.dart';
 
 class VendorOrderDetailsScreen extends ConsumerStatefulWidget {
-  const VendorOrderDetailsScreen({
-    required this.orderId,
-    super.key,
-  });
+  const VendorOrderDetailsScreen({required this.orderId, super.key});
 
   final int orderId;
 
@@ -42,103 +41,158 @@ class _VendorOrderDetailsScreenState
       body: state.isLoading && order == null
           ? const LoadingWidget(message: 'Loading order...')
           : order == null
-              ? const Center(child: Text('Order not found.'))
-              : ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    DailyCartCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          ? DailyCartErrorWidget(
+              title: 'Order unavailable',
+              message: state.errorMessage ?? 'Order not found.',
+              onRetry: () => ref
+                  .read(vendorOrderProvider)
+                  .getVendorOrderDetails(widget.orderId),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                DailyCartCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  order.orderNumber.isEmpty
-                                      ? 'Order #${order.id}'
-                                      : order.orderNumber,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.w900),
-                                ),
-                              ),
-                              StockStatusBadge(status: order.status),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          _Info('Customer', order.customerName),
-                          _Info('Phone', order.customerPhone),
-                          _Info('Delivery', order.deliveryAddress),
-                          _Info(
-                            'Scheduled',
-                            order.scheduledDeliveryTime
-                                    ?.toString()
-                                    .split('.')
-                                    .first ??
-                                '-',
-                          ),
-                          _Info('Payment method', _label(order.paymentMethod)),
-                          _Info('Payment status', _label(order.paymentStatus)),
-                          _Info('Total', CurrencyFormatter.lkr(order.totalAmount)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    DailyCartCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Items',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w900),
-                          ),
-                          const SizedBox(height: 10),
-                          for (final item in order.items) ...[
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '${item.productName} x ${item.quantity}',
-                                  ),
-                                ),
-                                Text(CurrencyFormatter.lkr(item.subtotal)),
-                              ],
+                          Expanded(
+                            child: Text(
+                              order.orderNumber.isEmpty
+                                  ? 'Order #${order.id}'
+                                  : order.orderNumber,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w900),
                             ),
-                            const Divider(color: AppColors.border),
-                          ],
+                          ),
+                          StockStatusBadge(status: order.status),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    if (order.canConfirm)
-                      CustomButton(
-                        label: 'Confirm Order',
-                        icon: Icons.check_rounded,
-                        onPressed: () => _confirm(order.id),
+                      const SizedBox(height: 12),
+                      _Info('Customer', order.customerName),
+                      _Info('Phone', order.customerPhone),
+                      _Info('Delivery', order.deliveryAddress),
+                      _Info(
+                        'Scheduled',
+                        order.scheduledDeliveryTime
+                                ?.toString()
+                                .split('.')
+                                .first ??
+                            '-',
                       ),
-                    if (order.canPack) ...[
-                      const SizedBox(height: 10),
-                      CustomButton(
-                        label: 'Mark as Packed',
-                        icon: Icons.inventory_2_outlined,
-                        onPressed: () => _pack(order.id),
-                      ),
+                      _Info('Payment method', _label(order.paymentMethod)),
+                      _Info('Payment status', _label(order.paymentStatus)),
+                      _Info('Total', CurrencyFormatter.lkr(order.totalAmount)),
                     ],
-                    if (order.canCancel) ...[
-                      const SizedBox(height: 10),
-                      CustomButton(
-                        label: 'Cancel or Reject Order',
-                        icon: Icons.cancel_outlined,
-                        variant: CustomButtonVariant.secondary,
-                        onPressed: () => _cancel(order.id),
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
+                const SizedBox(height: 14),
+                if (order.riderName.isNotEmpty ||
+                    order.deliveryStatus.isNotEmpty) ...[
+                  DailyCartCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Delivery',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 8),
+                        _Info('Status', _label(order.deliveryStatus)),
+                        _Info('Rider', order.riderName),
+                        _Info('Rider phone', order.riderPhone),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                if (order.timeline.isNotEmpty) ...[
+                  DailyCartCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Order activity',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 10),
+                        for (final event in order.timeline)
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const CircleAvatar(
+                              child: Icon(Icons.check_rounded, size: 18),
+                            ),
+                            title: Text(_label(event.status)),
+                            subtitle: Text(
+                              [
+                                if (event.remarks.isNotEmpty) event.remarks,
+                                if (event.timestamp != null)
+                                  DateFormat(
+                                    'MMM d, yyyy h:mm a',
+                                  ).format(event.timestamp!.toLocal()),
+                              ].join('\n'),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                DailyCartCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Items',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 10),
+                      for (final item in order.items) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${item.productName} x ${item.quantity}',
+                              ),
+                            ),
+                            Text(CurrencyFormatter.lkr(item.subtotal)),
+                          ],
+                        ),
+                        const Divider(color: AppColors.border),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                if (order.canConfirm)
+                  CustomButton(
+                    label: 'Confirm Order',
+                    icon: Icons.check_rounded,
+                    onPressed: () => _confirm(order.id),
+                  ),
+                if (order.canPack) ...[
+                  const SizedBox(height: 10),
+                  CustomButton(
+                    label: 'Mark as Packed',
+                    icon: Icons.inventory_2_outlined,
+                    onPressed: () => _pack(order.id),
+                  ),
+                ],
+                if (order.canCancel) ...[
+                  const SizedBox(height: 10),
+                  CustomButton(
+                    label: 'Cancel or Reject Order',
+                    icon: Icons.cancel_outlined,
+                    variant: CustomButtonVariant.secondary,
+                    onPressed: () => _cancel(order.id),
+                  ),
+                ],
+              ],
+            ),
     );
   }
 
@@ -186,9 +240,9 @@ class _VendorOrderDetailsScreenState
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _label(String value) {
@@ -212,7 +266,10 @@ class _Info extends StatelessWidget {
         children: [
           SizedBox(
             width: 96,
-            child: Text(label, style: const TextStyle(color: AppColors.mutedText)),
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.mutedText),
+            ),
           ),
           Expanded(child: Text(value.isEmpty ? '-' : value)),
         ],

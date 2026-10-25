@@ -89,6 +89,9 @@ class VendorCouponModel {
     required this.discountValue,
     required this.status,
     this.expiresAt,
+    this.startsAt,
+    this.description = '',
+    this.minimumOrderAmount = 0,
   });
 
   final int id;
@@ -98,6 +101,9 @@ class VendorCouponModel {
   final double discountValue;
   final String status;
   final DateTime? expiresAt;
+  final DateTime? startsAt;
+  final String description;
+  final double minimumOrderAmount;
 
   factory VendorCouponModel.fromJson(Map<String, dynamic> json) {
     return VendorCouponModel(
@@ -108,6 +114,9 @@ class VendorCouponModel {
       discountValue: _toDouble(json['discount_value']),
       status: (json['status'] ?? '').toString(),
       expiresAt: _toDate(json['expires_at']),
+      startsAt: _toDate(json['starts_at']),
+      description: (json['description'] ?? '').toString(),
+      minimumOrderAmount: _toDouble(json['minimum_order_amount']),
     );
   }
 }
@@ -120,6 +129,11 @@ class VendorPromotionModel {
     required this.discountValue,
     required this.status,
     this.endsAt,
+    this.startsAt,
+    this.description = '',
+    this.promotionType = 'featured_offer',
+    this.discountType = 'percentage',
+    this.targetId = 0,
   });
 
   final int id;
@@ -128,6 +142,11 @@ class VendorPromotionModel {
   final double discountValue;
   final String status;
   final DateTime? endsAt;
+  final DateTime? startsAt;
+  final String description;
+  final String promotionType;
+  final String discountType;
+  final int targetId;
 
   factory VendorPromotionModel.fromJson(Map<String, dynamic> json) {
     return VendorPromotionModel(
@@ -137,6 +156,11 @@ class VendorPromotionModel {
       discountValue: _toDouble(json['discount_value']),
       status: (json['status'] ?? '').toString(),
       endsAt: _toDate(json['ends_at']),
+      startsAt: _toDate(json['starts_at']),
+      description: (json['description'] ?? '').toString(),
+      promotionType: (json['promotion_type'] ?? 'featured_offer').toString(),
+      discountType: (json['discount_type'] ?? 'percentage').toString(),
+      targetId: _toInt(json['target_id']),
     );
   }
 }
@@ -173,22 +197,52 @@ class VendorSubscriptionModel {
   }
 }
 
+class VendorSubscriptionStockModel {
+  const VendorSubscriptionStockModel({
+    required this.productName,
+    required this.requiredQuantity,
+    this.variantName = '',
+  });
+  final String productName;
+  final String variantName;
+  final int requiredQuantity;
+
+  factory VendorSubscriptionStockModel.fromJson(Map<String, dynamic> json) =>
+      VendorSubscriptionStockModel(
+        productName: (json['product_name'] ?? '').toString(),
+        variantName: (json['variant_name'] ?? '').toString(),
+        requiredQuantity: _toInt(json['required_quantity']),
+      );
+}
+
+class VendorSubscriptionBundle {
+  const VendorSubscriptionBundle({
+    required this.subscriptions,
+    required this.stockRequirements,
+  });
+  final List<VendorSubscriptionModel> subscriptions;
+  final List<VendorSubscriptionStockModel> stockRequirements;
+}
+
 class VendorReportModel {
   const VendorReportModel({
     required this.summary,
     required this.bestSelling,
     required this.lowStock,
+    this.charts = const {},
   });
 
   final Map<String, dynamic> summary;
   final List<Map<String, dynamic>> bestSelling;
   final List<Map<String, dynamic>> lowStock;
+  final Map<String, dynamic> charts;
 
   factory VendorReportModel.fromJson(Map<String, dynamic> json) {
     return VendorReportModel(
       summary: _map(json['summary']),
       bestSelling: _maps(json['best_selling']),
       lowStock: _maps(json['low_stock']),
+      charts: _map(json['charts']),
     );
   }
 }

@@ -11,8 +11,8 @@ import 'authenticated_api_mixin.dart';
 
 class VendorBusinessApiService with AuthenticatedApiMixin {
   VendorBusinessApiService({Dio? dio, SecureStorageHelper? storage})
-      : _dio = dio ?? ApiClient.shared.dio,
-        _storage = storage ?? SecureStorageHelper();
+    : _dio = dio ?? ApiClient.shared.dio,
+      _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
   final SecureStorageHelper _storage;
@@ -60,11 +60,7 @@ class VendorBusinessApiService with AuthenticatedApiMixin {
   }
 
   Future<List<VendorRefundModel>> getRefunds() async {
-    return _getList(
-      '/vendor/refunds',
-      'refunds',
-      VendorRefundModel.fromJson,
-    );
+    return _getList('/vendor/refunds', 'refunds', VendorRefundModel.fromJson);
   }
 
   Future<VendorRefundModel> respondToRefund(int id, String note) async {
@@ -110,8 +106,7 @@ class VendorBusinessApiService with AuthenticatedApiMixin {
     }
   }
 
-  Future<void> deleteCoupon(int id) =>
-      _delete('/vendor/coupons/$id');
+  Future<void> deleteCoupon(int id) => _delete('/vendor/coupons/$id');
 
   Future<List<VendorPromotionModel>> getPromotions() async {
     return _getList(
@@ -139,15 +134,28 @@ class VendorBusinessApiService with AuthenticatedApiMixin {
     }
   }
 
-  Future<void> deletePromotion(int id) =>
-      _delete('/vendor/promotions/$id');
+  Future<void> deletePromotion(int id) => _delete('/vendor/promotions/$id');
 
-  Future<List<VendorSubscriptionModel>> getSubscriptions() async {
-    return _getList(
-      '/vendor/subscriptions',
-      'subscriptions',
-      VendorSubscriptionModel.fromJson,
-    );
+  Future<VendorSubscriptionBundle> getSubscriptions() async {
+    try {
+      final response = await _dio.get<dynamic>(
+        '/vendor/subscriptions',
+        options: await authOptions(),
+      );
+      final root = ApiResponseParser.requireMap(response.data);
+      return VendorSubscriptionBundle(
+        subscriptions: ApiListParser.extractList(
+          response.data,
+          key: 'subscriptions',
+        ).map(VendorSubscriptionModel.fromJson).toList(growable: false),
+        stockRequirements: ApiResponseParser.requireMapList(
+          root['stock_requirements'],
+          context: 'stock_requirements',
+        ).map(VendorSubscriptionStockModel.fromJson).toList(growable: false),
+      );
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
   }
 
   Future<List<VendorOrderModel>> getScheduledOrders() async {
@@ -158,10 +166,20 @@ class VendorBusinessApiService with AuthenticatedApiMixin {
     );
   }
 
-  Future<VendorReportModel> getReports() async {
+  Future<VendorReportModel> getReports({
+    DateTime? from,
+    DateTime? to,
+    String? orderStatus,
+  }) async {
     try {
       final response = await _dio.get<dynamic>(
         '/vendor/reports',
+        queryParameters: {
+          if (from != null) 'from': _date(from),
+          if (to != null) 'to': _date(to),
+          if (orderStatus != null && orderStatus != 'all')
+            'order_status': orderStatus,
+        },
         options: await authOptions(),
       );
       return VendorReportModel.fromJson(
@@ -178,11 +196,14 @@ class VendorBusinessApiService with AuthenticatedApiMixin {
     T Function(Map<String, dynamic>) decode,
   ) async {
     try {
-      final response =
-          await _dio.get<dynamic>(path, options: await authOptions());
-      return ApiListParser.extractList(response.data, key: key)
-          .map(decode)
-          .toList(growable: false);
+      final response = await _dio.get<dynamic>(
+        path,
+        options: await authOptions(),
+      );
+      return ApiListParser.extractList(
+        response.data,
+        key: key,
+      ).map(decode).toList(growable: false);
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
@@ -200,4 +221,7 @@ class VendorBusinessApiService with AuthenticatedApiMixin {
     if (value is num) return value.toDouble();
     return double.tryParse(value?.toString() ?? '') ?? 0;
   }
+
+  static String _date(DateTime value) =>
+      '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
 }

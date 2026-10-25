@@ -6,11 +6,13 @@ import '../models/vendor_order_model.dart';
 import '../services/auth_api_service.dart';
 import '../services/vendor_business_api_service.dart';
 
-final vendorBusinessApiServiceProvider =
-    Provider<VendorBusinessApiService>((ref) => VendorBusinessApiService());
+final vendorBusinessApiServiceProvider = Provider<VendorBusinessApiService>(
+  (ref) => VendorBusinessApiService(),
+);
 
-final vendorBusinessProvider =
-    ChangeNotifierProvider<VendorBusinessProvider>((ref) {
+final vendorBusinessProvider = ChangeNotifierProvider<VendorBusinessProvider>((
+  ref,
+) {
   return VendorBusinessProvider(ref.watch(vendorBusinessApiServiceProvider));
 });
 
@@ -24,12 +26,14 @@ class VendorBusinessProvider extends ChangeNotifier {
   List<VendorCouponModel> coupons = const [];
   List<VendorPromotionModel> promotions = const [];
   List<VendorSubscriptionModel> subscriptions = const [];
+  List<VendorSubscriptionStockModel> subscriptionStockRequirements = const [];
   List<VendorOrderModel> scheduledOrders = const [];
   VendorReportModel? report;
   bool isLoading = false;
   String? errorMessage;
 
-  Future<bool> loadWallet() => _run(() async => wallet = await _api.getWallet());
+  Future<bool> loadWallet() =>
+      _run(() async => wallet = await _api.getWallet());
 
   Future<bool> requestPayout(Map<String, dynamic> data) {
     return _run(() async {
@@ -56,10 +60,7 @@ class VendorBusinessProvider extends ChangeNotifier {
   Future<bool> saveCoupon(Map<String, dynamic> data, {int? id}) {
     return _run(() async {
       final saved = await _api.saveCoupon(data, id: id);
-      coupons = [
-        saved,
-        ...coupons.where((item) => item.id != saved.id),
-      ];
+      coupons = [saved, ...coupons.where((item) => item.id != saved.id)];
     });
   }
 
@@ -76,29 +77,39 @@ class VendorBusinessProvider extends ChangeNotifier {
   Future<bool> savePromotion(Map<String, dynamic> data, {int? id}) {
     return _run(() async {
       final saved = await _api.savePromotion(data, id: id);
-      promotions = [
-        saved,
-        ...promotions.where((item) => item.id != saved.id),
-      ];
+      promotions = [saved, ...promotions.where((item) => item.id != saved.id)];
     });
   }
 
   Future<bool> deletePromotion(int id) {
     return _run(() async {
       await _api.deletePromotion(id);
-      promotions =
-          promotions.where((item) => item.id != id).toList(growable: false);
+      promotions = promotions
+          .where((item) => item.id != id)
+          .toList(growable: false);
     });
   }
 
-  Future<bool> loadSubscriptions() =>
-      _run(() async => subscriptions = await _api.getSubscriptions());
+  Future<bool> loadSubscriptions() => _run(() async {
+    final bundle = await _api.getSubscriptions();
+    subscriptions = bundle.subscriptions;
+    subscriptionStockRequirements = bundle.stockRequirements;
+  });
 
   Future<bool> loadScheduledOrders() =>
       _run(() async => scheduledOrders = await _api.getScheduledOrders());
 
-  Future<bool> loadReport() =>
-      _run(() async => report = await _api.getReports());
+  Future<bool> loadReport({
+    DateTime? from,
+    DateTime? to,
+    String? orderStatus,
+  }) => _run(
+    () async => report = await _api.getReports(
+      from: from,
+      to: to,
+      orderStatus: orderStatus,
+    ),
+  );
 
   Future<bool> _run(Future<void> Function() action) async {
     isLoading = true;

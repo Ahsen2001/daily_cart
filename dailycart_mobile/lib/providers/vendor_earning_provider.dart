@@ -5,13 +5,15 @@ import '../models/vendor_earning_model.dart';
 import '../services/auth_api_service.dart';
 import '../services/vendor_earning_api_service.dart';
 
-final vendorEarningApiServiceProvider =
-    Provider<VendorEarningApiService>((ref) {
+final vendorEarningApiServiceProvider = Provider<VendorEarningApiService>((
+  ref,
+) {
   return VendorEarningApiService();
 });
 
-final vendorEarningProvider =
-    ChangeNotifierProvider<VendorEarningProvider>((ref) {
+final vendorEarningProvider = ChangeNotifierProvider<VendorEarningProvider>((
+  ref,
+) {
   return VendorEarningProvider(ref.watch(vendorEarningApiServiceProvider));
 });
 
@@ -24,9 +26,9 @@ class VendorEarningProvider extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  Future<void> getVendorEarnings() async {
+  Future<void> getVendorEarnings({DateTime? from, DateTime? to}) async {
     await _run(() async {
-      earnings = await _apiService.getVendorEarnings();
+      earnings = await _apiService.getVendorEarnings(from: from, to: to);
     });
   }
 

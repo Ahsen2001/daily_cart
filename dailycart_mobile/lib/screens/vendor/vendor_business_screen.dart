@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../providers/vendor_business_provider.dart';
+import '../../models/vendor_business_model.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/currency_formatter.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/dailycart_card.dart';
 import '../../widgets/error_widget.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/app_drawer.dart';
 
 enum VendorBusinessSection {
   wallet,
@@ -31,6 +34,9 @@ class VendorBusinessScreen extends ConsumerStatefulWidget {
 }
 
 class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
+  DateTime? _reportFrom;
+  DateTime? _reportTo;
+  String _reportStatus = 'all';
   @override
   void initState() {
     super.initState();
@@ -46,7 +52,11 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       VendorBusinessSection.promotions => provider.loadPromotions(),
       VendorBusinessSection.subscriptions => provider.loadSubscriptions(),
       VendorBusinessSection.scheduledOrders => provider.loadScheduledOrders(),
-      VendorBusinessSection.reports => provider.loadReport(),
+      VendorBusinessSection.reports => provider.loadReport(
+        from: _reportFrom,
+        to: _reportTo,
+        orderStatus: _reportStatus,
+      ),
     };
   }
 
@@ -65,6 +75,7 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
     final state = ref.watch(vendorBusinessProvider);
     return Scaffold(
       appBar: CustomAppBar(title: _title),
+      drawer: const AppDrawer(roleName: 'Vendor'),
       body: state.isLoading && !_hasData(state)
           ? LoadingWidget(message: 'Loading ${_title.toLowerCase()}...')
           : state.errorMessage != null && !_hasData(state)
@@ -194,10 +205,15 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
             subtitle: Text(
               '${coupon.discountValue} ${coupon.discountType} • ${coupon.status}',
             ),
-            trailing: IconButton(
-              onPressed: () =>
-                  ref.read(vendorBusinessProvider).deleteCoupon(coupon.id),
-              icon: const Icon(Icons.delete_outline),
+            onTap: () => _createCoupon(coupon: coupon),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) => value == 'edit'
+                  ? _createCoupon(coupon: coupon)
+                  : _deleteCoupon(coupon),
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'edit', child: Text('Edit')),
+                PopupMenuItem(value: 'delete', child: Text('Delete')),
+              ],
             ),
           ),
       ],
@@ -223,11 +239,15 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
             subtitle: Text(
               '${promotion.productName} • ${promotion.discountValue}% • ${promotion.status}',
             ),
-            trailing: IconButton(
-              onPressed: () => ref
-                  .read(vendorBusinessProvider)
-                  .deletePromotion(promotion.id),
-              icon: const Icon(Icons.delete_outline),
+            onTap: () => _createPromotion(promotion: promotion),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) => value == 'edit'
+                  ? _createPromotion(promotion: promotion)
+                  : _deletePromotion(promotion),
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'edit', child: Text('Edit')),
+                PopupMenuItem(value: 'delete', child: Text('Delete')),
+              ],
             ),
           ),
       ],
@@ -238,6 +258,34 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        if (state.subscriptionStockRequirements.isNotEmpty) ...[
+          Text(
+            'Upcoming stock requirements',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          DailyCartCard(
+            child: Column(
+              children: [
+                for (final stock in state.subscriptionStockRequirements)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(stock.productName),
+                    subtitle: stock.variantName.isEmpty
+                        ? null
+                        : Text(stock.variantName),
+                    trailing: Text(
+                      '${stock.requiredQuantity} needed',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+        ],
         if (state.subscriptions.isEmpty)
           const Center(
             child: Padding(
@@ -291,6 +339,88 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       children: [
         DailyCartCard(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Report filters',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _pickReportDate(true),
+                      icon: const Icon(Icons.calendar_today_outlined),
+                      label: Text(
+                        _reportFrom == null
+                            ? 'From'
+                            : DateFormat('MMM d, yyyy').format(_reportFrom!),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _pickReportDate(false),
+                      icon: const Icon(Icons.event_outlined),
+                      label: Text(
+                        _reportTo == null
+                            ? 'To'
+                            : DateFormat('MMM d, yyyy').format(_reportTo!),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                initialValue: _reportStatus,
+                decoration: const InputDecoration(labelText: 'Order status'),
+                items: const [
+                  DropdownMenuItem(value: 'all', child: Text('All statuses')),
+                  DropdownMenuItem(value: 'pending', child: Text('Pending')),
+                  DropdownMenuItem(
+                    value: 'confirmed',
+                    child: Text('Confirmed'),
+                  ),
+                  DropdownMenuItem(value: 'packed', child: Text('Packed')),
+                  DropdownMenuItem(
+                    value: 'delivered',
+                    child: Text('Delivered'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'cancelled',
+                    child: Text('Cancelled'),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() => _reportStatus = value ?? 'all');
+                  _load();
+                },
+              ),
+              if (_reportFrom != null || _reportTo != null)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _reportFrom = null;
+                        _reportTo = null;
+                      });
+                      _load();
+                    },
+                    child: const Text('Clear dates'),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        DailyCartCard(
+          child: Column(
             children: [
               for (final entry
                   in report?.summary.entries.toList() ??
@@ -304,6 +434,29 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
           ),
         ),
         const SizedBox(height: 18),
+        if (report?.charts.isNotEmpty == true) ...[
+          Text(
+            'Performance trend',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          DailyCartCard(
+            child: Column(
+              children: report!.charts.entries
+                  .map(
+                    (entry) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(entry.key.replaceAll('_', ' ')),
+                      subtitle: Text(_chartSummary(entry.value)),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          const SizedBox(height: 18),
+        ],
         const Text('Best selling'),
         for (final row in report?.bestSelling ?? const [])
           ListTile(
@@ -388,13 +541,17 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
     note.dispose();
   }
 
-  Future<void> _createCoupon() async {
-    final code = TextEditingController();
-    final title = TextEditingController();
-    final discount = TextEditingController();
-    final minimum = TextEditingController(text: '0');
+  Future<void> _createCoupon({VendorCouponModel? coupon}) async {
+    final code = TextEditingController(text: coupon?.code ?? '');
+    final title = TextEditingController(text: coupon?.title ?? '');
+    final discount = TextEditingController(
+      text: coupon?.discountValue.toString() ?? '',
+    );
+    final minimum = TextEditingController(
+      text: coupon?.minimumOrderAmount.toString() ?? '0',
+    );
     final ok = await _formDialog(
-      title: 'Create coupon',
+      title: coupon == null ? 'Create coupon' : 'Edit coupon',
       fields: [
         _field(code, 'Code'),
         _field(title, 'Title'),
@@ -403,7 +560,7 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       ],
     );
     if (ok) {
-      final starts = DateTime.now();
+      final starts = coupon?.startsAt ?? DateTime.now();
       await ref.read(vendorBusinessProvider).saveCoupon({
         'code': code.text.trim().toUpperCase(),
         'title': title.text.trim(),
@@ -411,21 +568,27 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
         'discount_value': double.tryParse(discount.text) ?? 0,
         'minimum_order_amount': double.tryParse(minimum.text) ?? 0,
         'starts_at': starts.toIso8601String(),
-        'expires_at': starts.add(const Duration(days: 30)).toIso8601String(),
-        'status': 'active',
-      });
+        'expires_at':
+            (coupon?.expiresAt ?? starts.add(const Duration(days: 30)))
+                .toIso8601String(),
+        'status': coupon?.status ?? 'active',
+      }, id: coupon?.id);
     }
     for (final controller in [code, title, discount, minimum]) {
       controller.dispose();
     }
   }
 
-  Future<void> _createPromotion() async {
-    final title = TextEditingController();
-    final productId = TextEditingController();
-    final discount = TextEditingController();
+  Future<void> _createPromotion({VendorPromotionModel? promotion}) async {
+    final title = TextEditingController(text: promotion?.title ?? '');
+    final productId = TextEditingController(
+      text: promotion?.targetId == 0 ? '' : promotion?.targetId.toString(),
+    );
+    final discount = TextEditingController(
+      text: promotion?.discountValue.toString() ?? '',
+    );
     final ok = await _formDialog(
-      title: 'Create promotion',
+      title: promotion == null ? 'Create promotion' : 'Edit promotion',
       fields: [
         _field(title, 'Title'),
         _field(productId, 'Product ID', number: true),
@@ -433,22 +596,53 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
       ],
     );
     if (ok) {
-      final starts = DateTime.now();
+      final starts = promotion?.startsAt ?? DateTime.now();
       await ref.read(vendorBusinessProvider).savePromotion({
         'title': title.text.trim(),
-        'promotion_type': 'featured_offer',
+        'promotion_type': promotion?.promotionType ?? 'featured_offer',
         'target_id': int.tryParse(productId.text) ?? 0,
-        'discount_type': 'percentage',
+        'discount_type': promotion?.discountType ?? 'percentage',
         'discount_value': double.tryParse(discount.text) ?? 0,
         'starts_at': starts.toIso8601String(),
-        'ends_at': starts.add(const Duration(days: 30)).toIso8601String(),
-        'status': 'active',
-      });
+        'ends_at': (promotion?.endsAt ?? starts.add(const Duration(days: 30)))
+            .toIso8601String(),
+        'status': promotion?.status ?? 'active',
+      }, id: promotion?.id);
     }
     for (final controller in [title, productId, discount]) {
       controller.dispose();
     }
   }
+
+  Future<void> _deleteCoupon(VendorCouponModel coupon) async {
+    if (!await _confirmDelete('coupon ${coupon.code}')) return;
+    await ref.read(vendorBusinessProvider).deleteCoupon(coupon.id);
+  }
+
+  Future<void> _deletePromotion(VendorPromotionModel promotion) async {
+    if (!await _confirmDelete('promotion ${promotion.title}')) return;
+    await ref.read(vendorBusinessProvider).deletePromotion(promotion.id);
+  }
+
+  Future<bool> _confirmDelete(String label) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirm deletion'),
+          content: Text('Delete $label?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      ) ??
+      false;
 
   Widget _field(
     TextEditingController controller,
@@ -498,5 +692,35 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
   double _number(Object? value) {
     if (value is num) return value.toDouble();
     return double.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  String _chartSummary(Object? value) {
+    if (value is List) return '${value.length} data points';
+    if (value is Map) return '${value.length} data points';
+    return value?.toString() ?? '-';
+  }
+
+  Future<void> _pickReportDate(bool from) async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: (from ? _reportFrom : _reportTo) ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (selected == null) return;
+    setState(() {
+      if (from) {
+        _reportFrom = selected;
+        if (_reportTo != null && _reportTo!.isBefore(selected)) {
+          _reportTo = selected;
+        }
+      } else {
+        _reportTo = selected;
+        if (_reportFrom != null && _reportFrom!.isAfter(selected)) {
+          _reportFrom = selected;
+        }
+      }
+    });
+    await _load();
   }
 }

@@ -105,6 +105,14 @@ class AppDrawer extends ConsumerWidget {
                   ),
                   if (isVendor) ...[
                     ListTile(
+                      leading: const Icon(Icons.store_mall_directory_outlined),
+                      title: const Text('Store Settings'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.vendorStore);
+                      },
+                    ),
+                    ListTile(
                       leading: const Icon(Icons.inventory_2_outlined),
                       title: const Text('Products'),
                       onTap: () {
@@ -152,6 +160,38 @@ class AppDrawer extends ConsumerWidget {
                       onTap: () {
                         Navigator.of(context).pop();
                         context.push(AppRoutes.vendorPromotions);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.currency_exchange_outlined),
+                      title: const Text('Refunds'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.vendorRefunds);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.confirmation_number_outlined),
+                      title: const Text('Coupons'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.vendorCoupons);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.autorenew_rounded),
+                      title: const Text('Subscriptions'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.vendorSubscriptions);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.event_repeat_outlined),
+                      title: const Text('Scheduled Orders'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(AppRoutes.vendorScheduledOrders);
                       },
                     ),
                     ListTile(

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../providers/vendor_provider.dart';
 import '../../providers/profile_provider.dart';
@@ -13,12 +14,16 @@ import '../../widgets/dailycart_card.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/setting_tile.dart';
 import '../../widgets/stock_status_badge.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/vendor_bottom_navigation.dart';
+import '../../widgets/error_widget.dart';
 
 class VendorProfileScreen extends ConsumerStatefulWidget {
   const VendorProfileScreen({super.key});
 
   @override
-  ConsumerState<VendorProfileScreen> createState() => _VendorProfileScreenState();
+  ConsumerState<VendorProfileScreen> createState() =>
+      _VendorProfileScreenState();
 }
 
 class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
@@ -34,136 +39,179 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
     final profile = state.profile;
     return Scaffold(
       appBar: const CustomAppBar(title: 'Vendor Profile'),
+      drawer: const AppDrawer(roleName: 'Vendor'),
       body: state.isLoading && profile == null
           ? const LoadingWidget(message: 'Loading vendor profile...')
           : profile == null
-              ? const Center(child: Text('Vendor profile not found.'))
-              : ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    DailyCartCard(
-                      child: Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 42,
-                            backgroundColor: AppColors.lightBackground,
-                            backgroundImage: profile.shopLogo.isEmpty
-                                ? null
-                                : CachedNetworkImageProvider(profile.shopLogo),
-                            child: profile.shopLogo.isEmpty
-                                ? const Icon(Icons.storefront_rounded, size: 42)
-                                : null,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            profile.shopName.isEmpty
-                                ? 'DailyCart Vendor'
-                                : profile.shopName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(fontWeight: FontWeight.w900),
-                          ),
-                          const SizedBox(height: 8),
-                          StockStatusBadge(status: profile.approvalStatus),
-                        ],
+          ? DailyCartErrorWidget(
+              title: 'Profile unavailable',
+              message: state.errorMessage ?? 'Vendor profile not found.',
+              onRetry: () => ref.read(vendorProvider).getVendorProfile(),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                DailyCartCard(
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 42,
+                        backgroundColor: AppColors.lightBackground,
+                        backgroundImage: profile.shopLogo.isEmpty
+                            ? null
+                            : CachedNetworkImageProvider(profile.shopLogo),
+                        child: profile.shopLogo.isEmpty
+                            ? const Icon(Icons.storefront_rounded, size: 42)
+                            : null,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    DailyCartCard(
-                      child: Column(
-                        children: [
-                          _Info('Owner', profile.ownerName),
-                          _Info('Email', profile.email),
-                          _Info('Phone', profile.phone),
-                          _Info('Address', profile.address),
-                          _Info(
-                            'Business Reg.',
-                            profile.businessRegistrationNumber,
-                          ),
-                        ],
+                      const SizedBox(height: 12),
+                      Text(
+                        profile.shopName.isEmpty
+                            ? 'DailyCart Vendor'
+                            : profile.shopName,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    DailyCartCard(
-                      child: Column(
-                        children: [
-                          SettingTile(
-                            icon: Icons.edit_outlined,
-                            title: 'Edit Vendor Profile',
-                            onTap: _editVendorProfile,
-                          ),
-                          SettingTile(
-                            icon: Icons.lock_outline,
-                            title: 'Change Password',
-                            onTap: () =>
-                                context.push(AppRoutes.vendorChangePassword),
-                          ),
-                          SettingTile(
-                            icon: Icons.reviews_outlined,
-                            title: 'Vendor Reviews',
-                            onTap: () => context.push(AppRoutes.vendorReviews),
-                          ),
-                          SettingTile(
-                            icon: Icons.account_balance_wallet_outlined,
-                            title: 'Wallet & Payouts',
-                            onTap: () => context.push(AppRoutes.vendorWallet),
-                          ),
-                          SettingTile(
-                            icon: Icons.currency_exchange,
-                            title: 'Refunds',
-                            onTap: () => context.push(AppRoutes.vendorRefunds),
-                          ),
-                          SettingTile(
-                            icon: Icons.confirmation_number_outlined,
-                            title: 'Coupons',
-                            onTap: () => context.push(AppRoutes.vendorCoupons),
-                          ),
-                          SettingTile(
-                            icon: Icons.local_offer_outlined,
-                            title: 'Promotions',
-                            onTap: () =>
-                                context.push(AppRoutes.vendorPromotions),
-                          ),
-                          SettingTile(
-                            icon: Icons.autorenew,
-                            title: 'Subscriptions',
-                            onTap: () =>
-                                context.push(AppRoutes.vendorSubscriptions),
-                          ),
-                          SettingTile(
-                            icon: Icons.event_repeat_outlined,
-                            title: 'Scheduled Orders',
-                            onTap: () =>
-                                context.push(AppRoutes.vendorScheduledOrders),
-                          ),
-                          SettingTile(
-                            icon: Icons.analytics_outlined,
-                            title: 'Reports',
-                            onTap: () => context.push(AppRoutes.vendorReports),
-                          ),
-                          SettingTile(
-                            icon: Icons.notifications_none,
-                            title: 'Notifications',
-                            onTap: () =>
-                                context.push(AppRoutes.vendorNotifications),
-                          ),
-                          SettingTile(
-                            icon: Icons.support_agent,
-                            title: 'Support',
-                            onTap: () =>
-                                context.push(AppRoutes.vendorSupportTickets),
-                          ),
-                          SettingTile(
-                            icon: Icons.delete_forever_outlined,
-                            title: 'Delete Vendor Account',
-                            onTap: _deleteAccount,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      StockStatusBadge(status: profile.approvalStatus),
+                    ],
+                  ),
                 ),
+                const SizedBox(height: 16),
+                DailyCartCard(
+                  child: Column(
+                    children: [
+                      _Info('Owner', profile.ownerName),
+                      _Info('Email', profile.email),
+                      _Info('Phone', profile.phone),
+                      _Info('Address', profile.address),
+                      _Info('City', profile.city),
+                      _Info('District', profile.district),
+                      _Info('Province', profile.province),
+                      _Info(
+                        'Business Reg.',
+                        profile.businessRegistrationNumber,
+                      ),
+                      _Info(
+                        'Commission',
+                        '${profile.commissionRate.toStringAsFixed(1)}%',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                DailyCartCard(
+                  child: Column(
+                    children: [
+                      SettingTile(
+                        icon: Icons.edit_outlined,
+                        title: 'Edit Vendor Profile',
+                        onTap: _editVendorProfile,
+                      ),
+                      SettingTile(
+                        icon: Icons.photo_camera_outlined,
+                        title: 'Update Store Logo',
+                        onTap: _updatePhoto,
+                      ),
+                      SettingTile(
+                        icon: Icons.store_mall_directory_outlined,
+                        title: 'Store Settings, Banners & Analytics',
+                        onTap: () => context.push(AppRoutes.vendorStore),
+                      ),
+                      SettingTile(
+                        icon: Icons.lock_outline,
+                        title: 'Change Password',
+                        onTap: () =>
+                            context.push(AppRoutes.vendorChangePassword),
+                      ),
+                      SettingTile(
+                        icon: Icons.reviews_outlined,
+                        title: 'Vendor Reviews',
+                        onTap: () => context.push(AppRoutes.vendorReviews),
+                      ),
+                      SettingTile(
+                        icon: Icons.account_balance_wallet_outlined,
+                        title: 'Wallet & Payouts',
+                        onTap: () => context.push(AppRoutes.vendorWallet),
+                      ),
+                      SettingTile(
+                        icon: Icons.currency_exchange,
+                        title: 'Refunds',
+                        onTap: () => context.push(AppRoutes.vendorRefunds),
+                      ),
+                      SettingTile(
+                        icon: Icons.confirmation_number_outlined,
+                        title: 'Coupons',
+                        onTap: () => context.push(AppRoutes.vendorCoupons),
+                      ),
+                      SettingTile(
+                        icon: Icons.local_offer_outlined,
+                        title: 'Promotions',
+                        onTap: () => context.push(AppRoutes.vendorPromotions),
+                      ),
+                      SettingTile(
+                        icon: Icons.autorenew,
+                        title: 'Subscriptions',
+                        onTap: () =>
+                            context.push(AppRoutes.vendorSubscriptions),
+                      ),
+                      SettingTile(
+                        icon: Icons.event_repeat_outlined,
+                        title: 'Scheduled Orders',
+                        onTap: () =>
+                            context.push(AppRoutes.vendorScheduledOrders),
+                      ),
+                      SettingTile(
+                        icon: Icons.analytics_outlined,
+                        title: 'Reports',
+                        onTap: () => context.push(AppRoutes.vendorReports),
+                      ),
+                      SettingTile(
+                        icon: Icons.notifications_none,
+                        title: 'Notifications',
+                        onTap: () =>
+                            context.push(AppRoutes.vendorNotifications),
+                      ),
+                      SettingTile(
+                        icon: Icons.support_agent,
+                        title: 'Support',
+                        onTap: () =>
+                            context.push(AppRoutes.vendorSupportTickets),
+                      ),
+                      SettingTile(
+                        icon: Icons.delete_forever_outlined,
+                        title: 'Delete Vendor Account',
+                        onTap: _deleteAccount,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+      bottomNavigationBar: const VendorBottomNavigation(currentIndex: 4),
+    );
+  }
+
+  Future<void> _updatePhoto() async {
+    final image = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1600,
+    );
+    if (image == null) return;
+    final ok = await ref.read(profileProvider).uploadProfilePhoto(image.path);
+    if (ok) await ref.read(vendorProvider).getVendorProfile();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'Store logo updated.'
+              : ref.read(profileProvider).errorMessage ??
+                    'Unable to update store logo.',
+        ),
+      ),
     );
   }
 
@@ -234,7 +282,10 @@ class _Info extends StatelessWidget {
         children: [
           SizedBox(
             width: 112,
-            child: Text(label, style: const TextStyle(color: AppColors.mutedText)),
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.mutedText),
+            ),
           ),
           Expanded(child: Text(value.isEmpty ? '-' : value)),
         ],

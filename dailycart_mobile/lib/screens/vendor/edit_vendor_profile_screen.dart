@@ -27,6 +27,11 @@ class _EditVendorProfileScreenState
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _registrationController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _districtController = TextEditingController();
+  final _provinceController = TextEditingController();
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
   bool _filled = false;
 
   @override
@@ -43,6 +48,11 @@ class _EditVendorProfileScreenState
     _phoneController.dispose();
     _addressController.dispose();
     _registrationController.dispose();
+    _cityController.dispose();
+    _districtController.dispose();
+    _provinceController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -58,6 +68,11 @@ class _EditVendorProfileScreenState
       _phoneController.text = profile.phone;
       _addressController.text = profile.address;
       _registrationController.text = profile.businessRegistrationNumber;
+      _cityController.text = profile.city;
+      _districtController.text = profile.district;
+      _provinceController.text = profile.province;
+      _latitudeController.text = profile.latitude?.toString() ?? '';
+      _longitudeController.text = profile.longitude?.toString() ?? '';
     }
 
     return Scaffold(
@@ -65,67 +80,115 @@ class _EditVendorProfileScreenState
       body: state.isLoading && profile == null
           ? const LoadingWidget(message: 'Loading vendor profile...')
           : profile == null
-              ? const Center(child: Text('Vendor profile not found.'))
-              : ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    DailyCartCard(
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
+          ? const Center(child: Text('Vendor profile not found.'))
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                DailyCartCard(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        CustomTextField(
+                          label: 'Shop Name',
+                          controller: _shopController,
+                          icon: Icons.storefront_outlined,
+                          validator: _required,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Owner Name',
+                          controller: _ownerController,
+                          icon: Icons.person_outline_rounded,
+                          validator: _required,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Email',
+                          controller: _emailController,
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: _required,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Phone',
+                          controller: _phoneController,
+                          icon: Icons.phone_outlined,
+                          validator: _required,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Address',
+                          controller: _addressController,
+                          icon: Icons.location_on_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Business Registration Number',
+                          controller: _registrationController,
+                          icon: Icons.badge_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'City',
+                          controller: _cityController,
+                          icon: Icons.location_city_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'District',
+                          controller: _districtController,
+                          icon: Icons.map_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Province',
+                          controller: _provinceController,
+                          icon: Icons.public_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
                           children: [
-                            CustomTextField(
-                              label: 'Shop Name',
-                              controller: _shopController,
-                              icon: Icons.storefront_outlined,
-                              validator: _required,
+                            Expanded(
+                              child: CustomTextField(
+                                label: 'Latitude',
+                                controller: _latitudeController,
+                                icon: Icons.my_location_outlined,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                      signed: true,
+                                    ),
+                              ),
                             ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'Owner Name',
-                              controller: _ownerController,
-                              icon: Icons.person_outline_rounded,
-                              validator: _required,
-                            ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'Email',
-                              controller: _emailController,
-                              icon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: _required,
-                            ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'Phone',
-                              controller: _phoneController,
-                              icon: Icons.phone_outlined,
-                              validator: _required,
-                            ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'Address',
-                              controller: _addressController,
-                              icon: Icons.location_on_outlined,
-                            ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'Business Registration Number',
-                              controller: _registrationController,
-                              icon: Icons.badge_outlined,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: CustomTextField(
+                                label: 'Longitude',
+                                controller: _longitudeController,
+                                icon: Icons.my_location_outlined,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                      signed: true,
+                                    ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    CustomButton(
-                      label: 'Save Vendor Profile',
-                      isLoading: state.isLoading,
-                      onPressed: () => _save(profile),
-                    ),
-                  ],
+                  ),
                 ),
+                const SizedBox(height: 20),
+                CustomButton(
+                  label: 'Save Vendor Profile',
+                  isLoading: state.isLoading,
+                  onPressed: () => _save(profile),
+                ),
+              ],
+            ),
     );
   }
 
@@ -143,6 +206,12 @@ class _EditVendorProfileScreenState
       businessRegistrationNumber: _registrationController.text.trim(),
       approvalStatus: profile.approvalStatus,
       shopLogo: profile.shopLogo,
+      city: _cityController.text.trim(),
+      district: _districtController.text.trim(),
+      province: _provinceController.text.trim(),
+      latitude: _coordinate(_latitudeController.text, profile.latitude),
+      longitude: _coordinate(_longitudeController.text, profile.longitude),
+      commissionRate: profile.commissionRate,
     );
     final ok = await ref.read(vendorProvider).updateVendorProfile(updated);
     if (!mounted) {
@@ -152,12 +221,19 @@ class _EditVendorProfileScreenState
       context.pop(true);
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Unable to update profile.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Unable to update profile.')));
   }
 
   static String? _required(String? value) {
-    return value == null || value.trim().isEmpty ? 'This field is required.' : null;
+    return value == null || value.trim().isEmpty
+        ? 'This field is required.'
+        : null;
+  }
+
+  static double? _coordinate(String value, double? fallback) {
+    if (value.trim().isEmpty) return fallback;
+    return double.tryParse(value.trim()) ?? fallback;
   }
 }
