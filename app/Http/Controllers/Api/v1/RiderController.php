@@ -8,6 +8,7 @@ use App\Services\DashboardService;
 use App\Services\DeliveryService;
 use App\Services\RiderEarningService;
 use App\Services\RiderRatingService;
+use App\Services\FinancialPolicyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -296,23 +297,54 @@ class RiderController extends Controller
         ]);
     }
 
-    public function reports(Request $request, RiderEarningService $earnings): JsonResponse
+    public function reports(
+        Request $request,
+        RiderEarningService $earnings,
+        FinancialPolicyService $financialPolicy
+    ): JsonResponse
     {
         $rider = $request->user()->rider;
-        $total = $rider->deliveries()->count();
-        $completed = $rider->deliveries()->where('status', 'delivered')->count();
+        $filters = $request->validate([
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+        ]);
+        $base = $rider->deliveries()
+            ->when($filters['from'] ?? null, fn ($query, $from) => $query->whereDate('created_at', '>=', $from))
+            ->when($filters['to'] ?? null, fn ($query, $to) => $query->whereDate('created_at', '<=', $to));
+        $total = (clone $base)->count();
+        $completed = (clone $base)->where('status', 'delivered')->count();
+        $deliveries = (clone $base)->with('order.customer.user')->latest()->limit(50)->get();
+        $settings = $financialPolicy->settings();
 
         return response()->json([
             'report' => [
                 'total_deliveries' => $total,
                 'completed_deliveries' => $completed,
-                'failed_deliveries' => $rider->deliveries()->where('status', 'failed')->count(),
-                'active_deliveries' => $rider->deliveries()
+                'failed_deliveries' => (clone $base)->where('status', 'failed')->count(),
+                'active_deliveries' => (clone $base)
                     ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_the_way'])
                     ->count(),
                 'completion_rate' => $total > 0 ? round($completed / $total * 100, 2) : 0,
-                'total_earnings' => $earnings->total($rider),
+                'total_earnings' => (float) (clone $base)->where('status', 'delivered')->sum('rider_payout'),
                 'earnings' => $earnings->summary($rider),
+                'earnings_policy' => [
+                    'base_per_delivery' => $settings['rider_payout_base'],
+                    'per_km_bonus' => $settings['rider_payout_per_km'],
+                    'peak_bonus' => $settings['rider_peak_bonus'],
+                ],
+                'deliveries' => $deliveries->map(fn (Delivery $delivery) => [
+                    'id' => $delivery->id,
+                    'order_number' => $delivery->order?->order_number,
+                    'customer_name' => $delivery->order?->customer?->user?->name,
+                    'status' => $delivery->status,
+                    'scheduled_at' => $delivery->scheduled_at,
+                    'delivered_at' => $delivery->delivered_at,
+                    'rider_payout' => (float) ($delivery->rider_payout ?? 0),
+                ]),
+                'filters' => [
+                    'from' => $filters['from'] ?? null,
+                    'to' => $filters['to'] ?? null,
+                ],
             ],
         ]);
     }

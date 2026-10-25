@@ -9,8 +9,8 @@ import 'authenticated_api_mixin.dart';
 
 class RiderRatingApiService with AuthenticatedApiMixin {
   RiderRatingApiService({Dio? dio, SecureStorageHelper? storage})
-      : _dio = dio ?? ApiClient.shared.dio,
-        _storage = storage ?? SecureStorageHelper();
+    : _dio = dio ?? ApiClient.shared.dio,
+      _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
   final SecureStorageHelper _storage;
@@ -71,22 +71,39 @@ class RiderRatingApiService with AuthenticatedApiMixin {
           ? ApiResponseParser.requireMap(json['statistics'])
           : const <String, dynamic>{};
       final rows = json['ratings'] is List ? json['ratings'] as List : const [];
+      final rawDistribution = stats['distribution'] is Map
+          ? stats['distribution'] as Map
+          : const {};
       return RiderRatingSummary(
-        average: double.tryParse(
+        average:
+            double.tryParse(
               (stats['average'] ?? stats['average_rating'] ?? 0).toString(),
             ) ??
             0,
-        total: int.tryParse(
-              (stats['total'] ?? stats['total_ratings'] ?? rows.length)
+        total:
+            int.tryParse(
+              (stats['count'] ??
+                      stats['total'] ??
+                      stats['total_ratings'] ??
+                      rows.length)
                   .toString(),
             ) ??
             rows.length,
         ratings: rows
             .whereType<Map>()
-            .map((row) => RiderRatingModel.fromJson(
-                  row.map((key, value) => MapEntry(key.toString(), value)),
-                ))
+            .map(
+              (row) => RiderRatingModel.fromJson(
+                row.map((key, value) => MapEntry(key.toString(), value)),
+              ),
+            )
             .toList(growable: false),
+        reported: int.tryParse((stats['reported'] ?? 0).toString()) ?? 0,
+        distribution: rawDistribution.map(
+          (key, value) => MapEntry(
+            int.tryParse(key.toString()) ?? 0,
+            int.tryParse(value.toString()) ?? 0,
+          ),
+        )..remove(0),
       );
     } on DioException catch (error) {
       throw ApiException.fromDio(error);

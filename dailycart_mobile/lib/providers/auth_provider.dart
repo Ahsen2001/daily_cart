@@ -53,7 +53,10 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated =>
       isSessionValidated && token != null && user != null;
 
-  bool get requiresVerification => user?.requiresVerification == true;
+  // Rider OTP verification is intentionally deferred. Admin approval remains
+  // required, while customer and vendor verification flows are unchanged.
+  bool get requiresVerification =>
+      !AppIdentity.isRider && user?.requiresVerification == true;
 
   bool get requiresApproval => user?.isPendingApproval == true;
 
@@ -269,7 +272,8 @@ class AuthProvider extends ChangeNotifier {
     isSessionValidated = true;
     await _syncNotificationDevice();
 
-    if (response.requiresVerification || responseUser.requiresVerification) {
+    if (!AppIdentity.isRider &&
+        (response.requiresVerification || responseUser.requiresVerification)) {
       return AuthActionResult.verificationRequired(
         response.message.isEmpty
             ? 'Verify your email and phone to continue.'

@@ -6,6 +6,7 @@ class DeliveryModel {
     this.customerName = '',
     this.customerPhone = '',
     this.deliveryAddress = '',
+    this.pickupAddress = '',
     this.paymentMethod = '',
     this.paymentStatus = '',
     this.scheduledDeliveryTime,
@@ -15,6 +16,8 @@ class DeliveryModel {
     this.items = const [],
     this.proofs = const [],
     this.acceptedAt,
+    this.pickedUpAt,
+    this.deliveredAt,
     this.failedReason = '',
   });
 
@@ -24,6 +27,7 @@ class DeliveryModel {
   final String customerName;
   final String customerPhone;
   final String deliveryAddress;
+  final String pickupAddress;
   final String paymentMethod;
   final String paymentStatus;
   final DateTime? scheduledDeliveryTime;
@@ -33,6 +37,8 @@ class DeliveryModel {
   final List<DeliveryItemModel> items;
   final List<DeliveryProofSummaryModel> proofs;
   final DateTime? acceptedAt;
+  final DateTime? pickedUpAt;
+  final DateTime? deliveredAt;
   final String failedReason;
 
   bool get canAccept => status.toLowerCase() == 'assigned';
@@ -46,7 +52,8 @@ class DeliveryModel {
 
   factory DeliveryModel.fromJson(Map<String, dynamic> json) {
     final order = json['order'];
-    final customer = json['customer'] ??
+    final customer =
+        json['customer'] ??
         json['user'] ??
         (order is Map<String, dynamic> ? order['customer'] : null);
     final source = order is Map<String, dynamic> ? order : json;
@@ -57,18 +64,26 @@ class DeliveryModel {
           .toString(),
       status: (json['status'] ?? source['delivery_status'] ?? 'assigned')
           .toString(),
-      customerName: (json['customer_name'] ??
-              source['customer_name'] ??
-              (customer is Map<String, dynamic> ? customer['name'] : null) ??
-              '')
-          .toString(),
-      customerPhone: (json['customer_phone'] ??
-              source['customer_phone'] ??
-              (customer is Map<String, dynamic> ? customer['phone'] : null) ??
-              '')
-          .toString(),
+      customerName:
+          (json['customer_name'] ??
+                  source['customer_name'] ??
+                  (customer is Map<String, dynamic>
+                      ? customer['name']
+                      : null) ??
+                  '')
+              .toString(),
+      customerPhone:
+          (json['customer_phone'] ??
+                  source['customer_phone'] ??
+                  (customer is Map<String, dynamic>
+                      ? customer['phone']
+                      : null) ??
+                  '')
+              .toString(),
       deliveryAddress:
-          (json['delivery_address'] ?? source['delivery_address'] ?? '').toString(),
+          (json['delivery_address'] ?? source['delivery_address'] ?? '')
+              .toString(),
+      pickupAddress: (json['pickup_address'] ?? '').toString(),
       paymentMethod: (source['payment_method'] ?? '').toString(),
       paymentStatus: (source['payment_status'] ?? '').toString(),
       scheduledDeliveryTime: _nullableDate(
@@ -86,13 +101,15 @@ class DeliveryModel {
             source['delivery_longitude'] ??
             source['longitude'],
       ),
-      items: _listFrom(source['items'] ?? source['order_items'])
-          .map(DeliveryItemModel.fromJson)
-          .toList(growable: false),
-      proofs: _listFrom(json['proofs'])
-          .map(DeliveryProofSummaryModel.fromJson)
-          .toList(growable: false),
+      items: _listFrom(
+        source['items'] ?? source['order_items'],
+      ).map(DeliveryItemModel.fromJson).toList(growable: false),
+      proofs: _listFrom(
+        json['proofs'],
+      ).map(DeliveryProofSummaryModel.fromJson).toList(growable: false),
       acceptedAt: _nullableDate(json['accepted_at']),
+      pickedUpAt: _nullableDate(json['picked_up_at']),
+      deliveredAt: _nullableDate(json['delivered_at']),
       failedReason: (json['failed_reason'] ?? '').toString(),
     );
   }

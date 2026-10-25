@@ -59,6 +59,8 @@ class RiderProvider extends ChangeNotifier {
           todayEarnings: dashboard!.todayEarnings,
           weeklyEarnings: dashboard!.weeklyEarnings,
           monthlyEarnings: dashboard!.monthlyEarnings,
+          averageRating: dashboard!.averageRating,
+          ratingCount: dashboard!.ratingCount,
           approvalStatus: dashboard!.approvalStatus,
           availabilityStatus: status,
         );
@@ -66,9 +68,9 @@ class RiderProvider extends ChangeNotifier {
     });
   }
 
-  Future<bool> getRiderReport() {
+  Future<bool> getRiderReport({DateTime? from, DateTime? to}) {
     return _run(() async {
-      report = await _apiService.getReports();
+      report = await _apiService.getReports(from: from, to: to);
     });
   }
 

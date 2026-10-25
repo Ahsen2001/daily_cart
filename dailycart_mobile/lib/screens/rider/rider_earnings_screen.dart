@@ -8,6 +8,8 @@ import '../../widgets/custom_app_bar.dart';
 import '../../widgets/dailycart_card.dart';
 import '../../widgets/earnings_card.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/error_widget.dart';
+import '../../widgets/rider_bottom_navigation.dart';
 
 class RiderEarningsScreen extends ConsumerStatefulWidget {
   const RiderEarningsScreen({super.key});
@@ -33,50 +35,74 @@ class _RiderEarningsScreenState extends ConsumerState<RiderEarningsScreen> {
       body: state.isLoading && earnings == null
           ? const LoadingWidget(message: 'Loading rider earnings...')
           : earnings == null
-              ? const Center(child: Text('Earnings not found.'))
-              : ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    EarningsCard(title: 'Daily Earnings', amount: earnings.dailyEarnings),
-                    const SizedBox(height: 12),
-                    EarningsCard(title: 'Weekly Earnings', amount: earnings.weeklyEarnings),
-                    const SizedBox(height: 12),
-                    EarningsCard(title: 'Monthly Earnings', amount: earnings.monthlyEarnings),
-                    const SizedBox(height: 16),
-                    DailyCartCard(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Completed: ${earnings.completedDeliveryCount}',
-                              style: const TextStyle(fontWeight: FontWeight.w900),
-                            ),
+          ? DailyCartErrorWidget(
+              title: 'Earnings unavailable',
+              message: state.errorMessage ?? 'Earnings not found.',
+              onRetry: () => ref.read(riderEarningProvider).getRiderEarnings(),
+            )
+          : RefreshIndicator(
+              onRefresh: () =>
+                  ref.read(riderEarningProvider).getRiderEarnings(),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20),
+                children: [
+                  EarningsCard(
+                    title: 'Total Earnings',
+                    amount: earnings.totalEarnings,
+                  ),
+                  const SizedBox(height: 12),
+                  EarningsCard(
+                    title: 'Daily Earnings',
+                    amount: earnings.dailyEarnings,
+                  ),
+                  const SizedBox(height: 12),
+                  EarningsCard(
+                    title: 'Weekly Earnings',
+                    amount: earnings.weeklyEarnings,
+                  ),
+                  const SizedBox(height: 12),
+                  EarningsCard(
+                    title: 'Monthly Earnings',
+                    amount: earnings.monthlyEarnings,
+                  ),
+                  const SizedBox(height: 16),
+                  DailyCartCard(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Completed: ${earnings.completedDeliveryCount}',
+                            style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
-                          Text('Failed: ${earnings.failedDeliveryCount}'),
-                        ],
+                        ),
+                        Text('Failed: ${earnings.failedDeliveryCount}'),
+                      ],
+                    ),
+                  ),
+                  if (earnings.history.isNotEmpty) ...[
+                    const SizedBox(height: 22),
+                    Text(
+                      'Earnings History',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                    if (earnings.history.isNotEmpty) ...[
-                      const SizedBox(height: 22),
-                      Text(
-                        'Earnings History',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            ),
-                      ),
-                      const SizedBox(height: 10),
-                      for (final item in earnings.history)
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(item.title),
-                          subtitle: Text(
-                            DateFormat('MMM d, yyyy').format(item.createdAt),
-                          ),
-                          trailing: Text(CurrencyFormatter.lkr(item.amount)),
+                    const SizedBox(height: 10),
+                    for (final item in earnings.history)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(item.title),
+                        subtitle: Text(
+                          DateFormat('MMM d, yyyy').format(item.createdAt),
                         ),
-                    ],
+                        trailing: Text(CurrencyFormatter.lkr(item.amount)),
+                      ),
                   ],
-                ),
+                ],
+              ),
+            ),
+      bottomNavigationBar: const RiderBottomNavigation(currentIndex: 2),
     );
   }
 }

@@ -28,6 +28,11 @@ class _EditRiderProfileScreenState
   final _vehicleNumberController = TextEditingController();
   final _licenseController = TextEditingController();
   final _addressController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _districtController = TextEditingController();
+  final _provinceController = TextEditingController();
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
   bool _filled = false;
 
   @override
@@ -45,6 +50,11 @@ class _EditRiderProfileScreenState
     _vehicleNumberController.dispose();
     _licenseController.dispose();
     _addressController.dispose();
+    _cityController.dispose();
+    _districtController.dispose();
+    _provinceController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -61,6 +71,11 @@ class _EditRiderProfileScreenState
       _vehicleNumberController.text = profile.vehicleNumber;
       _licenseController.text = profile.licenseNumber;
       _addressController.text = profile.address;
+      _cityController.text = profile.city;
+      _districtController.text = profile.district;
+      _provinceController.text = profile.province;
+      _latitudeController.text = profile.latitude?.toString() ?? '';
+      _longitudeController.text = profile.longitude?.toString() ?? '';
     }
 
     return Scaffold(
@@ -68,75 +83,123 @@ class _EditRiderProfileScreenState
       body: state.isLoading && profile == null
           ? const LoadingWidget(message: 'Loading rider profile...')
           : profile == null
-              ? const Center(child: Text('Rider profile not found.'))
-              : ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    DailyCartCard(
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
+          ? const Center(child: Text('Rider profile not found.'))
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                DailyCartCard(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        CustomTextField(
+                          label: 'Rider Name',
+                          controller: _nameController,
+                          icon: Icons.person_outline_rounded,
+                          validator: _required,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Email',
+                          controller: _emailController,
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: _required,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Phone',
+                          controller: _phoneController,
+                          icon: Icons.phone_outlined,
+                          validator: _required,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Vehicle Type',
+                          controller: _vehicleTypeController,
+                          icon: Icons.two_wheeler_outlined,
+                          validator: _required,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Vehicle Number',
+                          controller: _vehicleNumberController,
+                          icon: Icons.pin_outlined,
+                          validator: _required,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'License Number',
+                          controller: _licenseController,
+                          icon: Icons.badge_outlined,
+                          validator: _required,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Home Base Address',
+                          controller: _addressController,
+                          icon: Icons.home_work_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'City',
+                          controller: _cityController,
+                          icon: Icons.location_city_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'District',
+                          controller: _districtController,
+                          icon: Icons.map_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Province',
+                          controller: _provinceController,
+                          icon: Icons.public_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
                           children: [
-                            CustomTextField(
-                              label: 'Rider Name',
-                              controller: _nameController,
-                              icon: Icons.person_outline_rounded,
-                              validator: _required,
+                            Expanded(
+                              child: CustomTextField(
+                                label: 'Latitude',
+                                controller: _latitudeController,
+                                icon: Icons.my_location_outlined,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                      signed: true,
+                                    ),
+                              ),
                             ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'Email',
-                              controller: _emailController,
-                              icon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: _required,
-                            ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'Phone',
-                              controller: _phoneController,
-                              icon: Icons.phone_outlined,
-                              validator: _required,
-                            ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'Vehicle Type',
-                              controller: _vehicleTypeController,
-                              icon: Icons.two_wheeler_outlined,
-                              validator: _required,
-                            ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'Vehicle Number',
-                              controller: _vehicleNumberController,
-                              icon: Icons.pin_outlined,
-                              validator: _required,
-                            ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'License Number',
-                              controller: _licenseController,
-                              icon: Icons.badge_outlined,
-                              validator: _required,
-                            ),
-                            const SizedBox(height: 12),
-                            CustomTextField(
-                              label: 'Home Base Address',
-                              controller: _addressController,
-                              icon: Icons.home_work_outlined,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: CustomTextField(
+                                label: 'Longitude',
+                                controller: _longitudeController,
+                                icon: Icons.my_location_outlined,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                      signed: true,
+                                    ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    CustomButton(
-                      label: 'Save Rider Profile',
-                      isLoading: state.isLoading,
-                      onPressed: () => _save(profile),
-                    ),
-                  ],
+                  ),
                 ),
+                const SizedBox(height: 20),
+                CustomButton(
+                  label: 'Save Rider Profile',
+                  isLoading: state.isLoading,
+                  onPressed: () => _save(profile),
+                ),
+              ],
+            ),
     );
   }
 
@@ -154,6 +217,11 @@ class _EditRiderProfileScreenState
       profilePhoto: profile.profilePhoto,
       availabilityStatus: profile.availabilityStatus,
       address: _addressController.text.trim(),
+      city: _cityController.text.trim(),
+      district: _districtController.text.trim(),
+      province: _provinceController.text.trim(),
+      latitude: _coordinate(_latitudeController.text, profile.latitude),
+      longitude: _coordinate(_longitudeController.text, profile.longitude),
     );
     final ok = await ref.read(riderProvider).updateRiderProfile(updated);
     if (!mounted) return;
@@ -161,12 +229,19 @@ class _EditRiderProfileScreenState
       context.pop(true);
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Unable to update profile.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Unable to update profile.')));
   }
 
   static String? _required(String? value) {
-    return value == null || value.trim().isEmpty ? 'This field is required.' : null;
+    return value == null || value.trim().isEmpty
+        ? 'This field is required.'
+        : null;
+  }
+
+  static double? _coordinate(String value, double? fallback) {
+    if (value.trim().isEmpty) return fallback;
+    return double.tryParse(value.trim()) ?? fallback;
   }
 }

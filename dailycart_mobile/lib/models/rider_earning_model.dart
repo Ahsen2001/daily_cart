@@ -3,6 +3,7 @@ class RiderEarningModel {
     this.dailyEarnings = 0,
     this.weeklyEarnings = 0,
     this.monthlyEarnings = 0,
+    this.totalEarnings = 0,
     this.completedDeliveryCount = 0,
     this.failedDeliveryCount = 0,
     this.history = const [],
@@ -11,20 +12,24 @@ class RiderEarningModel {
   final double dailyEarnings;
   final double weeklyEarnings;
   final double monthlyEarnings;
+  final double totalEarnings;
   final int completedDeliveryCount;
   final int failedDeliveryCount;
   final List<RiderEarningHistoryModel> history;
 
   factory RiderEarningModel.fromJson(Map<String, dynamic> json) {
     return RiderEarningModel(
-      dailyEarnings: _toDouble(json['daily_earnings'] ?? json['today_earnings']),
+      dailyEarnings: _toDouble(
+        json['daily_earnings'] ?? json['today_earnings'],
+      ),
       weeklyEarnings: _toDouble(json['weekly_earnings']),
       monthlyEarnings: _toDouble(json['monthly_earnings']),
+      totalEarnings: _toDouble(json['total_earnings']),
       completedDeliveryCount: _toInt(json['completed_delivery_count']),
       failedDeliveryCount: _toInt(json['failed_delivery_count']),
-      history: _listFrom(json['history'])
-          .map(RiderEarningHistoryModel.fromJson)
-          .toList(growable: false),
+      history: _listFrom(
+        json['history'],
+      ).map(RiderEarningHistoryModel.fromJson).toList(growable: false),
     );
   }
 
@@ -61,7 +66,8 @@ class RiderEarningHistoryModel {
     return RiderEarningHistoryModel(
       title: (json['title'] ?? json['description'] ?? '').toString(),
       amount: RiderEarningModel._toDouble(json['amount']),
-      createdAt: DateTime.tryParse((json['created_at'] ?? '').toString()) ??
+      createdAt:
+          DateTime.tryParse((json['created_at'] ?? '').toString()) ??
           DateTime.now(),
     );
   }

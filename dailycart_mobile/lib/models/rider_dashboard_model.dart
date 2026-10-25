@@ -7,6 +7,8 @@ class RiderDashboardModel {
     this.todayEarnings = 0,
     this.weeklyEarnings = 0,
     this.monthlyEarnings = 0,
+    this.averageRating = 0,
+    this.ratingCount = 0,
     this.approvalStatus = 'pending',
     this.availabilityStatus = 'unavailable',
   });
@@ -18,6 +20,8 @@ class RiderDashboardModel {
   final double todayEarnings;
   final double weeklyEarnings;
   final double monthlyEarnings;
+  final double averageRating;
+  final int ratingCount;
   final String approvalStatus;
   final String availabilityStatus;
 
@@ -33,10 +37,12 @@ class RiderDashboardModel {
       todayEarnings: _toDouble(json['today_earnings']),
       weeklyEarnings: _toDouble(json['weekly_earnings']),
       monthlyEarnings: _toDouble(json['monthly_earnings']),
-      approvalStatus:
-          (json['approval_status'] ?? json['status'] ?? 'pending').toString(),
-      availabilityStatus:
-          (json['availability_status'] ?? 'unavailable').toString(),
+      averageRating: _toDouble(json['average_rating']),
+      ratingCount: _toInt(json['rating_count']),
+      approvalStatus: (json['approval_status'] ?? json['status'] ?? 'pending')
+          .toString(),
+      availabilityStatus: (json['availability_status'] ?? 'unavailable')
+          .toString(),
     );
   }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 
 import '../../providers/rider_delivery_provider.dart';
 import '../../routes/app_routes.dart';
@@ -12,12 +14,10 @@ import '../../widgets/delivery_action_button.dart';
 import '../../widgets/delivery_status_badge.dart';
 import '../../widgets/delivery_status_timeline.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/error_widget.dart';
 
 class DeliveryDetailsScreen extends ConsumerStatefulWidget {
-  const DeliveryDetailsScreen({
-    required this.deliveryId,
-    super.key,
-  });
+  const DeliveryDetailsScreen({required this.deliveryId, super.key});
 
   final int deliveryId;
 
@@ -31,7 +31,8 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   void initState() {
     super.initState();
     Future.microtask(
-      () => ref.read(riderDeliveryProvider).getDeliveryDetails(widget.deliveryId),
+      () =>
+          ref.read(riderDeliveryProvider).getDeliveryDetails(widget.deliveryId),
     );
   }
 
@@ -44,148 +45,220 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       body: state.isLoading && delivery == null
           ? const LoadingWidget(message: 'Loading delivery...')
           : delivery == null
-              ? const Center(child: Text('Delivery not found.'))
-              : ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    DailyCartCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          ? DailyCartErrorWidget(
+              title: 'Delivery unavailable',
+              message: state.errorMessage ?? 'Delivery not found.',
+              onRetry: () => ref
+                  .read(riderDeliveryProvider)
+                  .getDeliveryDetails(widget.deliveryId),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                DailyCartCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  delivery.orderNumber.isEmpty
-                                      ? 'Delivery #${delivery.id}'
-                                      : delivery.orderNumber,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.w900),
-                                ),
-                              ),
-                              DeliveryStatusBadge(status: delivery.status),
-                            ],
+                          Expanded(
+                            child: Text(
+                              delivery.orderNumber.isEmpty
+                                  ? 'Delivery #${delivery.id}'
+                                  : delivery.orderNumber,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w900),
+                            ),
                           ),
-                          const SizedBox(height: 12),
-                          _Info('Customer', delivery.customerName),
-                          _Info('Phone', delivery.customerPhone),
-                          _Info('Address', delivery.deliveryAddress),
-                          _Info(
-                            'Scheduled',
-                            delivery.scheduledDeliveryTime
-                                    ?.toString()
-                                    .split('.')
-                                    .first ??
-                                '-',
-                          ),
-                          _Info('Payment Method', delivery.paymentMethod),
-                          _Info('Payment Status', delivery.paymentStatus),
-                          _Info('Total', CurrencyFormatter.lkr(delivery.totalAmount)),
+                          DeliveryStatusBadge(status: delivery.status),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    DailyCartCard(
-                      child: DeliveryStatusTimeline(
-                        currentStatus: delivery.status,
+                      const SizedBox(height: 12),
+                      _Info('Customer', delivery.customerName),
+                      _Info('Phone', delivery.customerPhone),
+                      _Info('Address', delivery.deliveryAddress),
+                      _Info('Pickup', delivery.pickupAddress),
+                      _Info(
+                        'Scheduled',
+                        delivery.scheduledDeliveryTime
+                                ?.toString()
+                                .split('.')
+                                .first ??
+                            '-',
                       ),
+                      _Info('Payment Method', delivery.paymentMethod),
+                      _Info('Payment Status', delivery.paymentStatus),
+                      _Info(
+                        'Total',
+                        CurrencyFormatter.lkr(delivery.totalAmount),
+                      ),
+                      if (delivery.acceptedAt != null)
+                        _Info('Accepted', _date(delivery.acceptedAt!)),
+                      if (delivery.pickedUpAt != null)
+                        _Info('Picked up', _date(delivery.pickedUpAt!)),
+                      if (delivery.deliveredAt != null)
+                        _Info('Delivered', _date(delivery.deliveredAt!)),
+                      if (delivery.failedReason.isNotEmpty)
+                        _Info('Failure reason', delivery.failedReason),
+                    ],
+                  ),
+                ),
+                if (delivery.proofs.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  Text(
+                    'Delivery Proof',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
                     ),
-                    const SizedBox(height: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  for (final proof in delivery.proofs)
                     DailyCartCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Items',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w900),
-                          ),
-                          const SizedBox(height: 10),
-                          for (final item in delivery.items) ...[
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '${item.productName} x ${item.quantity}',
+                          if (proof.proofImage.isNotEmpty)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(14),
+                              child: CachedNetworkImage(
+                                imageUrl: proof.proofImage,
+                                width: double.infinity,
+                                height: 190,
+                                fit: BoxFit.cover,
+                                placeholder: (_, _) => const SizedBox(
+                                  height: 190,
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
                                   ),
                                 ),
-                                Text(CurrencyFormatter.lkr(item.subtotal)),
-                              ],
+                                errorWidget: (_, _, _) => const SizedBox(
+                                  height: 120,
+                                  child: Center(
+                                    child: Text('Proof image unavailable'),
+                                  ),
+                                ),
+                              ),
                             ),
-                            const Divider(color: AppColors.border),
+                          if (proof.customerSignature.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Customer signature',
+                              style: TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 6),
+                            CachedNetworkImage(
+                              imageUrl: proof.customerSignature,
+                              height: 90,
+                              fit: BoxFit.contain,
+                            ),
+                          ],
+                          if (proof.note.isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            Text(proof.note),
+                          ],
+                          if (proof.submittedAt != null) ...[
+                            const SizedBox(height: 6),
+                            Text('Submitted ${_date(proof.submittedAt!)}'),
                           ],
                         ],
                       ),
                     ),
-                    const SizedBox(height: 18),
-                    DeliveryActionButton(
-                      label: 'Open Map',
-                      icon: Icons.map_outlined,
-                      onPressed: () => context.push(
-                        '${AppRoutes.riderMap}/${delivery.id}',
-                      ),
-                      isSecondary: true,
-                    ),
-                    if (delivery.canAccept) ...[
-                      const SizedBox(height: 10),
-                      DeliveryActionButton(
-                        label: 'Accept Delivery',
-                        icon: Icons.assignment_turned_in_outlined,
-                        onPressed: () => _accept(delivery.id),
-                      ),
-                    ],
-                    if (delivery.canMarkPickedUp) ...[
-                      const SizedBox(height: 10),
-                      DeliveryActionButton(
-                        label: 'Mark Picked Up',
-                        icon: Icons.inventory_2_outlined,
-                        onPressed: () => _pickedUp(delivery.id),
-                      ),
-                    ],
-                    if (delivery.canMarkOnTheWay) ...[
-                      const SizedBox(height: 10),
-                      DeliveryActionButton(
-                        label: 'Mark On The Way',
-                        icon: Icons.delivery_dining_rounded,
-                        onPressed: () => _onTheWay(delivery.id),
-                      ),
-                    ],
-                    if (delivery.canMarkDelivered) ...[
-                      const SizedBox(height: 10),
-                      DeliveryActionButton(
-                        label: 'Mark Delivered',
-                        icon: Icons.check_circle_outline_rounded,
-                        onPressed: () => context.push(
-                          '${AppRoutes.deliveryProof}/${delivery.id}',
-                        ),
-                      ),
-                    ],
-                    if (delivery.canMarkFailed) ...[
-                      const SizedBox(height: 10),
-                      DeliveryActionButton(
-                        label: 'Mark Failed',
-                        icon: Icons.error_outline_rounded,
-                        isSecondary: true,
-                        onPressed: () => _failed(delivery.id),
-                      ),
-                    ],
-                    if (delivery.status.toLowerCase() == 'delivered') ...[
-                      const SizedBox(height: 10),
-                      DeliveryActionButton(
-                        label: 'Replace Delivery Proof',
-                        icon: Icons.photo_camera_back_outlined,
-                        isSecondary: true,
-                        onPressed: () => context.push(
-                          '${AppRoutes.deliveryProof}/${delivery.id}?replace=true',
-                        ),
-                      ),
-                    ],
-                  ],
+                ],
+                const SizedBox(height: 14),
+                DailyCartCard(
+                  child: DeliveryStatusTimeline(currentStatus: delivery.status),
                 ),
+                const SizedBox(height: 14),
+                DailyCartCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Items',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 10),
+                      for (final item in delivery.items) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${item.productName} x ${item.quantity}',
+                              ),
+                            ),
+                            Text(CurrencyFormatter.lkr(item.subtotal)),
+                          ],
+                        ),
+                        const Divider(color: AppColors.border),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                DeliveryActionButton(
+                  label: 'Open Map',
+                  icon: Icons.map_outlined,
+                  onPressed: () =>
+                      context.push('${AppRoutes.riderMap}/${delivery.id}'),
+                  isSecondary: true,
+                ),
+                if (delivery.canAccept) ...[
+                  const SizedBox(height: 10),
+                  DeliveryActionButton(
+                    label: 'Accept Delivery',
+                    icon: Icons.assignment_turned_in_outlined,
+                    onPressed: () => _accept(delivery.id),
+                  ),
+                ],
+                if (delivery.canMarkPickedUp) ...[
+                  const SizedBox(height: 10),
+                  DeliveryActionButton(
+                    label: 'Mark Picked Up',
+                    icon: Icons.inventory_2_outlined,
+                    onPressed: () => _pickedUp(delivery.id),
+                  ),
+                ],
+                if (delivery.canMarkOnTheWay) ...[
+                  const SizedBox(height: 10),
+                  DeliveryActionButton(
+                    label: 'Mark On The Way',
+                    icon: Icons.delivery_dining_rounded,
+                    onPressed: () => _onTheWay(delivery.id),
+                  ),
+                ],
+                if (delivery.canMarkDelivered) ...[
+                  const SizedBox(height: 10),
+                  DeliveryActionButton(
+                    label: 'Mark Delivered',
+                    icon: Icons.check_circle_outline_rounded,
+                    onPressed: () => context.push(
+                      '${AppRoutes.deliveryProof}/${delivery.id}',
+                    ),
+                  ),
+                ],
+                if (delivery.canMarkFailed) ...[
+                  const SizedBox(height: 10),
+                  DeliveryActionButton(
+                    label: 'Mark Failed',
+                    icon: Icons.error_outline_rounded,
+                    isSecondary: true,
+                    onPressed: () => _failed(delivery.id),
+                  ),
+                ],
+                if (delivery.status.toLowerCase() == 'delivered') ...[
+                  const SizedBox(height: 10),
+                  DeliveryActionButton(
+                    label: 'Replace Delivery Proof',
+                    icon: Icons.photo_camera_back_outlined,
+                    isSecondary: true,
+                    onPressed: () => context.push(
+                      '${AppRoutes.deliveryProof}/${delivery.id}?replace=true',
+                    ),
+                  ),
+                ],
+              ],
+            ),
     );
   }
 
@@ -234,10 +307,13 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
 
   void _show(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
+
+  static String _date(DateTime value) =>
+      DateFormat('MMM d, yyyy h:mm a').format(value.toLocal());
 }
 
 class _Info extends StatelessWidget {
@@ -255,7 +331,10 @@ class _Info extends StatelessWidget {
         children: [
           SizedBox(
             width: 126,
-            child: Text(label, style: const TextStyle(color: AppColors.mutedText)),
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.mutedText),
+            ),
           ),
           Expanded(child: Text(value.isEmpty ? '-' : value)),
         ],

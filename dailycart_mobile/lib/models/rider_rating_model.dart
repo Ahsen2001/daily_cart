@@ -55,9 +55,15 @@ class RiderRatingSummary {
     required this.average,
     required this.total,
     required this.ratings,
+    this.reported = 0,
+    this.distribution = const {},
   });
 
   final double average;
   final int total;
   final List<RiderRatingModel> ratings;
+  final int reported;
+  final Map<int, int> distribution;
+
+  int get fiveStarCount => distribution[5] ?? 0;
 }

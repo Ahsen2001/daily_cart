@@ -221,14 +221,19 @@ class AuthController extends Controller
         PhoneVerificationService $phones
     ): JsonResponse {
         $user->load(['roles', 'customer', 'vendor', 'rider']);
-        $otps->send($user, 'email_verification');
-        $phones->send($user);
+        $isRider = $user->hasRole('Rider');
+        if (! $isRider) {
+            $otps->send($user, 'email_verification');
+            $phones->send($user);
+        }
         $token = $this->issueToken($user, $validated['device_name'] ?? 'dailycart-mobile');
 
         return $this->authenticationResponse(
             $user,
             $token,
-            'Account created. Verify your email and phone to continue.',
+            $isRider
+                ? 'Rider account created. Wait for administrator approval to continue.'
+                : 'Account created. Verify your email and phone to continue.',
             201,
         );
     }
@@ -279,7 +284,8 @@ class AuthController extends Controller
         };
 
         return [
-            'requires_verification' => ! $user->hasVerifiedEmail() || ! $user->hasVerifiedPhone(),
+            'requires_verification' => $role !== 'Rider'
+                && (! $user->hasVerifiedEmail() || ! $user->hasVerifiedPhone()),
             'requires_approval' => $requiresApproval,
         ];
     }

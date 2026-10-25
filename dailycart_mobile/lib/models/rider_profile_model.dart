@@ -11,6 +11,11 @@ class RiderProfileModel {
     this.profilePhoto = '',
     this.availabilityStatus = 'unavailable',
     this.address = '',
+    this.city = '',
+    this.district = '',
+    this.province = '',
+    this.latitude,
+    this.longitude,
   });
 
   final int id;
@@ -24,8 +29,14 @@ class RiderProfileModel {
   final String profilePhoto;
   final String availabilityStatus;
   final String address;
+  final String city;
+  final String district;
+  final String province;
+  final double? latitude;
+  final double? longitude;
 
-  bool get isApproved => approvalStatus.toLowerCase() == 'approved';
+  bool get isApproved =>
+      const {'approved', 'verified'}.contains(approvalStatus.toLowerCase());
 
   factory RiderProfileModel.fromJson(Map<String, dynamic> json) {
     return RiderProfileModel(
@@ -36,12 +47,17 @@ class RiderProfileModel {
       vehicleType: (json['vehicle_type'] ?? '').toString(),
       vehicleNumber: (json['vehicle_number'] ?? '').toString(),
       licenseNumber: (json['license_number'] ?? '').toString(),
-      approvalStatus:
-          (json['approval_status'] ?? json['status'] ?? 'pending').toString(),
+      approvalStatus: (json['approval_status'] ?? json['status'] ?? 'pending')
+          .toString(),
       profilePhoto: (json['profile_photo'] ?? json['avatar'] ?? '').toString(),
-      availabilityStatus:
-          (json['availability_status'] ?? 'unavailable').toString(),
+      availabilityStatus: (json['availability_status'] ?? 'unavailable')
+          .toString(),
       address: (json['address'] ?? '').toString(),
+      city: (json['city'] ?? '').toString(),
+      district: (json['district'] ?? '').toString(),
+      province: (json['province'] ?? '').toString(),
+      latitude: _toNullableDouble(json['latitude']),
+      longitude: _toNullableDouble(json['longitude']),
     );
   }
 
@@ -54,11 +70,22 @@ class RiderProfileModel {
       'vehicle_number': vehicleNumber,
       'license_number': licenseNumber,
       'address': address,
+      'city': city,
+      'district': district,
+      'province': province,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
   static int _toInt(Object? value) {
     if (value is int) return value;
     return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static double? _toNullableDouble(Object? value) {
+    if (value == null || value.toString().isEmpty) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
   }
 }

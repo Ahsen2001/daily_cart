@@ -160,7 +160,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // Rider endpoints
-        Route::prefix('rider')->middleware(['ability:rider', 'verified', 'phone.verified', 'role:Rider', 'rider.approved'])->group(function () {
+        Route::prefix('rider')->middleware(['ability:rider', 'role:Rider', 'rider.approved'])->group(function () {
             Route::get('/dashboard', [RiderController::class, 'dashboard']);
             Route::get('/profile', [RiderController::class, 'profile']);
             Route::put('/profile', [RiderController::class, 'updateProfile']);

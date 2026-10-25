@@ -10,8 +10,8 @@ import 'authenticated_api_mixin.dart';
 
 class RiderApiService with AuthenticatedApiMixin {
   RiderApiService({Dio? dio, SecureStorageHelper? storage})
-      : _dio = dio ?? ApiClient.shared.dio,
-        _storage = storage ?? SecureStorageHelper();
+    : _dio = dio ?? ApiClient.shared.dio,
+      _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
   final SecureStorageHelper _storage;
@@ -79,10 +79,17 @@ class RiderApiService with AuthenticatedApiMixin {
     }
   }
 
-  Future<Map<String, dynamic>> getReports() async {
+  Future<Map<String, dynamic>> getReports({
+    DateTime? from,
+    DateTime? to,
+  }) async {
     try {
       final response = await _dio.get<dynamic>(
         '/rider/reports',
+        queryParameters: {
+          if (from != null) 'from': _date(from),
+          if (to != null) 'to': _date(to),
+        },
         options: await authOptions(),
       );
       return ApiListParser.extractObject(response.data, key: 'report');
@@ -90,4 +97,7 @@ class RiderApiService with AuthenticatedApiMixin {
       throw ApiException.fromDio(error);
     }
   }
+
+  static String _date(DateTime value) =>
+      '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
 }

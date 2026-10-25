@@ -9,11 +9,9 @@ import 'auth_api_service.dart';
 import 'authenticated_api_mixin.dart';
 
 class ProfileApiService with AuthenticatedApiMixin {
-  ProfileApiService({
-    Dio? dio,
-    SecureStorageHelper? storage,
-  })  : _dio = dio ?? ApiClient.shared.dio,
-        _storage = storage ?? SecureStorageHelper();
+  ProfileApiService({Dio? dio, SecureStorageHelper? storage})
+    : _dio = dio ?? ApiClient.shared.dio,
+      _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
   final SecureStorageHelper _storage;
@@ -24,8 +22,8 @@ class ProfileApiService with AuthenticatedApiMixin {
   String get _accountPrefix => AppIdentity.isVendor
       ? '/vendor'
       : AppIdentity.isRider
-          ? '/rider'
-          : '';
+      ? '/rider'
+      : '';
 
   Future<ProfileModel> getProfile() async {
     try {
@@ -55,7 +53,7 @@ class ProfileApiService with AuthenticatedApiMixin {
   Future<ProfileModel> uploadProfilePhoto(String filePath) async {
     try {
       final response = await _dio.post<dynamic>(
-        '/profile/photo',
+        '$_accountPrefix/profile/photo',
         data: await ApiClient.shared.multipart(
           files: [ApiUploadFile(field: 'photo', path: filePath)],
         ),

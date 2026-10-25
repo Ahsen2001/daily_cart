@@ -8,6 +8,8 @@ import '../../widgets/custom_app_bar.dart';
 import '../../widgets/delivery_card.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/error_widget.dart';
+import '../../widgets/rider_bottom_navigation.dart';
 
 class AssignedDeliveriesScreen extends ConsumerStatefulWidget {
   const AssignedDeliveriesScreen({super.key});
@@ -28,7 +30,9 @@ class _AssignedDeliveriesScreenState
   }
 
   Future<void> _load() {
-    return ref.read(riderDeliveryProvider).getAssignedDeliveries(status: _status);
+    return ref
+        .read(riderDeliveryProvider)
+        .getAssignedDeliveries(status: _status);
   }
 
   @override
@@ -46,6 +50,7 @@ class _AssignedDeliveriesScreenState
               segments: const [
                 ButtonSegment(value: 'all', label: Text('All')),
                 ButtonSegment(value: 'assigned', label: Text('Assigned')),
+                ButtonSegment(value: 'accepted', label: Text('Accepted')),
                 ButtonSegment(value: 'picked_up', label: Text('Picked Up')),
                 ButtonSegment(value: 'on_the_way', label: Text('On Way')),
                 ButtonSegment(value: 'delivered', label: Text('Delivered')),
@@ -60,33 +65,40 @@ class _AssignedDeliveriesScreenState
           Expanded(
             child: state.isLoading && state.deliveries.isEmpty
                 ? const LoadingWidget(message: 'Loading deliveries...')
+                : state.errorMessage != null && state.deliveries.isEmpty
+                ? DailyCartErrorWidget(
+                    title: 'Deliveries unavailable',
+                    message: state.errorMessage!,
+                    onRetry: _load,
+                  )
                 : state.deliveries.isEmpty
-                    ? const EmptyStateWidget(
-                        title: 'No assigned deliveries',
-                        message: 'Your assigned DailyCart deliveries appear here.',
-                        icon: Icons.delivery_dining_rounded,
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _load,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.all(20),
-                          itemBuilder: (context, index) {
-                            final delivery = state.deliveries[index];
-                            return DeliveryCard(
-                              delivery: delivery,
-                              onTap: () => context.push(
-                                '${AppRoutes.deliveryDetails}/${delivery.id}',
-                              ),
-                            );
-                          },
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 14),
-                          itemCount: state.deliveries.length,
-                        ),
-                      ),
+                ? const EmptyStateWidget(
+                    title: 'No assigned deliveries',
+                    message: 'Your assigned DailyCart deliveries appear here.',
+                    icon: Icons.delivery_dining_rounded,
+                  )
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      itemBuilder: (context, index) {
+                        final delivery = state.deliveries[index];
+                        return DeliveryCard(
+                          delivery: delivery,
+                          onTap: () => context.push(
+                            '${AppRoutes.deliveryDetails}/${delivery.id}',
+                          ),
+                        );
+                      },
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 14),
+                      itemCount: state.deliveries.length,
+                    ),
+                  ),
           ),
         ],
       ),
+      bottomNavigationBar: const RiderBottomNavigation(currentIndex: 1),
     );
   }
 }
