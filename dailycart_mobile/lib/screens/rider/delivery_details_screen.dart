@@ -14,6 +14,7 @@ import '../../widgets/delivery_action_button.dart';
 import '../../widgets/delivery_status_badge.dart';
 import '../../widgets/delivery_status_timeline.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/rider_tracking_status_banner.dart';
 import '../../widgets/error_widget.dart';
 
 class DeliveryDetailsScreen extends ConsumerStatefulWidget {
@@ -55,6 +56,8 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
+                const RiderTrackingStatusBanner(),
+                const SizedBox(height: 14),
                 DailyCartCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

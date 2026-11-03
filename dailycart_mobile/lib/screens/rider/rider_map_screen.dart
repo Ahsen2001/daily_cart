@@ -5,11 +5,11 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/rider_delivery_provider.dart';
-import '../../services/active_delivery_tracking_service.dart';
+import '../../services/rider_delivery_tracking_service.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_button.dart';
-import '../../widgets/dailycart_card.dart';
 import '../../widgets/loading_widget.dart';
+import '../../widgets/rider_tracking_status_banner.dart';
 
 class RiderMapScreen extends ConsumerStatefulWidget {
   const RiderMapScreen({required this.deliveryId, super.key});
@@ -22,7 +22,7 @@ class RiderMapScreen extends ConsumerStatefulWidget {
 
 class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
   Position? _position;
-  final _tracking = ActiveDeliveryTrackingService.instance;
+  final _tracking = RiderDeliveryTrackingService.instance;
 
   @override
   void initState() {
@@ -95,14 +95,7 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                DailyCartCard(
-                  child: Text(
-                    _tracking.state.value.isTracking
-                        ? 'Live location sharing is active for this delivery, including while the app is in the background.'
-                        : (_tracking.state.value.message ??
-                              'Live location sharing is inactive for this delivery.'),
-                  ),
-                ),
+                const RiderTrackingStatusBanner(),
                 const SizedBox(height: 16),
                 CustomButton(
                   label: 'Update Current Location',

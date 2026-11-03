@@ -12,6 +12,7 @@ import '../../widgets/custom_app_bar.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/rider_dashboard_card.dart';
 import '../../widgets/rider_bottom_navigation.dart';
+import '../../widgets/rider_tracking_status_banner.dart';
 import '../../widgets/error_widget.dart';
 
 class RiderDashboardScreen extends ConsumerStatefulWidget {
@@ -68,73 +69,89 @@ class _RiderDashboardScreenState extends ConsumerState<RiderDashboardScreen> {
           : dashboard.isApproved
           ? RefreshIndicator(
               onRefresh: () => ref.read(riderProvider).getRiderDashboard(),
-              child: GridView.count(
-                padding: const EdgeInsets.all(20),
-                crossAxisCount: 2,
-                crossAxisSpacing: 14,
-                mainAxisSpacing: 14,
-                childAspectRatio: 1.04,
+              child: Column(
                 children: [
-                  RiderDashboardCard(
-                    title: '${dashboard.ratingCount} customer ratings',
-                    value: '${dashboard.averageRating.toStringAsFixed(1)} / 5',
-                    icon: Icons.star_rounded,
-                    color: Colors.amber.shade700,
-                    onTap: () => context.push(AppRoutes.riderRatings),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
+                    child: RiderTrackingStatusBanner(),
                   ),
-                  RiderDashboardCard(
-                    title: 'Availability',
-                    value: dashboard.availabilityStatus
-                        .replaceAll('_', ' ')
-                        .toUpperCase(),
-                    icon: dashboard.availabilityStatus == 'available'
-                        ? Icons.toggle_on
-                        : Icons.toggle_off,
-                    color: dashboard.availabilityStatus == 'available'
-                        ? AppColors.primaryGreen
-                        : AppColors.mutedText,
-                    onTap: () =>
-                        _toggleAvailability(dashboard.availabilityStatus),
-                  ),
-                  RiderDashboardCard(
-                    title: "Today's Deliveries",
-                    value: '${dashboard.todayDeliveries}',
-                    icon: Icons.today_outlined,
-                  ),
-                  RiderDashboardCard(
-                    title: 'Assigned Deliveries',
-                    value: '${dashboard.assignedDeliveries}',
-                    icon: Icons.assignment_outlined,
-                    color: AppColors.accentOrange,
-                    onTap: () => context.push(AppRoutes.assignedDeliveries),
-                  ),
-                  RiderDashboardCard(
-                    title: 'Completed Deliveries',
-                    value: '${dashboard.completedDeliveries}',
-                    icon: Icons.done_all_rounded,
-                  ),
-                  RiderDashboardCard(
-                    title: 'Failed Deliveries',
-                    value: '${dashboard.failedDeliveries}',
-                    icon: Icons.error_outline_rounded,
-                    color: AppColors.danger,
-                  ),
-                  RiderDashboardCard(
-                    title: "Today's Earnings",
-                    value: CurrencyFormatter.lkr(dashboard.todayEarnings),
-                    icon: Icons.payments_outlined,
-                  ),
-                  RiderDashboardCard(
-                    title: 'Weekly Earnings',
-                    value: CurrencyFormatter.lkr(dashboard.weeklyEarnings),
-                    icon: Icons.date_range_outlined,
-                    onTap: () => context.push(AppRoutes.riderEarnings),
-                  ),
-                  RiderDashboardCard(
-                    title: 'Monthly Earnings',
-                    value: CurrencyFormatter.lkr(dashboard.monthlyEarnings),
-                    icon: Icons.calendar_month_outlined,
-                    onTap: () => context.push(AppRoutes.riderEarnings),
+                  Expanded(
+                    child: GridView.count(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      childAspectRatio: 1.04,
+                      children: [
+                        RiderDashboardCard(
+                          title: '${dashboard.ratingCount} customer ratings',
+                          value:
+                              '${dashboard.averageRating.toStringAsFixed(1)} / 5',
+                          icon: Icons.star_rounded,
+                          color: Colors.amber.shade700,
+                          onTap: () => context.push(AppRoutes.riderRatings),
+                        ),
+                        RiderDashboardCard(
+                          title: 'Availability',
+                          value: dashboard.availabilityStatus
+                              .replaceAll('_', ' ')
+                              .toUpperCase(),
+                          icon: dashboard.availabilityStatus == 'available'
+                              ? Icons.toggle_on
+                              : Icons.toggle_off,
+                          color: dashboard.availabilityStatus == 'available'
+                              ? AppColors.primaryGreen
+                              : AppColors.mutedText,
+                          onTap: () =>
+                              _toggleAvailability(dashboard.availabilityStatus),
+                        ),
+                        RiderDashboardCard(
+                          title: "Today's Deliveries",
+                          value: '${dashboard.todayDeliveries}',
+                          icon: Icons.today_outlined,
+                        ),
+                        RiderDashboardCard(
+                          title: 'Assigned Deliveries',
+                          value: '${dashboard.assignedDeliveries}',
+                          icon: Icons.assignment_outlined,
+                          color: AppColors.accentOrange,
+                          onTap: () =>
+                              context.push(AppRoutes.assignedDeliveries),
+                        ),
+                        RiderDashboardCard(
+                          title: 'Completed Deliveries',
+                          value: '${dashboard.completedDeliveries}',
+                          icon: Icons.done_all_rounded,
+                        ),
+                        RiderDashboardCard(
+                          title: 'Failed Deliveries',
+                          value: '${dashboard.failedDeliveries}',
+                          icon: Icons.error_outline_rounded,
+                          color: AppColors.danger,
+                        ),
+                        RiderDashboardCard(
+                          title: "Today's Earnings",
+                          value: CurrencyFormatter.lkr(dashboard.todayEarnings),
+                          icon: Icons.payments_outlined,
+                        ),
+                        RiderDashboardCard(
+                          title: 'Weekly Earnings',
+                          value: CurrencyFormatter.lkr(
+                            dashboard.weeklyEarnings,
+                          ),
+                          icon: Icons.date_range_outlined,
+                          onTap: () => context.push(AppRoutes.riderEarnings),
+                        ),
+                        RiderDashboardCard(
+                          title: 'Monthly Earnings',
+                          value: CurrencyFormatter.lkr(
+                            dashboard.monthlyEarnings,
+                          ),
+                          icon: Icons.calendar_month_outlined,
+                          onTap: () => context.push(AppRoutes.riderEarnings),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

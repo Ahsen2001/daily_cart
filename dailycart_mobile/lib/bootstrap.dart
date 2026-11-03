@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'config/app_identity.dart';
-import 'services/active_delivery_tracking_service.dart';
+import 'services/rider_delivery_tracking_service.dart';
 import 'services/notification_service.dart';
 
 Future<void> bootstrap(DailyCartAppFlavor flavor) async {
@@ -31,6 +31,6 @@ Future<void> bootstrap(DailyCartAppFlavor flavor) async {
 
   runApp(const ProviderScope(child: DailyCartApp()));
   if (flavor == DailyCartAppFlavor.rider) {
-    unawaited(ActiveDeliveryTrackingService.instance.resumeIfNeeded());
+    unawaited(RiderDeliveryTrackingService.instance.resumeIfNeeded());
   }
 }

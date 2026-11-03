@@ -66,6 +66,8 @@ class DeliveryTrackingService
                 ]);
             }
 
+            $this->validatePositionQuality($lockedDelivery, $data, $recordedAt);
+
             $payload = [
                 'rider_id' => $rider->id,
                 'delivery_id' => $lockedDelivery->id,
@@ -142,5 +144,44 @@ class DeliveryTrackingService
             422,
             'This order no longer permits active delivery tracking.',
         );
+    }
+
+    private function validatePositionQuality(Delivery $delivery, array $data, Carbon $recordedAt): void
+    {
+        if (isset($data['accuracy']) && (float) $data['accuracy'] > 100) {
+            throw ValidationException::withMessages(['accuracy' => 'GPS accuracy is too poor for delivery tracking.']);
+        }
+        if (isset($data['speed']) && (float) $data['speed'] > 70) {
+            throw ValidationException::withMessages(['speed' => 'The reported GPS speed is not plausible.']);
+        }
+
+        $previous = RiderLocation::query()
+            ->where('delivery_id', $delivery->id)
+            ->latest('recorded_at')
+            ->first();
+        if (! $previous || ! $previous->recorded_at || ! $recordedAt->isAfter($previous->recorded_at)) {
+            return;
+        }
+
+        $seconds = $previous->recorded_at->diffInMilliseconds($recordedAt) / 1000;
+        if ($seconds <= 0) {
+            return;
+        }
+
+        $earthRadius = 6371000;
+        $lat1 = deg2rad((float) $previous->latitude);
+        $lat2 = deg2rad((float) $data['latitude']);
+        $latDelta = deg2rad((float) $data['latitude'] - (float) $previous->latitude);
+        $lngDelta = deg2rad((float) $data['longitude'] - (float) $previous->longitude);
+        $a = sin($latDelta / 2) ** 2
+            + cos($lat1) * cos($lat2) * sin($lngDelta / 2) ** 2;
+        $a = max(0, min(1, $a));
+        $distance = $earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        if ($distance / $seconds > 70) {
+            throw ValidationException::withMessages([
+                'location' => 'The GPS update was ignored because it represents an impossible jump.',
+            ]);
+        }
     }
 }

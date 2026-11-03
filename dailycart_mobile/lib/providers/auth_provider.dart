@@ -7,7 +7,7 @@ import '../models/user_role.dart';
 import '../networking/api_client.dart';
 import '../routes/app_routes.dart';
 import '../services/auth_api_service.dart';
-import '../services/active_delivery_tracking_service.dart';
+import '../services/rider_delivery_tracking_service.dart';
 import '../services/onboarding_service.dart';
 import '../services/notification_service.dart';
 import '../utils/secure_storage_helper.dart';
@@ -164,7 +164,7 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       if (AppIdentity.flavor == DailyCartAppFlavor.rider) {
-        await ActiveDeliveryTrackingService.instance.stop();
+        await RiderDeliveryTrackingService.instance.stop();
       }
       if (currentToken != null) {
         try {

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/delivery_model.dart';
 import '../services/auth_api_service.dart';
 import '../services/rider_delivery_api_service.dart';
-import '../services/active_delivery_tracking_service.dart';
+import '../services/rider_delivery_tracking_service.dart';
 
 final riderDeliveryApiServiceProvider = Provider<RiderDeliveryApiService>((
   ref,
@@ -95,7 +95,7 @@ class RiderDeliveryProvider extends ChangeNotifier {
       deliveries = deliveries
           .map((item) => item.id == updated.id ? updated : item)
           .toList(growable: false);
-      await ActiveDeliveryTrackingService.instance.syncWithStatus(
+      await RiderDeliveryTrackingService.instance.syncWithStatus(
         updated.id,
         updated.status,
       );
