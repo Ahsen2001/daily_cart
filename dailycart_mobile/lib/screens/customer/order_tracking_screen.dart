@@ -23,32 +23,55 @@ class OrderTrackingScreen extends ConsumerStatefulWidget {
 
 class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   Timer? _refreshTimer;
-  StreamSubscription<void>? _trackingSubscription;
+  StreamSubscription<Map<String, dynamic>>? _trackingSubscription;
+  DateTime? _lastRealtimeUpdate;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() async {
+    Future.microtask(_initializeTracking);
+  }
+
+  Future<void> _initializeTracking() async {
+    await ref.read(orderProvider).getOrderDetails(widget.orderId);
+    if (!mounted || ref.read(orderProvider).selectedOrder?.isTrackingTerminal == true) {
+      return;
+    }
+    _trackingSubscription = ref
+        .read(orderProvider)
+        .watchTracking(widget.orderId)
+        .listen((payload) {
+          if (!mounted) return;
+          _lastRealtimeUpdate = DateTime.now();
+          ref.read(orderProvider).applyTrackingUpdate(widget.orderId, payload);
+          if (ref.read(orderProvider).selectedOrder?.isTrackingTerminal == true) {
+            _stopTrackingRefresh();
+          }
+        });
+    _refreshTimer = Timer.periodic(const Duration(seconds: 20), (_) async {
+      final lastRealtimeUpdate = _lastRealtimeUpdate;
+      if (lastRealtimeUpdate != null &&
+          DateTime.now().difference(lastRealtimeUpdate) <
+              const Duration(seconds: 25)) {
+        return;
+      }
       await ref.read(orderProvider).getOrderDetails(widget.orderId);
-      if (!mounted) return;
-      _trackingSubscription = ref
-          .read(orderProvider)
-          .watchTracking(widget.orderId)
-          .listen((_) {
-            if (mounted) {
-              ref.read(orderProvider).getOrderDetails(widget.orderId);
-            }
-          });
-      _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-        ref.read(orderProvider).getOrderDetails(widget.orderId);
-      });
+      if (ref.read(orderProvider).selectedOrder?.isTrackingTerminal == true) {
+        _stopTrackingRefresh();
+      }
     });
+  }
+
+  void _stopTrackingRefresh() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+    _trackingSubscription?.cancel();
+    _trackingSubscription = null;
   }
 
   @override
   void dispose() {
-    _refreshTimer?.cancel();
-    _trackingSubscription?.cancel();
+    _stopTrackingRefresh();
     super.dispose();
   }
 
@@ -115,6 +138,67 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
+                if (order.isTrackingTerminal)
+                  DailyCartCard(
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.flag_circle_rounded,
+                          color: AppColors.primaryGreen,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Final delivery state: ${order.deliveryStatus.isEmpty ? order.status : order.deliveryStatus}',
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else ...[
+                  DailyCartCard(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          order.riderLocationIsOutdated
+                              ? Icons.location_disabled_rounded
+                              : order.trackingActive
+                              ? Icons.my_location_rounded
+                              : Icons.location_searching_rounded,
+                          color: order.riderLocationIsOutdated
+                              ? Colors.orange.shade800
+                              : AppColors.primaryGreen,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                order.riderLocationMessage,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  color: order.riderLocationIsOutdated
+                                      ? Colors.orange.shade900
+                                      : null,
+                                ),
+                              ),
+                              if (order.riderLocationRecordedAt != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Last updated: ${_formatTime(order.riderLocationRecordedAt!)}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
                 if (order.deliveryLatitude != null &&
                     order.deliveryLongitude != null)
                   ClipRRect(
@@ -144,7 +228,8 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                             ),
                           ),
                           if (order.riderLatitude != null &&
-                              order.riderLongitude != null)
+                              order.riderLongitude != null &&
+                              order.trackingActive)
                             Marker(
                               markerId: const MarkerId('rider'),
                               position: LatLng(
@@ -181,6 +266,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                       ],
                     ),
                   ),
+                ],
                 const SizedBox(height: 8),
                 Text(
                   'Live tracking updates automatically while this screen is open.',
@@ -190,5 +276,13 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
               ],
             ),
     );
+  }
+
+  String _formatTime(DateTime value) {
+    final local = value.toLocal();
+    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+    final minute = local.minute.toString().padLeft(2, '0');
+    final suffix = local.hour >= 12 ? 'PM' : 'AM';
+    return '${local.day}/${local.month}/${local.year} $hour:$minute $suffix';
   }
 }

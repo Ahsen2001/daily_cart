@@ -19,6 +19,15 @@
         && in_array($order->delivery?->status, \App\Services\DeliveryTrackingService::ACTIVE_STATUSES, true)
         && ! in_array($order->order_status, ['cancelled', 'refunded', 'delivered'], true);
     $latestLocation = $trackingIsActive ? $order->delivery?->currentLocation : null;
+    $locationFreshness = app(\App\Services\DeliveryLocationFreshness::class)->describe(
+        $latestLocation?->recorded_at,
+        $trackingIsActive,
+        in_array($order->order_status, ['delivered', 'cancelled', 'refunded'], true)
+            ? $order->order_status
+            : $order->delivery?->status,
+    );
+    $trackingTerminal = in_array($order->delivery?->status, ['delivered', 'failed', 'cancelled'], true)
+        || in_array($order->order_status, ['delivered', 'cancelled', 'refunded'], true);
     $riderRating = $order->riderRating;
 @endphp
 
@@ -196,7 +205,19 @@
                                 <p class="mt-1 text-sm text-gray-700">{{ __('Rider Contact') }}: <span class="font-semibold">{{ $assignedRiderPhone }}</span></p>
                             @endif
                         @endif
-                        @if ($googleMapsBrowserKey && $order->delivery_latitude && $order->delivery_longitude)
+                        @if ($trackingTerminal)
+                            <p class="mt-4 rounded-2xl bg-gray-50 p-4 text-sm font-semibold text-gray-700">
+                                {{ __('Final delivery state') }}: {{ ucfirst(str_replace('_', ' ', $order->delivery?->status ?? $order->order_status)) }}
+                            </p>
+                        @else
+                            <div id="customer-tracking-freshness" class="mt-4 rounded-2xl border p-4 {{ $locationFreshness['is_outdated'] ? 'border-orange-200 bg-orange-50 text-orange-900' : 'border-green-100 bg-green-50 text-green-900' }}">
+                                <p data-freshness-message class="text-sm font-bold">{{ __($locationFreshness['message']) }}</p>
+                                <p data-freshness-time class="mt-1 text-xs {{ $latestLocation ? '' : 'hidden' }}">
+                                    {{ $latestLocation ? __('Last updated: :time', ['time' => $latestLocation->recorded_at?->format('M d, Y h:i:s A')]) : '' }}
+                                </p>
+                            </div>
+                        @endif
+                        @if (! $trackingTerminal && $googleMapsBrowserKey && $order->delivery_latitude && $order->delivery_longitude)
                             <div id="order-tracking-map" class="mt-4 h-72 rounded-2xl border border-green-100 bg-green-50"></div>
                         @endif
                     </section>
@@ -260,7 +281,7 @@
         </div>
     </div>
 
-    @if ($googleMapsBrowserKey && $order->delivery_latitude && $order->delivery_longitude)
+    @if (! $trackingTerminal && $googleMapsBrowserKey && $order->delivery_latitude && $order->delivery_longitude)
         <script>
             window.initDailyCartTrackingMap = function () {
                 const delivery = { lat: {{ (float) $order->delivery_latitude }}, lng: {{ (float) $order->delivery_longitude }} };
@@ -277,10 +298,33 @@
                     ? new google.maps.Marker({ position: rider, map, label: 'R', title: 'Rider live location' })
                     : null;
 
-                const trackingStream = new EventSource(@json(route('orders.tracking.stream', $order)));
-                trackingStream.addEventListener('location', (event) => {
-                    const payload = JSON.parse(event.data);
-                    if (!payload.location) return;
+                const freshness = document.getElementById('customer-tracking-freshness');
+                let lastRealtimeAt = 0;
+                let terminal = false;
+
+                const applyTracking = (payload) => {
+                    terminal = ['delivered', 'failed', 'cancelled'].includes(payload.delivery_status)
+                        || ['delivered', 'cancelled', 'refunded'].includes(payload.order_status)
+                        || payload.tracking?.is_active === false && payload.freshness?.status === 'completed';
+                    const message = freshness?.querySelector('[data-freshness-message]');
+                    const time = freshness?.querySelector('[data-freshness-time]');
+                    if (message) message.textContent = payload.freshness?.message || @json(__('Waiting for rider location'));
+                    if (freshness) {
+                        freshness.className = `mt-4 rounded-2xl border p-4 ${payload.freshness?.is_outdated ? 'border-orange-200 bg-orange-50 text-orange-900' : 'border-green-100 bg-green-50 text-green-900'}`;
+                    }
+                    if (!payload.location) {
+                        if (riderMarker) {
+                            riderMarker.setMap(null);
+                            riderMarker = null;
+                        }
+                        if (time) time.classList.add('hidden');
+                        if (terminal) document.getElementById('order-tracking-map')?.classList.add('hidden');
+                        return;
+                    }
+                    if (time) {
+                        time.textContent = `${@json(__('Last updated'))}: ${new Date(payload.location.recorded_at).toLocaleString()}`;
+                        time.classList.remove('hidden');
+                    }
                     const position = {
                         lat: Number(payload.location.latitude),
                         lng: Number(payload.location.longitude),
@@ -291,9 +335,83 @@
                         riderMarker.setPosition(position);
                     }
                     map.panTo(position);
+                };
+
+                const trackingStream = window.EventSource
+                    ? new EventSource(@json(route('orders.tracking.stream', $order)))
+                    : null;
+                trackingStream?.addEventListener('location', (event) => {
+                    lastRealtimeAt = Date.now();
+                    applyTracking(JSON.parse(event.data));
+                    if (terminal) trackingStream?.close();
                 });
+
+                const poll = window.setInterval(async () => {
+                    if (terminal) {
+                        window.clearInterval(poll);
+                        trackingStream?.close();
+                        return;
+                    }
+                    if (Date.now() - lastRealtimeAt < 25000) return;
+                    try {
+                        const response = await fetch(@json(route('orders.tracking.show', $order)), {
+                            headers: { 'Accept': 'application/json' },
+                            credentials: 'same-origin',
+                        });
+                        if (response.ok) applyTracking(await response.json());
+                    } catch (_) {
+                        // Keep the last known marker while the network reconnects.
+                    }
+                }, {{ max(15, min(30, (int) config('delivery_tracking.poll_seconds', 20))) * 1000 }});
             };
         </script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ $googleMapsBrowserKey }}&callback=initDailyCartTrackingMap"></script>
+    @elseif (! $trackingTerminal)
+        <script>
+            (() => {
+                const freshness = document.getElementById('customer-tracking-freshness');
+                if (!freshness) return;
+                let lastRealtimeAt = 0;
+                let terminal = false;
+                const stream = window.EventSource
+                    ? new EventSource(@json(route('orders.tracking.stream', $order)))
+                    : null;
+                const applyTracking = payload => {
+                    terminal = payload.freshness?.status === 'completed';
+                    freshness.querySelector('[data-freshness-message]').textContent = payload.freshness?.message
+                        || @json(__('Waiting for rider location'));
+                    freshness.className = `mt-4 rounded-2xl border p-4 ${payload.freshness?.is_outdated ? 'border-orange-200 bg-orange-50 text-orange-900' : 'border-green-100 bg-green-50 text-green-900'}`;
+                    const time = freshness.querySelector('[data-freshness-time]');
+                    if (payload.location) {
+                        time.textContent = `${@json(__('Last updated'))}: ${new Date(payload.location.recorded_at).toLocaleString()}`;
+                        time.classList.remove('hidden');
+                    } else {
+                        time.classList.add('hidden');
+                    }
+                };
+                stream?.addEventListener('location', event => {
+                    lastRealtimeAt = Date.now();
+                    applyTracking(JSON.parse(event.data));
+                    if (terminal) stream.close();
+                });
+                const poll = window.setInterval(async () => {
+                    if (terminal) {
+                        window.clearInterval(poll);
+                        stream?.close();
+                        return;
+                    }
+                    if (Date.now() - lastRealtimeAt < 25000) return;
+                    try {
+                        const response = await fetch(@json(route('orders.tracking.show', $order)), {
+                            headers: { 'Accept': 'application/json' },
+                            credentials: 'same-origin',
+                        });
+                        if (response.ok) applyTracking(await response.json());
+                    } catch (_) {
+                        // Keep the last known freshness status while offline.
+                    }
+                }, {{ max(15, min(30, (int) config('delivery_tracking.poll_seconds', 20))) * 1000 }});
+            })();
+        </script>
     @endif
 </x-app-layout>

@@ -35,8 +35,14 @@ class OrderProvider extends ChangeNotifier {
     });
   }
 
-  Stream<void> watchTracking(int orderId) {
+  Stream<Map<String, dynamic>> watchTracking(int orderId) {
     return _apiService.watchTracking(orderId);
+  }
+
+  void applyTrackingUpdate(int orderId, Map<String, dynamic> payload) {
+    if (selectedOrder?.id != orderId) return;
+    selectedOrder = selectedOrder!.copyWithTracking(payload);
+    notifyListeners();
   }
 
   Future<bool> cancelOrder(int orderId) async {

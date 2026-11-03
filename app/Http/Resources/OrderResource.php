@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\DeliveryLocationFreshness;
 use App\Services\DeliveryTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -55,6 +56,13 @@ class OrderResource extends JsonResource
                     && in_array($this->delivery?->status, DeliveryTrackingService::ACTIVE_STATUSES, true)
                     && ! in_array($this->order_status, ['cancelled', 'refunded', 'delivered'], true);
                 $current = $trackingIsActive ? $this->delivery?->currentLocation : null;
+                $freshness = app(DeliveryLocationFreshness::class)->describe(
+                    $current?->recorded_at,
+                    $trackingIsActive,
+                    in_array($this->order_status, ['delivered', 'cancelled', 'refunded'], true)
+                        ? $this->order_status
+                        : $this->delivery?->status,
+                );
 
                 return $rider ? [
                     'id' => $rider->id,
@@ -63,6 +71,11 @@ class OrderResource extends JsonResource
                     'latitude' => $current?->recorded_at ? (float) $current->latitude : null,
                     'longitude' => $current?->recorded_at ? (float) $current->longitude : null,
                     'location_recorded_at' => $current?->recorded_at,
+                    'location_age_seconds' => $freshness['age_seconds'],
+                    'location_is_stale' => $freshness['is_stale'],
+                    'location_is_outdated' => $freshness['is_outdated'],
+                    'location_freshness' => $freshness['status'],
+                    'location_message' => $freshness['message'],
                 ] : null;
             }),
             'delivery' => $this->whenLoaded('delivery', fn () => $this->delivery ? [

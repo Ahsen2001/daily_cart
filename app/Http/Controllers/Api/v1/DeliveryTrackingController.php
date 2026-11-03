@@ -7,6 +7,7 @@ use App\Http\Requests\StoreDeliveryLocationBatchRequest;
 use App\Http\Requests\StoreDeliveryLocationRequest;
 use App\Models\Delivery;
 use App\Models\Order;
+use App\Services\DeliveryLocationFreshness;
 use App\Services\DeliveryTrackingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +15,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DeliveryTrackingController extends Controller
 {
-    public function __construct(private readonly DeliveryTrackingService $tracking) {}
+    public function __construct(
+        private readonly DeliveryTrackingService $tracking,
+        private readonly DeliveryLocationFreshness $freshness,
+    ) {}
 
     public function active(Request $request): JsonResponse
     {
@@ -141,12 +145,15 @@ class DeliveryTrackingController extends Controller
             && in_array($delivery->status, DeliveryTrackingService::ACTIVE_STATUSES, true)
             && ! in_array($order->order_status, ['cancelled', 'refunded', 'delivered'], true);
         $current = $isActive ? $delivery->currentLocation : null;
-        $recordedAt = $current?->recorded_at;
-        $ageSeconds = $recordedAt ? max(0, (int) $recordedAt->diffInSeconds(now())) : null;
+        $terminalStatus = in_array($order->order_status, ['delivered', 'cancelled', 'refunded'], true)
+            ? $order->order_status
+            : $delivery?->status;
+        $freshness = $this->freshness->describe($current?->recorded_at, (bool) $isActive, $terminalStatus);
 
         return [
             'order_id' => $order->id,
             'delivery_id' => $delivery?->id,
+            'order_status' => $order->order_status,
             'delivery_status' => $delivery?->status,
             'rider_display_name' => $delivery?->rider?->user?->name,
             'destination' => [
@@ -159,6 +166,7 @@ class DeliveryTrackingController extends Controller
                     : null,
             ],
             'scheduled_delivery_time' => $order->scheduled_delivery_at ?? $delivery?->scheduled_at,
+            'freshness' => $freshness,
             'tracking' => [
                 'status' => $state?->status ?? 'unavailable',
                 'is_active' => (bool) $isActive,
@@ -168,8 +176,9 @@ class DeliveryTrackingController extends Controller
             ],
             'location' => $current ? [
                 ...$this->locationPayload($current),
-                'age_seconds' => $ageSeconds,
-                'is_stale' => $ageSeconds === null || $ageSeconds > 90,
+                'age_seconds' => $freshness['age_seconds'],
+                'is_stale' => $freshness['is_stale'],
+                'is_outdated' => $freshness['is_outdated'],
             ] : null,
         ];
     }

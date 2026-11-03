@@ -13,6 +13,8 @@ Route::get('/dashboard', [DashboardController::class, 'redirect'])
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/delivery-tracking/orders/{order}', [DeliveryTrackingController::class, 'show'])
+        ->name('orders.tracking.show');
     Route::get('/orders/{order}/tracking/stream', [DeliveryTrackingController::class, 'stream'])
         ->name('orders.tracking.stream');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

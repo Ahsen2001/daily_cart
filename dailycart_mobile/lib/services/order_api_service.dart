@@ -57,7 +57,7 @@ class OrderApiService with AuthenticatedApiMixin {
     }
   }
 
-  Stream<void> watchTracking(int orderId) async* {
+  Stream<Map<String, dynamic>> watchTracking(int orderId) async* {
     while (true) {
       try {
         await ensureAuthenticated();
@@ -76,7 +76,11 @@ class OrderApiService with AuthenticatedApiMixin {
                 .map<List<int>>((chunk) => chunk)
                 .transform(utf8.decoder)
                 .transform(const LineSplitter())) {
-          if (line.startsWith('data: ')) yield null;
+          if (line.startsWith('data: ')) {
+            yield ApiListParser.extractObject(
+              jsonDecode(line.substring(6)),
+            );
+          }
         }
       } on DioException catch (error) {
         final exception = ApiException.fromDio(error);

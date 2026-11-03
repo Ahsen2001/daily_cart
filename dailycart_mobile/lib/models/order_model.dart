@@ -13,6 +13,13 @@ class OrderModel {
     this.riderPhone = '',
     this.riderLatitude,
     this.riderLongitude,
+    this.riderLocationRecordedAt,
+    this.riderLocationAgeSeconds,
+    this.riderLocationIsStale = false,
+    this.riderLocationIsOutdated = false,
+    this.riderLocationMessage = 'Waiting for rider location',
+    this.deliveryStatus = '',
+    this.trackingActive = false,
     this.deliveryLatitude,
     this.deliveryLongitude,
     this.subtotal = 0,
@@ -37,6 +44,13 @@ class OrderModel {
   final String riderPhone;
   final double? riderLatitude;
   final double? riderLongitude;
+  final DateTime? riderLocationRecordedAt;
+  final int? riderLocationAgeSeconds;
+  final bool riderLocationIsStale;
+  final bool riderLocationIsOutdated;
+  final String riderLocationMessage;
+  final String deliveryStatus;
+  final bool trackingActive;
   final double? deliveryLatitude;
   final double? deliveryLongitude;
   final double subtotal;
@@ -49,6 +63,13 @@ class OrderModel {
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     final rider = json['rider'];
+    final delivery = json['delivery'];
+    final parsedDeliveryStatus = delivery is Map<String, dynamic>
+        ? (delivery['status'] ?? '').toString()
+        : (json['delivery_status'] ?? '').toString();
+    final trackingStatus = delivery is Map<String, dynamic>
+        ? (delivery['tracking_status'] ?? '').toString()
+        : '';
     return OrderModel(
       id: _toInt(json['id']),
       orderNumber: (json['order_number'] ?? '').toString(),
@@ -80,6 +101,24 @@ class OrderModel {
       riderLongitude: rider is Map<String, dynamic>
           ? _toNullableDouble(rider['longitude'])
           : _toNullableDouble(json['rider_longitude']),
+      riderLocationRecordedAt: rider is Map<String, dynamic>
+          ? _toNullableDate(rider['location_recorded_at'])
+          : _toNullableDate(json['rider_location_recorded_at']),
+      riderLocationAgeSeconds: rider is Map<String, dynamic>
+          ? _toNullableInt(rider['location_age_seconds'])
+          : _toNullableInt(json['rider_location_age_seconds']),
+      riderLocationIsStale:
+          rider is Map<String, dynamic> && rider['location_is_stale'] == true,
+      riderLocationIsOutdated:
+          rider is Map<String, dynamic> && rider['location_is_outdated'] == true,
+      riderLocationMessage: rider is Map<String, dynamic>
+          ? (rider['location_message'] ?? 'Waiting for rider location')
+                .toString()
+          : 'Waiting for rider location',
+      deliveryStatus: parsedDeliveryStatus,
+      trackingActive:
+          trackingStatus == 'active' &&
+          !{'delivered', 'failed', 'cancelled'}.contains(parsedDeliveryStatus),
       deliveryLatitude: _toNullableDouble(json['delivery_latitude']),
       deliveryLongitude: _toNullableDouble(json['delivery_longitude']),
       subtotal: _toDouble(json['subtotal']),
@@ -108,8 +147,78 @@ class OrderModel {
 
   bool get isRefunded => status.toLowerCase() == 'refunded';
 
+  bool get isFailed =>
+      status.toLowerCase() == 'failed' || deliveryStatus == 'failed';
+
+  bool get isTrackingTerminal =>
+      isCompleted ||
+      isCancelled ||
+      isRefunded ||
+      isFailed ||
+      {'delivered', 'failed', 'cancelled'}.contains(deliveryStatus);
+
   bool get isActive {
-    return !isCompleted && !isCancelled && !isRefunded;
+    return !isTrackingTerminal;
+  }
+
+  OrderModel copyWithTracking(Map<String, dynamic> payload) {
+    final tracking = payload['tracking'];
+    final location = payload['location'];
+    final destination = payload['destination'];
+    final freshness = payload['freshness'];
+    return OrderModel(
+      id: id,
+      orderNumber: orderNumber,
+      orderDate: orderDate,
+      status: (payload['order_status'] ?? status).toString(),
+      paymentStatus: paymentStatus,
+      paymentMethod: paymentMethod,
+      deliveryAddress: destination is Map<String, dynamic>
+          ? (destination['address'] ?? deliveryAddress).toString()
+          : deliveryAddress,
+      scheduledDeliveryTime:
+          _toNullableDate(payload['scheduled_delivery_time']) ??
+          scheduledDeliveryTime,
+      estimatedDeliveryTime: estimatedDeliveryTime,
+      riderName: (payload['rider_display_name'] ?? riderName).toString(),
+      riderPhone: riderPhone,
+      riderLatitude: location is Map<String, dynamic>
+          ? _toNullableDouble(location['latitude'])
+          : null,
+      riderLongitude: location is Map<String, dynamic>
+          ? _toNullableDouble(location['longitude'])
+          : null,
+      riderLocationRecordedAt: location is Map<String, dynamic>
+          ? _toNullableDate(location['recorded_at'])
+          : null,
+      riderLocationAgeSeconds: freshness is Map<String, dynamic>
+          ? _toNullableInt(freshness['age_seconds'])
+          : null,
+      riderLocationIsStale:
+          freshness is Map<String, dynamic> && freshness['is_stale'] == true,
+      riderLocationIsOutdated:
+          freshness is Map<String, dynamic> &&
+          freshness['is_outdated'] == true,
+      riderLocationMessage: freshness is Map<String, dynamic>
+          ? (freshness['message'] ?? 'Waiting for rider location').toString()
+          : 'Waiting for rider location',
+      deliveryStatus: (payload['delivery_status'] ?? deliveryStatus).toString(),
+      trackingActive:
+          tracking is Map<String, dynamic> && tracking['is_active'] == true,
+      deliveryLatitude: destination is Map<String, dynamic>
+          ? _toNullableDouble(destination['latitude'])
+          : deliveryLatitude,
+      deliveryLongitude: destination is Map<String, dynamic>
+          ? _toNullableDouble(destination['longitude'])
+          : deliveryLongitude,
+      subtotal: subtotal,
+      discount: discount,
+      deliveryCharge: deliveryCharge,
+      serviceCharge: serviceCharge,
+      grandTotal: grandTotal,
+      items: items,
+      timeline: timeline,
+    );
   }
 
   static List<Map<String, dynamic>> _listFrom(Object? value) {
@@ -136,6 +245,11 @@ class OrderModel {
   static double? _toNullableDouble(Object? value) {
     if (value == null || value.toString().isEmpty) return null;
     return value is num ? value.toDouble() : double.tryParse(value.toString());
+  }
+
+  static int? _toNullableInt(Object? value) {
+    if (value == null || value.toString().isEmpty) return null;
+    return value is num ? value.toInt() : int.tryParse(value.toString());
   }
 
   static DateTime _toDate(Object? value) {

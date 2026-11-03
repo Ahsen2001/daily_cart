@@ -24,17 +24,24 @@ class _ActiveDeliveryTrackingCardState
   Timer? _fallback;
   Map<String, dynamic>? _tracking;
   String? _error;
+  DateTime? _lastRealtimeUpdate;
 
   @override
   void initState() {
     super.initState();
     _load();
     _subscription = _api.watchTracking(widget.orderId).listen((payload) {
-      if (mounted) {
-        setState(() => _tracking = payload);
+      _lastRealtimeUpdate = DateTime.now();
+      _applyPayload(payload);
+    });
+    _fallback = Timer.periodic(const Duration(seconds: 20), (_) {
+      final lastRealtimeUpdate = _lastRealtimeUpdate;
+      if (lastRealtimeUpdate == null ||
+          DateTime.now().difference(lastRealtimeUpdate) >=
+              const Duration(seconds: 25)) {
+        _load();
       }
     });
-    _fallback = Timer.periodic(const Duration(seconds: 30), (_) => _load());
   }
 
   @override
@@ -48,10 +55,7 @@ class _ActiveDeliveryTrackingCardState
     try {
       final payload = await _api.getTracking(widget.orderId);
       if (mounted) {
-        setState(() {
-          _tracking = payload;
-          _error = null;
-        });
+        _applyPayload(payload);
       }
     } catch (_) {
       if (mounted && _tracking == null) {
@@ -60,11 +64,27 @@ class _ActiveDeliveryTrackingCardState
     }
   }
 
+  void _applyPayload(Map<String, dynamic> payload) {
+    if (!mounted) return;
+    setState(() {
+      _tracking = payload;
+      _error = null;
+    });
+    final freshness = payload['freshness'];
+    if (freshness is Map && freshness['status'] == 'completed') {
+      _subscription?.cancel();
+      _subscription = null;
+      _fallback?.cancel();
+      _fallback = null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tracking = _tracking?['tracking'] as Map?;
     final location = _tracking?['location'] as Map?;
     final destination = _tracking?['destination'] as Map?;
+    final freshness = _tracking?['freshness'] as Map?;
     final active = tracking?['is_active'] == true;
     final rider = location == null
         ? null
@@ -72,7 +92,9 @@ class _ActiveDeliveryTrackingCardState
             (location['latitude'] as num).toDouble(),
             (location['longitude'] as num).toDouble(),
           );
-    final dropOff = destination == null
+    final dropOff = destination == null ||
+            destination['latitude'] == null ||
+            destination['longitude'] == null
         ? null
         : LatLng(
             (destination['latitude'] as num).toDouble(),
@@ -113,10 +135,28 @@ class _ActiveDeliveryTrackingCardState
           const SizedBox(height: 10),
           Text(
             _error ??
-                (rider == null
-                    ? 'Waiting for the rider’s first GPS update.'
-                    : 'Last update: ${_time(location?['recorded_at'])}'),
+                (freshness?['message']?.toString() ??
+                    (rider == null
+                        ? 'Waiting for rider location'
+                        : 'Live · updated just now')),
           ),
+          if (freshness?['is_outdated'] == true) ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Location may be outdated',
+              style: TextStyle(
+                color: Colors.deepOrange,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+          if (location?['recorded_at'] != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Last updated: ${_time(location?['recorded_at'])}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
           if (rider != null) ...[
             const SizedBox(height: 12),
             ClipRRect(
