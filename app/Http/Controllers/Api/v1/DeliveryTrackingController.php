@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreDeliveryLocationBatchRequest;
 use App\Http\Requests\StoreDeliveryLocationRequest;
 use App\Models\Delivery;
 use App\Models\Order;
@@ -58,6 +59,24 @@ class DeliveryTrackingController extends Controller
             'message' => 'Delivery location recorded.',
             'location' => $this->locationPayload($location),
         ], 201);
+    }
+
+    public function storeBatch(
+        StoreDeliveryLocationBatchRequest $request,
+        Delivery $delivery,
+    ): JsonResponse {
+        $validated = $request->validated();
+        $result = $this->tracking->recordBatch(
+            $delivery,
+            $request->user()->rider,
+            $validated['tracking_token'],
+            $validated['points'],
+        );
+
+        return response()->json([
+            'message' => 'Delivery location batch processed.',
+            ...$result,
+        ], 202);
     }
 
     public function stop(Request $request, Delivery $delivery): JsonResponse
@@ -117,37 +136,55 @@ class DeliveryTrackingController extends Controller
     {
         $delivery = $order->delivery;
         $state = $delivery?->trackingState;
-        $history = $delivery
-            ? $delivery->locations()->latest('recorded_at')->limit(100)->get()->reverse()->values()
-            : collect();
+        $isActive = $delivery
+            && $state?->status === 'active'
+            && in_array($delivery->status, DeliveryTrackingService::ACTIVE_STATUSES, true)
+            && ! in_array($order->order_status, ['cancelled', 'refunded', 'delivered'], true);
+        $current = $isActive ? $delivery->currentLocation : null;
+        $recordedAt = $current?->recorded_at;
+        $ageSeconds = $recordedAt ? max(0, (int) $recordedAt->diffInSeconds(now())) : null;
 
         return [
             'order_id' => $order->id,
             'delivery_id' => $delivery?->id,
-            'destination' => $order->delivery_latitude !== null && $order->delivery_longitude !== null ? [
-                'latitude' => (float) $order->delivery_latitude,
-                'longitude' => (float) $order->delivery_longitude,
-            ] : null,
+            'delivery_status' => $delivery?->status,
+            'rider_display_name' => $delivery?->rider?->user?->name,
+            'destination' => [
+                'address' => $order->delivery_address,
+                'latitude' => $order->delivery_latitude !== null
+                    ? (float) $order->delivery_latitude
+                    : null,
+                'longitude' => $order->delivery_longitude !== null
+                    ? (float) $order->delivery_longitude
+                    : null,
+            ],
+            'scheduled_delivery_time' => $order->scheduled_delivery_at ?? $delivery?->scheduled_at,
             'tracking' => [
                 'status' => $state?->status ?? 'unavailable',
-                'is_active' => $state?->status === 'active'
-                    && in_array($delivery?->status, DeliveryTrackingService::ACTIVE_STATUSES, true),
+                'is_active' => (bool) $isActive,
                 'started_at' => $state?->started_at,
                 'stopped_at' => $state?->stopped_at,
                 'stop_reason' => $state?->stop_reason,
             ],
-            'location' => $state?->recorded_at ? $this->locationPayload($state) : null,
-            'history' => $history->map(fn ($location) => $this->locationPayload($location)),
+            'location' => $current ? [
+                ...$this->locationPayload($current),
+                'age_seconds' => $ageSeconds,
+                'is_stale' => $ageSeconds === null || $ageSeconds > 90,
+            ] : null,
         ];
     }
 
     private function locationPayload(object $location): array
     {
+        $accuracy = data_get($location, 'accuracy_meters') ?? data_get($location, 'accuracy');
+
         return [
             'latitude' => (float) $location->latitude,
             'longitude' => (float) $location->longitude,
-            'accuracy' => $location->accuracy !== null ? (float) $location->accuracy : null,
-            'altitude' => $location->altitude !== null ? (float) $location->altitude : null,
+            'accuracy' => $accuracy !== null ? (float) $accuracy : null,
+            'altitude' => data_get($location, 'altitude') !== null
+                ? (float) data_get($location, 'altitude')
+                : null,
             'speed' => $location->speed !== null ? (float) $location->speed : null,
             'heading' => $location->heading !== null ? (float) $location->heading : null,
             'recorded_at' => $location->recorded_at,

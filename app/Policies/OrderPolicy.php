@@ -15,7 +15,8 @@ class OrderPolicy
     public function view(User $user, Order $order): bool
     {
         return $user->customer?->id === $order->customer_id
-            || $user->vendor?->id === $order->vendor_id;
+            || $user->vendor?->id === $order->vendor_id
+            || $user->rider?->id === $order->delivery?->rider_id;
     }
 
     public function update(User $user, Order $order): bool

@@ -10,11 +10,10 @@ class RiderLocation extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-
     protected $fillable = [
         'rider_id',
         'delivery_id',
+        'point_uuid',
         'latitude',
         'longitude',
         'accuracy',
@@ -22,6 +21,8 @@ class RiderLocation extends Model
         'speed',
         'heading',
         'recorded_at',
+        'received_at',
+        'sequence_number',
     ];
 
     protected function casts(): array
@@ -34,6 +35,8 @@ class RiderLocation extends Model
             'speed' => 'decimal:2',
             'heading' => 'decimal:2',
             'recorded_at' => 'datetime',
+            'received_at' => 'datetime',
+            'sequence_number' => 'integer',
         ];
     }
 

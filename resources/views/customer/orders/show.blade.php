@@ -15,9 +15,10 @@
     $progressPercent = $isTerminal ? 100 : (int) round(($currentIndex + 1) / count($statusSteps) * 100);
     $assignedRider = $order->delivery?->rider;
     $assignedRiderPhone = $assignedRider?->user?->phone;
-    $latestLocation = $order->delivery?->trackingState?->recorded_at
-        ? $order->delivery->trackingState
-        : $order->delivery?->locations?->sortByDesc('recorded_at')->first();
+    $trackingIsActive = $order->delivery?->trackingState?->status === 'active'
+        && in_array($order->delivery?->status, \App\Services\DeliveryTrackingService::ACTIVE_STATUSES, true)
+        && ! in_array($order->order_status, ['cancelled', 'refunded', 'delivered'], true);
+    $latestLocation = $trackingIsActive ? $order->delivery?->currentLocation : null;
     $riderRating = $order->riderRating;
 @endphp
 

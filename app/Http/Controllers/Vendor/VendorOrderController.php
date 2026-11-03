@@ -38,7 +38,7 @@ class VendorOrderController extends Controller
         $this->ensureBankTransferIsVerified($order);
 
         return view('vendor.orders.show', [
-            'order' => $order->load(['customer.user', 'items.product', 'delivery.rider.user', 'delivery.trackingState', 'payment']),
+            'order' => $order->load(['customer.user', 'items.product', 'delivery.rider.user', 'delivery.trackingState', 'delivery.currentLocation', 'payment']),
         ]);
     }
 

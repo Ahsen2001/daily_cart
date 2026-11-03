@@ -1,15 +1,15 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/rider_location_model.dart';
+import '../models/rider_location_queue_point.dart';
 import '../networking/api_exception.dart';
 import '../utils/secure_storage_helper.dart';
 import 'rider_location_api_service.dart';
+import 'rider_location_queue.dart';
 
 enum RiderTrackingPhase { active, offlineWaiting, permissionRequired, stopped }
 
@@ -33,15 +33,16 @@ class RiderDeliveryTrackingService {
   RiderDeliveryTrackingService._();
 
   static final instance = RiderDeliveryTrackingService._();
-  static const _pendingLocationKey = 'pending_active_delivery_location';
   static const _trackableStatuses = {'accepted', 'picked_up', 'on_the_way'};
 
   final state = ValueNotifier<RiderDeliveryTrackingState>(
     const RiderDeliveryTrackingState(),
   );
   final _api = RiderLocationApiService();
+  final _queue = RiderLocationQueue();
   final _storage = SecureStorageHelper();
   StreamSubscription<Position>? _subscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   Timer? _stationaryTimer;
   bool _sending = false;
   String? _deliveryStatus;
@@ -77,7 +78,13 @@ class RiderDeliveryTrackingService {
         _deliveryStatus == normalizedStatus) {
       return true;
     }
-    await stop(sendToServer: false);
+    final previousDeliveryId =
+        state.value.deliveryId ?? await _storage.getTrackingDeliveryId();
+    await stop(
+      sendToServer: false,
+      clearQueuedPoints:
+          previousDeliveryId != null && previousDeliveryId != deliveryId,
+    );
     _deliveryStatus = normalizedStatus;
 
     final permissionGranted = await _ensurePermission();
@@ -135,7 +142,23 @@ class RiderDeliveryTrackingService {
         }
       });
 
-      unawaited(_flushPending());
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
+        (results) {
+          if (results.any((result) => result != ConnectivityResult.none)) {
+            unawaited(_flushQueue());
+          } else {
+            state.value = RiderDeliveryTrackingState(
+              deliveryId: deliveryId,
+              position: state.value.position,
+              isTracking: true,
+              message: 'Offline: location updates waiting',
+              phase: RiderTrackingPhase.offlineWaiting,
+            );
+          }
+        },
+      );
+
+      unawaited(_flushQueue());
       try {
         final current = await Geolocator.getCurrentPosition(
           locationSettings: _locationSettings(normalizedStatus),
@@ -195,13 +218,18 @@ class RiderDeliveryTrackingService {
     }
   }
 
-  Future<void> stop({bool sendToServer = true}) async {
+  Future<void> stop({
+    bool sendToServer = true,
+    bool clearQueuedPoints = true,
+  }) async {
     final deliveryId =
         state.value.deliveryId ?? await _storage.getTrackingDeliveryId();
     await _subscription?.cancel();
     _subscription = null;
     _stationaryTimer?.cancel();
     _stationaryTimer = null;
+    await _connectivitySubscription?.cancel();
+    _connectivitySubscription = null;
     _deliveryStatus = null;
     _lastAcceptedPosition = null;
     _lastSentAt = null;
@@ -220,104 +248,55 @@ class RiderDeliveryTrackingService {
       }
     }
     await _storage.clearTrackingSession();
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.remove(_pendingLocationKey);
+    if (clearQueuedPoints && deliveryId != null) {
+      await _queue.clearDelivery(deliveryId);
+    }
   }
 
   Future<void> _send(Position position) async {
-    if (_sending) {
-      await _savePending(position);
-      return;
-    }
+    final deliveryId = await _storage.getTrackingDeliveryId();
+    if (deliveryId == null || !state.value.isTracking) return;
+    final sequenceNumber = await _queue.nextSequence(deliveryId);
+    await _queue.add(
+      RiderLocationQueuePoint(
+        pointUuid: _queue.newPointUuid(),
+        deliveryId: deliveryId,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        accuracyMeters: position.accuracy,
+        speed: position.speed < 0 ? null : position.speed,
+        heading: position.heading < 0 ? null : position.heading,
+        recordedAt: position.timestamp.toUtc(),
+        sequenceNumber: sequenceNumber,
+      ),
+    );
+    await _flushQueue();
+  }
+
+  Future<void> _flushQueue() async {
+    if (_sending || !state.value.isTracking) return;
     final deliveryId = await _storage.getTrackingDeliveryId();
     final token = await _storage.getTrackingToken();
-    if (deliveryId == null || token == null || !state.value.isTracking) return;
+    if (deliveryId == null || token == null) return;
 
     _sending = true;
     try {
-      await _api.updateRiderLocation(
-        RiderLocationModel(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          updatedAt: position.timestamp,
-        ),
-        deliveryId: deliveryId,
-        trackingToken: token,
-        accuracy: position.accuracy,
-        altitude: position.altitude,
-        speed: position.speed < 0 ? null : position.speed,
-        heading: position.heading < 0 ? null : position.heading,
-        recordedAt: position.timestamp,
-      );
-      final preferences = await SharedPreferences.getInstance();
-      await preferences.remove(_pendingLocationKey);
-      _lastSentAt = DateTime.now();
+      while (state.value.isTracking) {
+        final batch = await _queue.batchFor(deliveryId);
+        if (batch.isEmpty) break;
+        final result = await _api.sendLocationBatch(deliveryId, token, batch);
+        final acknowledged = result.acknowledgedPointUuids;
+        if (acknowledged.isEmpty) break;
+        await _queue.removeUuids(acknowledged);
+        _lastSentAt = DateTime.now();
+      }
       state.value = RiderDeliveryTrackingState(
         deliveryId: deliveryId,
-        position: position,
+        position: state.value.position,
         isTracking: true,
         message: 'Tracking active',
         phase: RiderTrackingPhase.active,
       );
-    } on ApiException catch (error) {
-      if (error.statusCode == 401 ||
-          error.statusCode == 403 ||
-          error.statusCode == 422) {
-        await stop(sendToServer: false);
-      } else {
-        await _savePending(position);
-        state.value = RiderDeliveryTrackingState(
-          deliveryId: deliveryId,
-          position: position,
-          isTracking: true,
-          message: 'Offline: location updates waiting',
-          phase: RiderTrackingPhase.offlineWaiting,
-        );
-      }
-    } finally {
-      _sending = false;
-    }
-  }
-
-  Future<void> _savePending(Position position) async {
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(
-      _pendingLocationKey,
-      jsonEncode({
-        'latitude': position.latitude,
-        'longitude': position.longitude,
-        'accuracy': position.accuracy,
-        'altitude': position.altitude,
-        'speed': position.speed,
-        'heading': position.heading,
-        'recorded_at': position.timestamp.toUtc().toIso8601String(),
-      }),
-    );
-  }
-
-  Future<void> _flushPending() async {
-    final preferences = await SharedPreferences.getInstance();
-    final raw = preferences.getString(_pendingLocationKey);
-    if (raw == null) return;
-    final data = jsonDecode(raw) as Map<String, dynamic>;
-    final deliveryId = await _storage.getTrackingDeliveryId();
-    final token = await _storage.getTrackingToken();
-    if (deliveryId == null || token == null) return;
-    try {
-      await _api.updateRiderLocation(
-        RiderLocationModel(
-          latitude: (data['latitude'] as num).toDouble(),
-          longitude: (data['longitude'] as num).toDouble(),
-        ),
-        deliveryId: deliveryId,
-        trackingToken: token,
-        accuracy: (data['accuracy'] as num?)?.toDouble(),
-        altitude: (data['altitude'] as num?)?.toDouble(),
-        speed: (data['speed'] as num?)?.toDouble(),
-        heading: (data['heading'] as num?)?.toDouble(),
-        recordedAt: DateTime.tryParse(data['recorded_at']?.toString() ?? ''),
-      );
-      await preferences.remove(_pendingLocationKey);
     } on ApiException catch (error) {
       if ({401, 403, 422}.contains(error.statusCode)) {
         await stop(sendToServer: false);
@@ -330,6 +309,8 @@ class RiderDeliveryTrackingService {
           phase: RiderTrackingPhase.offlineWaiting,
         );
       }
+    } finally {
+      _sending = false;
     }
   }
 

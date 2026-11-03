@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -80,6 +81,81 @@ class ActiveDeliveryTrackingTest extends TestCase
             'status' => 'stopped',
             'stop_reason' => 'rider_signed_out',
         ]);
+    }
+
+    public function test_offline_batches_are_idempotent_and_only_newer_points_replace_current_location(): void
+    {
+        [$customer, $rider, $order, $delivery] = $this->activeDelivery();
+        Sanctum::actingAs($rider, ['rider']);
+        $token = $this->postJson("/api/v1/rider/deliveries/{$delivery->id}/tracking/start")
+            ->assertOk()
+            ->json('tracking_token');
+        $olderUuid = (string) Str::uuid();
+        $newerUuid = (string) Str::uuid();
+        $points = [
+            [
+                'point_uuid' => $newerUuid,
+                'delivery_id' => $delivery->id,
+                'latitude' => 7.7172000,
+                'longitude' => 81.7002000,
+                'accuracy_meters' => 7.0,
+                'heading' => 90,
+                'speed' => 8,
+                'recorded_at' => now()->subSeconds(5)->toIso8601String(),
+                'sequence_number' => 2,
+            ],
+            [
+                'point_uuid' => $olderUuid,
+                'delivery_id' => $delivery->id,
+                'latitude' => 7.7171000,
+                'longitude' => 81.7001000,
+                'accuracy_meters' => 8.0,
+                'heading' => 80,
+                'speed' => 7,
+                'recorded_at' => now()->subSeconds(15)->toIso8601String(),
+                'sequence_number' => 1,
+            ],
+        ];
+
+        $this->postJson("/api/v1/rider/deliveries/{$delivery->id}/location-updates", [
+            'tracking_token' => $token,
+            'points' => $points,
+        ])->assertAccepted()
+            ->assertJsonPath('accepted_count', 2)
+            ->assertJsonPath('duplicate_count', 0);
+
+        $this->postJson("/api/v1/rider/deliveries/{$delivery->id}/location-updates", [
+            'tracking_token' => $token,
+            'points' => $points,
+        ])->assertAccepted()
+            ->assertJsonPath('accepted_count', 0)
+            ->assertJsonPath('duplicate_count', 2);
+
+        $this->assertDatabaseCount('rider_locations', 2);
+        $this->assertDatabaseHas('delivery_current_locations', [
+            'delivery_id' => $delivery->id,
+            'rider_id' => $rider->rider->id,
+            'latitude' => 7.7172000,
+            'sequence_number' => 2,
+        ]);
+
+        Sanctum::actingAs($customer, ['customer']);
+        $this->getJson("/api/v1/orders/{$order->id}/tracking")
+            ->assertOk()
+            ->assertJsonPath('delivery_status', 'accepted')
+            ->assertJsonPath('location.latitude', 7.7172)
+            ->assertJsonPath('location.is_stale', false);
+
+        $otherCustomer = $this->userForRole('Customer', '0771000999');
+        Sanctum::actingAs($otherCustomer, ['customer']);
+        $this->getJson("/api/v1/orders/{$order->id}/tracking")->assertForbidden();
+
+        $delivery->update(['status' => 'delivered', 'delivered_at' => now()]);
+        Sanctum::actingAs($customer, ['customer']);
+        $this->getJson("/api/v1/orders/{$order->id}/tracking")
+            ->assertOk()
+            ->assertJsonPath('tracking.is_active', false)
+            ->assertJsonPath('location', null);
     }
 
     /** @return array{User, User, Order, Delivery} */

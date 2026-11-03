@@ -122,6 +122,7 @@ class OrderController extends Controller
             'payment',
             'delivery.rider.user',
             'delivery.trackingState',
+            'delivery.currentLocation',
             'riderRating',
         ];
     }

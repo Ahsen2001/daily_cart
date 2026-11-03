@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../models/rider_location_model.dart';
+import '../models/rider_location_queue_point.dart';
 import '../networking/api_client.dart';
 import '../utils/secure_storage_helper.dart';
 import 'auth_api_service.dart';
@@ -79,6 +80,26 @@ class RiderLocationApiService with AuthenticatedApiMixin {
     }
   }
 
+  Future<RiderLocationBatchResult> sendLocationBatch(
+    int deliveryId,
+    String trackingToken,
+    List<RiderLocationQueuePoint> points,
+  ) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/rider/deliveries/$deliveryId/location-updates',
+        data: {
+          'tracking_token': trackingToken,
+          'points': points.map((point) => point.toJson()).toList(),
+        },
+        options: await authOptions(),
+      );
+      return RiderLocationBatchResult.fromJson(response.data ?? const {});
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
   Future<void> stopTracking(int deliveryId) async {
     try {
       await _dio.post<void>(
@@ -88,5 +109,41 @@ class RiderLocationApiService with AuthenticatedApiMixin {
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
     }
+  }
+}
+
+class RiderLocationBatchResult {
+  const RiderLocationBatchResult({
+    required this.acceptedPointUuids,
+    required this.duplicatePointUuids,
+    required this.rejectedPointUuids,
+  });
+
+  final Set<String> acceptedPointUuids;
+  final Set<String> duplicatePointUuids;
+  final Set<String> rejectedPointUuids;
+
+  Set<String> get acknowledgedPointUuids => {
+    ...acceptedPointUuids,
+    ...duplicatePointUuids,
+    ...rejectedPointUuids,
+  };
+
+  factory RiderLocationBatchResult.fromJson(Map<String, dynamic> json) {
+    Set<String> strings(Object? value) => value is List
+        ? value.map((item) => item.toString()).toSet()
+        : <String>{};
+    final rejected = json['rejected_points'];
+    return RiderLocationBatchResult(
+      acceptedPointUuids: strings(json['accepted_point_uuids']),
+      duplicatePointUuids: strings(json['duplicate_point_uuids']),
+      rejectedPointUuids: rejected is List
+          ? rejected
+                .whereType<Map>()
+                .map((item) => item['point_uuid']?.toString())
+                .whereType<String>()
+                .toSet()
+          : const {},
+    );
   }
 }

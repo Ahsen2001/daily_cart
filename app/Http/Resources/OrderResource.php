@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\DeliveryTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -50,14 +51,18 @@ class OrderResource extends JsonResource
             'rider' => $this->whenLoaded('delivery', function () {
                 $rider = $this->delivery?->rider;
                 $tracking = $this->delivery?->trackingState;
+                $trackingIsActive = $tracking?->status === 'active'
+                    && in_array($this->delivery?->status, DeliveryTrackingService::ACTIVE_STATUSES, true)
+                    && ! in_array($this->order_status, ['cancelled', 'refunded', 'delivered'], true);
+                $current = $trackingIsActive ? $this->delivery?->currentLocation : null;
 
                 return $rider ? [
                     'id' => $rider->id,
                     'name' => $rider->user?->name,
                     'phone' => $rider->user?->phone,
-                    'latitude' => $tracking?->recorded_at ? (float) $tracking->latitude : null,
-                    'longitude' => $tracking?->recorded_at ? (float) $tracking->longitude : null,
-                    'location_recorded_at' => $tracking?->recorded_at,
+                    'latitude' => $current?->recorded_at ? (float) $current->latitude : null,
+                    'longitude' => $current?->recorded_at ? (float) $current->longitude : null,
+                    'location_recorded_at' => $current?->recorded_at,
                 ] : null;
             }),
             'delivery' => $this->whenLoaded('delivery', fn () => $this->delivery ? [

@@ -58,10 +58,8 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->middleware('ability:auth');
         Route::get('/profile', [AuthController::class, 'profile'])->middleware('ability:profile');
-        Route::get('/orders/{order}/tracking', [DeliveryTrackingController::class, 'show'])
-            ->middleware('ability:customer,vendor');
-        Route::get('/orders/{order}/tracking/stream', [DeliveryTrackingController::class, 'stream'])
-            ->middleware('ability:customer,vendor');
+        Route::get('/orders/{order}/tracking', [DeliveryTrackingController::class, 'show']);
+        Route::get('/orders/{order}/tracking/stream', [DeliveryTrackingController::class, 'stream']);
 
         // Device registration is intentionally available before verification/approval so
         // pending vendor and rider accounts can receive private account-state updates.
@@ -182,6 +180,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/tracking/active', [DeliveryTrackingController::class, 'active']);
             Route::post('/deliveries/{delivery}/tracking/start', [DeliveryTrackingController::class, 'start']);
             Route::post('/deliveries/{delivery}/tracking/locations', [DeliveryTrackingController::class, 'store'])
+                ->middleware('throttle:delivery-location');
+            Route::post('/deliveries/{delivery}/location-updates', [DeliveryTrackingController::class, 'storeBatch'])
                 ->middleware('throttle:delivery-location');
             Route::post('/deliveries/{delivery}/tracking/stop', [DeliveryTrackingController::class, 'stop']);
             Route::get('/earnings', [RiderController::class, 'earnings']);

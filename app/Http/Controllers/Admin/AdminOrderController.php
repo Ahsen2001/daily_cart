@@ -39,7 +39,7 @@ class AdminOrderController extends Controller
     public function show(Order $order): View
     {
         return view('admin.orders.show', [
-            'order' => $order->load(['customer.user', 'vendor', 'items.product', 'delivery.rider.user', 'delivery.trackingState', 'payment']),
+            'order' => $order->load(['customer.user', 'vendor', 'items.product', 'delivery.rider.user', 'delivery.trackingState', 'delivery.currentLocation', 'payment']),
         ]);
     }
 

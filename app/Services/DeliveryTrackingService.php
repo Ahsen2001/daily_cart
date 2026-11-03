@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Delivery;
+use App\Models\DeliveryCurrentLocation;
 use App\Models\DeliveryTrackingState;
 use App\Models\Rider;
 use App\Models\RiderLocation;
@@ -71,6 +72,7 @@ class DeliveryTrackingService
             $payload = [
                 'rider_id' => $rider->id,
                 'delivery_id' => $lockedDelivery->id,
+                'point_uuid' => (string) Str::uuid(),
                 'latitude' => $data['latitude'],
                 'longitude' => $data['longitude'],
                 'accuracy' => $data['accuracy'] ?? null,
@@ -78,17 +80,101 @@ class DeliveryTrackingService
                 'speed' => $data['speed'] ?? null,
                 'heading' => $data['heading'] ?? null,
                 'recorded_at' => $recordedAt,
+                'received_at' => now(),
             ];
 
             $location = RiderLocation::query()->create($payload);
-            $state->update([
-                ...collect($payload)->only([
-                    'latitude', 'longitude', 'accuracy', 'altitude', 'speed', 'heading', 'recorded_at',
-                ])->all(),
-                'status' => 'active',
-            ]);
+            $this->updateCurrentLocation($lockedDelivery, $rider, $payload);
+            $this->updateTrackingSnapshot($state, $payload);
 
             return $location;
+        });
+    }
+
+    /**
+     * @return array{
+     *   accepted_count:int,
+     *   duplicate_count:int,
+     *   rejected_count:int,
+     *   accepted_point_uuids:list<string>,
+     *   duplicate_point_uuids:list<string>,
+     *   rejected_points:list<array{point_uuid:string,reason:string}>
+     * }
+     */
+    public function recordBatch(Delivery $delivery, Rider $rider, string $trackingToken, array $points): array
+    {
+        return DB::transaction(function () use ($delivery, $rider, $trackingToken, $points) {
+            $lockedDelivery = Delivery::query()->lockForUpdate()->findOrFail($delivery->id);
+            $this->assertTrackable($lockedDelivery, $rider);
+
+            $state = DeliveryTrackingState::query()
+                ->where('delivery_id', $lockedDelivery->id)
+                ->lockForUpdate()
+                ->first();
+            $this->assertTrackingSession($state, $rider, $trackingToken);
+
+            $accepted = [];
+            $duplicates = [];
+            $rejected = [];
+            $receivedAt = now();
+
+            // Newest-first lets reconnects restore the live map immediately.
+            $sortedPoints = collect($points)->sortByDesc('recorded_at')->values();
+            foreach ($sortedPoints as $point) {
+                $pointUuid = (string) $point['point_uuid'];
+                if (RiderLocation::query()->where('point_uuid', $pointUuid)->exists()) {
+                    $duplicates[] = $pointUuid;
+
+                    continue;
+                }
+
+                try {
+                    $recordedAt = Carbon::parse($point['recorded_at']);
+                    if ($recordedAt->isAfter(now()->addMinutes(2)) || $recordedAt->isBefore(now()->subDay())) {
+                        throw ValidationException::withMessages([
+                            'recorded_at' => 'The location timestamp is outside the accepted tracking window.',
+                        ]);
+                    }
+
+                    $normalized = [
+                        'latitude' => $point['latitude'],
+                        'longitude' => $point['longitude'],
+                        'accuracy' => $point['accuracy_meters'] ?? null,
+                        'speed' => $point['speed'] ?? null,
+                        'heading' => $point['heading'] ?? null,
+                    ];
+                    $this->validatePositionQuality($lockedDelivery, $normalized, $recordedAt);
+
+                    $payload = [
+                        'rider_id' => $rider->id,
+                        'delivery_id' => $lockedDelivery->id,
+                        'point_uuid' => $pointUuid,
+                        ...$normalized,
+                        'recorded_at' => $recordedAt,
+                        'received_at' => $receivedAt,
+                        'sequence_number' => $point['sequence_number'],
+                    ];
+                    RiderLocation::query()->create($payload);
+                    $this->updateCurrentLocation($lockedDelivery, $rider, $payload);
+                    $this->updateTrackingSnapshot($state, $payload);
+                    $accepted[] = $pointUuid;
+                } catch (ValidationException $exception) {
+                    $rejected[] = [
+                        'point_uuid' => $pointUuid,
+                        'reason' => collect($exception->errors())->flatten()->first()
+                            ?? 'The location point was rejected.',
+                    ];
+                }
+            }
+
+            return [
+                'accepted_count' => count($accepted),
+                'duplicate_count' => count($duplicates),
+                'rejected_count' => count($rejected),
+                'accepted_point_uuids' => $accepted,
+                'duplicate_point_uuids' => $duplicates,
+                'rejected_points' => $rejected,
+            ];
         });
     }
 
@@ -144,6 +230,68 @@ class DeliveryTrackingService
             422,
             'This order no longer permits active delivery tracking.',
         );
+    }
+
+    private function assertTrackingSession(?DeliveryTrackingState $state, Rider $rider, string $token): void
+    {
+        $providedHash = hash('sha256', $token);
+        abort_unless(
+            $state
+                && $state->status === 'active'
+                && $state->rider_id === $rider->id
+                && filled($state->tracking_token_hash)
+                && hash_equals($state->tracking_token_hash, $providedHash),
+            403,
+            'This tracking session is no longer authorized.',
+        );
+    }
+
+    private function updateCurrentLocation(Delivery $delivery, Rider $rider, array $payload): void
+    {
+        $current = DeliveryCurrentLocation::query()
+            ->where('delivery_id', $delivery->id)
+            ->lockForUpdate()
+            ->first();
+        $recordedAt = Carbon::parse($payload['recorded_at']);
+        $sequenceNumber = isset($payload['sequence_number']) ? (int) $payload['sequence_number'] : null;
+        $isNewer = ! $current
+            || $recordedAt->isAfter($current->recorded_at)
+            || ($recordedAt->equalTo($current->recorded_at)
+                && $sequenceNumber !== null
+                && ($current->sequence_number === null || $sequenceNumber > $current->sequence_number));
+        if (! $isNewer) {
+            return;
+        }
+
+        DeliveryCurrentLocation::query()->updateOrCreate(
+            ['delivery_id' => $delivery->id],
+            [
+                'rider_id' => $rider->id,
+                'latitude' => $payload['latitude'],
+                'longitude' => $payload['longitude'],
+                'accuracy_meters' => $payload['accuracy'] ?? null,
+                'heading' => $payload['heading'] ?? null,
+                'speed' => $payload['speed'] ?? null,
+                'recorded_at' => $recordedAt,
+                'received_at' => $payload['received_at'] ?? now(),
+                'sequence_number' => $sequenceNumber,
+            ],
+        );
+    }
+
+    private function updateTrackingSnapshot(DeliveryTrackingState $state, array $payload): void
+    {
+        $recordedAt = Carbon::parse($payload['recorded_at']);
+        if ($state->recorded_at && ! $recordedAt->isAfter($state->recorded_at)) {
+            return;
+        }
+
+        $state->update([
+            ...collect($payload)->only([
+                'latitude', 'longitude', 'accuracy', 'altitude', 'speed', 'heading', 'recorded_at',
+            ])->all(),
+            'status' => 'active',
+        ]);
     }
 
     private function validatePositionQuality(Delivery $delivery, array $data, Carbon $recordedAt): void
