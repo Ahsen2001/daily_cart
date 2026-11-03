@@ -18,8 +18,8 @@ return new class extends Migration
                 $table->decimal('accuracy_meters', 8, 2)->nullable();
                 $table->decimal('heading', 6, 2)->nullable();
                 $table->decimal('speed', 8, 2)->nullable();
-                $table->timestamp('recorded_at')->index();
-                $table->timestamp('received_at');
+                $table->dateTime('recorded_at')->index();
+                $table->dateTime('received_at');
                 $table->unsignedBigInteger('sequence_number')->nullable();
                 $table->timestamps();
 

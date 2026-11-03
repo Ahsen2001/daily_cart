@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Resources\OrderResource;
 use App\Models\Delivery;
 use App\Models\Order;
 use App\Models\Role;
@@ -14,6 +15,44 @@ use Tests\TestCase;
 class ActiveDeliveryTrackingTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_rider_cannot_submit_a_point_for_another_riders_delivery(): void
+    {
+        [, $assignedRider, , $delivery] = $this->activeDelivery();
+        Sanctum::actingAs($assignedRider, ['rider']);
+        $token = $this->postJson("/api/v1/rider/deliveries/{$delivery->id}/tracking/start")
+            ->assertOk()
+            ->json('tracking_token');
+
+        $otherRider = $this->userForRole('Rider', '0772000998');
+        $otherRider->rider()->update(['verification_status' => 'verified']);
+        Sanctum::actingAs($otherRider->refresh(), ['rider']);
+
+        $this->postJson("/api/v1/rider/deliveries/{$delivery->id}/location-updates", [
+            'tracking_token' => $token,
+            'points' => [$this->locationPoint($delivery, (string) Str::uuid(), 1)],
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('rider_locations', 0);
+    }
+
+    public function test_rider_cannot_submit_points_after_delivery_completion(): void
+    {
+        [, $rider, , $delivery] = $this->activeDelivery();
+        Sanctum::actingAs($rider, ['rider']);
+        $token = $this->postJson("/api/v1/rider/deliveries/{$delivery->id}/tracking/start")
+            ->assertOk()
+            ->json('tracking_token');
+
+        $delivery->update(['status' => 'delivered', 'delivered_at' => now()]);
+
+        $this->postJson("/api/v1/rider/deliveries/{$delivery->id}/location-updates", [
+            'tracking_token' => $token,
+            'points' => [$this->locationPoint($delivery, (string) Str::uuid(), 1)],
+        ])->assertUnprocessable();
+
+        $this->assertDatabaseCount('rider_locations', 0);
+    }
 
     public function test_only_the_assigned_rider_can_start_and_submit_active_delivery_locations(): void
     {
@@ -158,6 +197,59 @@ class ActiveDeliveryTrackingTest extends TestCase
             ->assertJsonPath('location', null);
     }
 
+    public function test_private_delivery_channel_authorizes_only_delivery_participants_and_admins(): void
+    {
+        [$customer, $rider, $order, $delivery] = $this->activeDelivery();
+        $vendor = $order->vendor()->with('user')->firstOrFail()->user;
+        $admin = $this->userForRole('Admin', '0774000101');
+        $outsider = $this->userForRole('Customer', '0771000997');
+        $payload = [
+            'socket_id' => '1234.5678',
+            'channel_name' => "private-delivery.{$delivery->id}",
+        ];
+
+        foreach ([$customer, $rider, $vendor, $admin] as $authorizedUser) {
+            Sanctum::actingAs($authorizedUser);
+            $this->postJson('/broadcasting/auth', $payload)->assertOk();
+        }
+
+        Sanctum::actingAs($outsider);
+        $this->postJson('/broadcasting/auth', $payload)->assertForbidden();
+    }
+
+    public function test_order_resource_includes_current_location_and_recorded_at(): void
+    {
+        [, $rider, $order, $delivery] = $this->activeDelivery();
+        Sanctum::actingAs($rider, ['rider']);
+        $token = $this->postJson("/api/v1/rider/deliveries/{$delivery->id}/tracking/start")
+            ->assertOk()
+            ->json('tracking_token');
+        $recordedAt = now()->subSeconds(5)->startOfSecond();
+
+        $this->postJson("/api/v1/rider/deliveries/{$delivery->id}/location-updates", [
+            'tracking_token' => $token,
+            'points' => [[
+                ...$this->locationPoint($delivery, (string) Str::uuid(), 1),
+                'recorded_at' => $recordedAt->toIso8601String(),
+            ]],
+        ])->assertAccepted();
+
+        $resource = (new OrderResource($order->refresh()->load([
+            'payment',
+            'delivery.rider.user',
+            'delivery.trackingState',
+            'delivery.currentLocation',
+        ])))->resolve();
+
+        $this->assertSame(7.7172, $resource['rider']['latitude']);
+        $this->assertSame(81.7002, $resource['rider']['longitude']);
+        $this->assertNotNull($resource['rider']['location_recorded_at']);
+        $this->assertSame(
+            $recordedAt->toIso8601String(),
+            $resource['rider']['location_recorded_at']->toIso8601String(),
+        );
+    }
+
     /** @return array{User, User, Order, Delivery} */
     private function activeDelivery(): array
     {
@@ -205,5 +297,21 @@ class ActiveDeliveryTrackingTest extends TestCase
         $user->assignRole($role);
 
         return $user->refresh();
+    }
+
+    /** @return array<string, int|float|string> */
+    private function locationPoint(Delivery $delivery, string $uuid, int $sequence): array
+    {
+        return [
+            'point_uuid' => $uuid,
+            'delivery_id' => $delivery->id,
+            'latitude' => 7.7172,
+            'longitude' => 81.7002,
+            'accuracy_meters' => 7.0,
+            'heading' => 90,
+            'speed' => 8,
+            'recorded_at' => now()->subSeconds(5)->toIso8601String(),
+            'sequence_number' => $sequence,
+        ];
     }
 }

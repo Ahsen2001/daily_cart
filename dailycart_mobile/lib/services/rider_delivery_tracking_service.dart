@@ -10,6 +10,8 @@ import '../networking/api_exception.dart';
 import '../utils/secure_storage_helper.dart';
 import 'rider_location_api_service.dart';
 import 'rider_location_queue.dart';
+import 'rider_location_queue_synchronizer.dart';
+import 'rider_tracking_lifecycle.dart';
 
 enum RiderTrackingPhase { active, offlineWaiting, permissionRequired, stopped }
 
@@ -33,7 +35,6 @@ class RiderDeliveryTrackingService {
   RiderDeliveryTrackingService._();
 
   static final instance = RiderDeliveryTrackingService._();
-  static const _trackableStatuses = {'accepted', 'picked_up', 'on_the_way'};
 
   final state = ValueNotifier<RiderDeliveryTrackingState>(
     const RiderDeliveryTrackingState(),
@@ -41,6 +42,10 @@ class RiderDeliveryTrackingService {
   final _api = RiderLocationApiService();
   final _queue = RiderLocationQueue();
   final _storage = SecureStorageHelper();
+  late final _queueSynchronizer = RiderLocationQueueSynchronizer(
+    queue: _queue,
+    sender: _api.sendLocationBatch,
+  );
   StreamSubscription<Position>? _subscription;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   Timer? _stationaryTimer;
@@ -55,11 +60,13 @@ class RiderDeliveryTrackingService {
       final active = await _api.activeDelivery();
       final deliveryId = int.tryParse(active?['id']?.toString() ?? '');
       final status = active?['status']?.toString().toLowerCase();
-      if (deliveryId == null || !_trackableStatuses.contains(status)) {
+      if (deliveryId == null ||
+          status == null ||
+          !RiderTrackingLifecycle.shouldTrack(status)) {
         await stop(sendToServer: false);
         return;
       }
-      await start(deliveryId, status!);
+      await start(deliveryId, status);
     } on ApiException catch (error) {
       if (!error.canRetry) {
         await stop(sendToServer: false);
@@ -69,7 +76,7 @@ class RiderDeliveryTrackingService {
 
   Future<bool> start(int deliveryId, String status) async {
     final normalizedStatus = status.toLowerCase();
-    if (!_trackableStatuses.contains(normalizedStatus)) {
+    if (!RiderTrackingLifecycle.shouldTrack(normalizedStatus)) {
       await stop();
       return false;
     }
@@ -189,7 +196,7 @@ class RiderDeliveryTrackingService {
   }
 
   Future<void> syncWithStatus(int deliveryId, String status) async {
-    if (_trackableStatuses.contains(status.toLowerCase())) {
+    if (RiderTrackingLifecycle.shouldTrack(status)) {
       await start(deliveryId, status);
     } else if (state.value.deliveryId == deliveryId) {
       await stop();
@@ -281,13 +288,12 @@ class RiderDeliveryTrackingService {
 
     _sending = true;
     try {
-      while (state.value.isTracking) {
-        final batch = await _queue.batchFor(deliveryId);
-        if (batch.isEmpty) break;
-        final result = await _api.sendLocationBatch(deliveryId, token, batch);
-        final acknowledged = result.acknowledgedPointUuids;
-        if (acknowledged.isEmpty) break;
-        await _queue.removeUuids(acknowledged);
+      final acknowledgedCount = await _queueSynchronizer.flush(
+        deliveryId: deliveryId,
+        trackingToken: token,
+        shouldContinue: () => state.value.isTracking,
+      );
+      if (acknowledgedCount > 0) {
         _lastSentAt = DateTime.now();
       }
       state.value = RiderDeliveryTrackingState(

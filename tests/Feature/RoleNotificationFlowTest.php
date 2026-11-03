@@ -2,14 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Mail\GenericNotificationMail;
 use App\Models\Category;
+use App\Models\Notification;
+use App\Models\NotificationDeliveryLog;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\Vendor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class RoleNotificationFlowTest extends TestCase
@@ -18,8 +17,6 @@ class RoleNotificationFlowTest extends TestCase
 
     public function test_product_submission_notifies_admins_and_review_notifies_the_vendor(): void
     {
-        Mail::fake();
-
         $admin = $this->userWithRole('Admin');
         $superAdmin = $this->userWithRole('Super Admin');
         $vendorUser = $this->userWithRole('Vendor');
@@ -54,10 +51,8 @@ class RoleNotificationFlowTest extends TestCase
         $this->assertSame('pending', $product->status);
         $this->assertDatabaseHas('notifications', ['user_id' => $admin->id, 'type' => 'product_submitted_for_approval']);
         $this->assertDatabaseHas('notifications', ['user_id' => $superAdmin->id, 'type' => 'product_submitted_for_approval']);
-        Mail::assertQueued(GenericNotificationMail::class, fn (GenericNotificationMail $mail) => $mail->title === 'Product approval required'
-            && $mail->hasTo($admin->email));
-        Mail::assertQueued(GenericNotificationMail::class, fn (GenericNotificationMail $mail) => $mail->title === 'Product approval required'
-            && $mail->hasTo($superAdmin->email));
+        $this->assertQueuedEmailDelivery($admin, 'Product approval required');
+        $this->assertQueuedEmailDelivery($superAdmin, 'Product approval required');
 
         $this->actingAs($admin)
             ->patch(route('admin.products.approve', $product))
@@ -65,8 +60,7 @@ class RoleNotificationFlowTest extends TestCase
 
         $this->assertSame('approved', $product->refresh()->status);
         $this->assertDatabaseHas('notifications', ['user_id' => $vendorUser->id, 'title' => 'Product approved']);
-        Mail::assertQueued(GenericNotificationMail::class, fn (GenericNotificationMail $mail) => $mail->title === 'Product approved'
-            && $mail->hasTo($vendorUser->email));
+        $this->assertQueuedEmailDelivery($vendorUser, 'Product approved');
         $this->assertSame($vendor->id, $product->vendor_id);
     }
 
@@ -77,5 +71,28 @@ class RoleNotificationFlowTest extends TestCase
         $user->assignRole($role);
 
         return $user;
+    }
+
+    private function assertQueuedEmailDelivery(User $user, string $title): void
+    {
+        $notification = Notification::query()
+            ->whereBelongsTo($user)
+            ->where('title', $title)
+            ->sole();
+
+        $this->assertDatabaseHas('notification_delivery_logs', [
+            'notification_id' => $notification->id,
+            'user_id' => $user->id,
+            'event_id' => $notification->event_id,
+            'channel' => 'email',
+        ]);
+        $this->assertContains(
+            NotificationDeliveryLog::query()
+                ->where('notification_id', $notification->id)
+                ->where('channel', 'email')
+                ->sole()
+                ->status,
+            ['queued', 'sent'],
+        );
     }
 }

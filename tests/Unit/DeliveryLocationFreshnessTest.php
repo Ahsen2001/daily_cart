@@ -23,9 +23,22 @@ class DeliveryLocationFreshnessTest extends TestCase
         ]);
         $freshness = app(DeliveryLocationFreshness::class);
 
-        $this->assertSame('live', $freshness->describe(now()->subSeconds(89), true, 'on_the_way')['status']);
-        $this->assertSame('recent', $freshness->describe(now()->subSeconds(90), true, 'on_the_way')['status']);
-        $this->assertSame('outdated', $freshness->describe(now()->subSeconds(181), true, 'on_the_way')['status']);
+        $live = $freshness->describe(now()->subSeconds(89), true, 'on_the_way');
+        $this->assertSame('live', $live['status']);
+        $this->assertSame(89, $live['age_seconds']);
+        $this->assertFalse($live['is_stale']);
+
+        $recent = $freshness->describe(now()->subSeconds(90), true, 'on_the_way');
+        $this->assertSame('recent', $recent['status']);
+        $this->assertSame('Last updated 1 minute ago', $recent['message']);
+        $this->assertTrue($recent['is_stale']);
+        $this->assertFalse($recent['is_outdated']);
+
+        $outdated = $freshness->describe(now()->subSeconds(181), true, 'on_the_way');
+        $this->assertSame('outdated', $outdated['status']);
+        $this->assertSame('Location may be outdated', $outdated['message']);
+        $this->assertTrue($outdated['is_stale']);
+        $this->assertTrue($outdated['is_outdated']);
         $this->assertSame('waiting', $freshness->describe(null, true, 'on_the_way')['status']);
         $this->assertSame('completed', $freshness->describe(now(), false, 'delivered')['status']);
     }
