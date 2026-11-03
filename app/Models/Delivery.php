@@ -63,4 +63,14 @@ class Delivery extends Model
     {
         return $this->hasOne(RiderRating::class);
     }
+
+    public function trackingState(): HasOne
+    {
+        return $this->hasOne(DeliveryTrackingState::class);
+    }
+
+    public function locations(): HasMany
+    {
+        return $this->hasMany(RiderLocation::class);
+    }
 }

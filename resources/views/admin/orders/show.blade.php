@@ -25,6 +25,8 @@
                     <div><div class="text-sm text-gray-500">{{ __('Delivery Status') }}</div><div class="font-semibold">{{ str_replace('_', ' ', ucfirst($order->delivery?->status ?? 'pending')) }}</div></div>
                 </div>
 
+                <x-active-delivery-tracking :order="$order" />
+
                 <div class="mt-6 border-t pt-6">
                     <h3 class="mb-3 font-semibold">{{ __('Items') }}</h3>
                     @foreach ($order->items as $item)

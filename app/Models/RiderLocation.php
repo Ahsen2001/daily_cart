@@ -17,6 +17,10 @@ class RiderLocation extends Model
         'delivery_id',
         'latitude',
         'longitude',
+        'accuracy',
+        'altitude',
+        'speed',
+        'heading',
         'recorded_at',
     ];
 
@@ -25,6 +29,10 @@ class RiderLocation extends Model
         return [
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
+            'accuracy' => 'decimal:2',
+            'altitude' => 'decimal:2',
+            'speed' => 'decimal:2',
+            'heading' => 'decimal:2',
             'recorded_at' => 'datetime',
         ];
     }

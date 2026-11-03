@@ -4,9 +4,8 @@ import '../models/user_model.dart';
 import '../models/user_role.dart';
 
 class SecureStorageHelper {
-  SecureStorageHelper({
-    FlutterSecureStorage? storage,
-  }) : _storage = storage ?? const FlutterSecureStorage();
+  SecureStorageHelper({FlutterSecureStorage? storage})
+    : _storage = storage ?? const FlutterSecureStorage();
 
   final FlutterSecureStorage _storage;
 
@@ -22,6 +21,8 @@ class SecureStorageHelper {
   static const userPhoneVerifiedKey = 'user_phone_verified';
   static const userApprovedKey = 'user_is_approved';
   static const tokenExpiresAtKey = 'auth_token_expires_at';
+  static const trackingDeliveryIdKey = 'active_tracking_delivery_id';
+  static const trackingTokenKey = 'active_tracking_token';
 
   Future<void> saveToken(String token) {
     return _storage.write(key: authTokenKey, value: token);
@@ -62,7 +63,10 @@ class SecureStorageHelper {
       key: userPhoneVerifiedKey,
       value: user.isPhoneVerified.toString(),
     );
-    await _storage.write(key: userApprovedKey, value: user.isApproved.toString());
+    await _storage.write(
+      key: userApprovedKey,
+      value: user.isApproved.toString(),
+    );
   }
 
   Future<UserModel?> getUser() async {
@@ -111,5 +115,27 @@ class SecureStorageHelper {
     await _storage.delete(key: userEmailVerifiedKey);
     await _storage.delete(key: userPhoneVerifiedKey);
     await _storage.delete(key: userApprovedKey);
+    await clearTrackingSession();
+  }
+
+  Future<void> saveTrackingSession(int deliveryId, String token) async {
+    await _storage.write(
+      key: trackingDeliveryIdKey,
+      value: deliveryId.toString(),
+    );
+    await _storage.write(key: trackingTokenKey, value: token);
+  }
+
+  Future<int?> getTrackingDeliveryId() async {
+    return int.tryParse(await _storage.read(key: trackingDeliveryIdKey) ?? '');
+  }
+
+  Future<String?> getTrackingToken() {
+    return _storage.read(key: trackingTokenKey);
+  }
+
+  Future<void> clearTrackingSession() async {
+    await _storage.delete(key: trackingDeliveryIdKey);
+    await _storage.delete(key: trackingTokenKey);
   }
 }

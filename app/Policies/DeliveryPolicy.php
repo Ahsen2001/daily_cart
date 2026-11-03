@@ -15,7 +15,8 @@ class DeliveryPolicy
     public function view(User $user, Delivery $delivery): bool
     {
         return $user->rider?->id === $delivery->rider_id
-            || $user->customer?->id === $delivery->order?->customer_id;
+            || $user->customer?->id === $delivery->order?->customer_id
+            || $user->vendor?->id === $delivery->order?->vendor_id;
     }
 
     public function update(User $user, Delivery $delivery): bool

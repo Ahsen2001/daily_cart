@@ -1,24 +1,25 @@
 <?php
 
+use App\Http\Controllers\Api\v1\AddressController;
 use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\BankTransferPaymentController;
-use App\Http\Controllers\Api\v1\AddressController;
 use App\Http\Controllers\Api\v1\CartController;
-use App\Http\Controllers\Api\v1\CustomerCommerceController;
 use App\Http\Controllers\Api\v1\CustomerAccountController;
+use App\Http\Controllers\Api\v1\CustomerCommerceController;
 use App\Http\Controllers\Api\v1\CustomerExtendedCommerceController;
 use App\Http\Controllers\Api\v1\DeliveryPricingController;
-use App\Http\Controllers\Api\v1\OrderController;
+use App\Http\Controllers\Api\v1\DeliveryTrackingController;
 use App\Http\Controllers\Api\v1\NotificationInfrastructureController;
+use App\Http\Controllers\Api\v1\OrderController;
 use App\Http\Controllers\Api\v1\PasswordRecoveryController;
 use App\Http\Controllers\Api\v1\PayHereMobileController;
 use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\v1\RiderController;
 use App\Http\Controllers\Api\v1\RiderRatingController;
 use App\Http\Controllers\Api\v1\StorefrontController;
-use App\Http\Controllers\Api\v1\VendorController;
 use App\Http\Controllers\Api\v1\VendorBusinessController;
 use App\Http\Controllers\Api\v1\VendorCatalogController;
+use App\Http\Controllers\Api\v1\VendorController;
 use App\Http\Controllers\Api\v1\VerificationController;
 use App\Http\Controllers\Api\v1\WishlistController;
 use Illuminate\Support\Facades\Route;
@@ -57,6 +58,10 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->middleware('ability:auth');
         Route::get('/profile', [AuthController::class, 'profile'])->middleware('ability:profile');
+        Route::get('/orders/{order}/tracking', [DeliveryTrackingController::class, 'show'])
+            ->middleware('ability:customer,vendor');
+        Route::get('/orders/{order}/tracking/stream', [DeliveryTrackingController::class, 'stream'])
+            ->middleware('ability:customer,vendor');
 
         // Device registration is intentionally available before verification/approval so
         // pending vendor and rider accounts can receive private account-state updates.
@@ -174,6 +179,11 @@ Route::prefix('v1')->group(function () {
             Route::patch('/deliveries/{delivery}/status', [RiderController::class, 'updateStatus']);
             Route::post('/deliveries/{delivery}/proof', [RiderController::class, 'replaceProof']);
             Route::post('/location', [RiderController::class, 'location']);
+            Route::get('/tracking/active', [DeliveryTrackingController::class, 'active']);
+            Route::post('/deliveries/{delivery}/tracking/start', [DeliveryTrackingController::class, 'start']);
+            Route::post('/deliveries/{delivery}/tracking/locations', [DeliveryTrackingController::class, 'store'])
+                ->middleware('throttle:delivery-location');
+            Route::post('/deliveries/{delivery}/tracking/stop', [DeliveryTrackingController::class, 'stop']);
             Route::get('/earnings', [RiderController::class, 'earnings']);
             Route::get('/reports', [RiderController::class, 'reports']);
             Route::get('/ratings', [RiderRatingController::class, 'riderIndex']);

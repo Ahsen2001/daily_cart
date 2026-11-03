@@ -9,6 +9,7 @@ use App\Models\Rider;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Services\DeliveryTrackingService;
 use App\Services\NotificationService;
 use App\Services\OtpService;
 use App\Services\PhoneVerificationService;
@@ -188,8 +189,12 @@ class AuthController extends Controller
         return $this->authenticationResponse($user, $token, 'Signed in successfully.');
     }
 
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request, DeliveryTrackingService $tracking): JsonResponse
     {
+        if ($request->user()->rider) {
+            $tracking->stopRider($request->user()->rider, 'rider_signed_out');
+        }
+
         $accessToken = $request->user()->currentAccessToken();
 
         if ($accessToken instanceof PersonalAccessToken) {

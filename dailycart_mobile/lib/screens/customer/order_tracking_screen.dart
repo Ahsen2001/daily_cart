@@ -23,6 +23,7 @@ class OrderTrackingScreen extends ConsumerStatefulWidget {
 
 class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   Timer? _refreshTimer;
+  StreamSubscription<void>? _trackingSubscription;
 
   @override
   void initState() {
@@ -30,7 +31,15 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
     Future.microtask(() async {
       await ref.read(orderProvider).getOrderDetails(widget.orderId);
       if (!mounted) return;
-      _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _trackingSubscription = ref
+          .read(orderProvider)
+          .watchTracking(widget.orderId)
+          .listen((_) {
+            if (mounted) {
+              ref.read(orderProvider).getOrderDetails(widget.orderId);
+            }
+          });
+      _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
         ref.read(orderProvider).getOrderDetails(widget.orderId);
       });
     });
@@ -39,6 +48,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _trackingSubscription?.cancel();
     super.dispose();
   }
 
@@ -173,7 +183,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                   ),
                 const SizedBox(height: 8),
                 Text(
-                  'Tracking refreshes automatically every 15 seconds.',
+                  'Live tracking updates automatically while this screen is open.',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

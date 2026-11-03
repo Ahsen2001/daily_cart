@@ -11,6 +11,7 @@ import '../../widgets/dailycart_card.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/stock_status_badge.dart';
 import '../../widgets/error_widget.dart';
+import '../../widgets/active_delivery_tracking_card.dart';
 
 class VendorOrderDetailsScreen extends ConsumerStatefulWidget {
   const VendorOrderDetailsScreen({required this.orderId, super.key});
@@ -106,6 +107,8 @@ class _VendorOrderDetailsScreenState
                       ],
                     ),
                   ),
+                  const SizedBox(height: 14),
+                  ActiveDeliveryTrackingCard(orderId: order.id),
                   const SizedBox(height: 14),
                 ],
                 if (order.timeline.isNotEmpty) ...[

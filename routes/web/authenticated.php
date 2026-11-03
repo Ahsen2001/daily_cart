@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\v1\DeliveryTrackingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -12,6 +13,8 @@ Route::get('/dashboard', [DashboardController::class, 'redirect'])
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/orders/{order}/tracking/stream', [DeliveryTrackingController::class, 'stream'])
+        ->name('orders.tracking.stream');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

@@ -15,7 +15,9 @@
     $progressPercent = $isTerminal ? 100 : (int) round(($currentIndex + 1) / count($statusSteps) * 100);
     $assignedRider = $order->delivery?->rider;
     $assignedRiderPhone = $assignedRider?->user?->phone;
-    $latestLocation = $order->delivery?->rider?->locations?->sortByDesc('recorded_at')->first();
+    $latestLocation = $order->delivery?->trackingState?->recorded_at
+        ? $order->delivery->trackingState
+        : $order->delivery?->locations?->sortByDesc('recorded_at')->first();
     $riderRating = $order->riderRating;
 @endphp
 
@@ -270,9 +272,25 @@
                 });
 
                 new google.maps.Marker({ position: delivery, map, label: 'D', title: 'Delivery address' });
-                if (rider) {
-                    new google.maps.Marker({ position: rider, map, label: 'R', title: 'Rider location' });
-                }
+                let riderMarker = rider
+                    ? new google.maps.Marker({ position: rider, map, label: 'R', title: 'Rider live location' })
+                    : null;
+
+                const trackingStream = new EventSource(@json(route('orders.tracking.stream', $order)));
+                trackingStream.addEventListener('location', (event) => {
+                    const payload = JSON.parse(event.data);
+                    if (!payload.location) return;
+                    const position = {
+                        lat: Number(payload.location.latitude),
+                        lng: Number(payload.location.longitude),
+                    };
+                    if (!riderMarker) {
+                        riderMarker = new google.maps.Marker({ position, map, label: 'R', title: 'Rider live location' });
+                    } else {
+                        riderMarker.setPosition(position);
+                    }
+                    map.panTo(position);
+                });
             };
         </script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ $googleMapsBrowserKey }}&callback=initDailyCartTrackingMap"></script>

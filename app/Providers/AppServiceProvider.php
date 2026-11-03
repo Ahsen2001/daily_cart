@@ -3,9 +3,15 @@
 namespace App\Providers;
 
 use App\Models\Customer;
+use App\Models\Delivery;
+use App\Models\Order;
 use App\Models\Product;
+use App\Models\Rider;
 use App\Models\RiderRating;
 use App\Models\Subscription;
+use App\Observers\DeliveryObserver;
+use App\Observers\OrderObserver;
+use App\Observers\RiderObserver;
 use App\Policies\ProductPolicy;
 use App\Policies\RiderRatingPolicy;
 use App\Policies\SubscriptionPolicy;
@@ -37,6 +43,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('api-register', fn (Request $request) => Limit::perMinute(3)->by($request->ip()));
         RateLimiter::for('api-otp', fn (Request $request) => Limit::perMinute(3)
             ->by((string) ($request->user()?->id ?? $request->ip())));
+        RateLimiter::for('delivery-location', fn (Request $request) => Limit::perMinute(90)
+            ->by((string) ($request->user()?->id ?? $request->ip()).'|'.(string) $request->route('delivery')));
+
+        Delivery::observe(DeliveryObserver::class);
+        Order::observe(OrderObserver::class);
+        Rider::observe(RiderObserver::class);
 
         Gate::policy(Customer::class, WalletPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);

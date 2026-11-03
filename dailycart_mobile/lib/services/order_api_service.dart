@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 
 import '../models/order_model.dart';
@@ -9,11 +12,9 @@ import 'auth_api_service.dart';
 import 'authenticated_api_mixin.dart';
 
 class OrderApiService with AuthenticatedApiMixin {
-  OrderApiService({
-    Dio? dio,
-    SecureStorageHelper? storage,
-  })  : _dio = dio ?? ApiClient.shared.dio,
-        _storage = storage ?? SecureStorageHelper();
+  OrderApiService({Dio? dio, SecureStorageHelper? storage})
+    : _dio = dio ?? ApiClient.shared.dio,
+      _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
   final SecureStorageHelper _storage;
@@ -53,6 +54,39 @@ class OrderApiService with AuthenticatedApiMixin {
       return OrderModel.fromJson(ApiListParser.extractObject(response.data));
     } on DioException catch (error) {
       throw ApiException.fromDio(error);
+    }
+  }
+
+  Stream<void> watchTracking(int orderId) async* {
+    while (true) {
+      try {
+        await ensureAuthenticated();
+        final response = await _dio.get<ResponseBody>(
+          '/orders/$orderId/tracking/stream',
+          options: Options(
+            responseType: ResponseType.stream,
+            receiveTimeout: const Duration(seconds: 40),
+          ),
+        );
+        final body = response.data;
+        if (body == null) return;
+
+        await for (final line
+            in body.stream
+                .map<List<int>>((chunk) => chunk)
+                .transform(utf8.decoder)
+                .transform(const LineSplitter())) {
+          if (line.startsWith('data: ')) yield null;
+        }
+      } on DioException catch (error) {
+        final exception = ApiException.fromDio(error);
+        if (exception.statusCode == 401 ||
+            exception.statusCode == 403 ||
+            exception.statusCode == 404) {
+          return;
+        }
+      }
+      await Future<void>.delayed(const Duration(seconds: 3));
     }
   }
 

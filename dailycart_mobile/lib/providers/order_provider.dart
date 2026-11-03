@@ -35,6 +35,10 @@ class OrderProvider extends ChangeNotifier {
     });
   }
 
+  Stream<void> watchTracking(int orderId) {
+    return _apiService.watchTracking(orderId);
+  }
+
   Future<bool> cancelOrder(int orderId) async {
     return _run(() async {
       selectedOrder = await _apiService.cancelOrder(orderId);

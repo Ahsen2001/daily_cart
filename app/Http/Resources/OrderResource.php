@@ -49,13 +49,15 @@ class OrderResource extends JsonResource
             ])),
             'rider' => $this->whenLoaded('delivery', function () {
                 $rider = $this->delivery?->rider;
+                $tracking = $this->delivery?->trackingState;
 
                 return $rider ? [
                     'id' => $rider->id,
                     'name' => $rider->user?->name,
                     'phone' => $rider->user?->phone,
-                    'latitude' => $rider->current_latitude,
-                    'longitude' => $rider->current_longitude,
+                    'latitude' => $tracking?->recorded_at ? (float) $tracking->latitude : null,
+                    'longitude' => $tracking?->recorded_at ? (float) $tracking->longitude : null,
+                    'location_recorded_at' => $tracking?->recorded_at,
                 ] : null;
             }),
             'delivery' => $this->whenLoaded('delivery', fn () => $this->delivery ? [
@@ -65,6 +67,7 @@ class OrderResource extends JsonResource
                 'accepted_at' => $this->delivery->accepted_at,
                 'picked_up_at' => $this->delivery->picked_up_at,
                 'delivered_at' => $this->delivery->delivered_at,
+                'tracking_status' => $this->delivery->trackingState?->status ?? 'unavailable',
             ] : null),
             'rider_rating' => $this->whenLoaded('riderRating', fn () => $this->riderRating ? [
                 'id' => $this->riderRating->id,

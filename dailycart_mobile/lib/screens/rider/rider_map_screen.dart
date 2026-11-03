@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,17 +5,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/rider_delivery_provider.dart';
-import '../../providers/rider_location_provider.dart';
+import '../../services/active_delivery_tracking_service.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/dailycart_card.dart';
 import '../../widgets/loading_widget.dart';
 
 class RiderMapScreen extends ConsumerStatefulWidget {
-  const RiderMapScreen({
-    required this.deliveryId,
-    super.key,
-  });
+  const RiderMapScreen({required this.deliveryId, super.key});
 
   final int deliveryId;
 
@@ -27,22 +22,32 @@ class RiderMapScreen extends ConsumerStatefulWidget {
 
 class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
   Position? _position;
-  StreamSubscription<Position>? _tracking;
+  final _tracking = ActiveDeliveryTrackingService.instance;
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() async {
-      await ref.read(riderDeliveryProvider).getDeliveryDetails(widget.deliveryId);
-      await _loadCurrentLocation();
-      _startTracking();
+      await ref
+          .read(riderDeliveryProvider)
+          .getDeliveryDetails(widget.deliveryId);
+      final delivery = ref.read(riderDeliveryProvider).selectedDelivery;
+      if (delivery != null) {
+        await _tracking.syncWithStatus(delivery.id, delivery.status);
+      }
     });
+    _tracking.state.addListener(_trackingChanged);
   }
 
   @override
   void dispose() {
-    _tracking?.cancel();
+    _tracking.state.removeListener(_trackingChanged);
     super.dispose();
+  }
+
+  void _trackingChanged() {
+    if (!mounted) return;
+    setState(() => _position = _tracking.state.value.position);
   }
 
   @override
@@ -92,7 +97,10 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
                 const SizedBox(height: 16),
                 DailyCartCard(
                   child: Text(
-                    'Live location tracking is ${_tracking == null ? 'inactive' : 'active'} for this delivery.',
+                    _tracking.state.value.isTracking
+                        ? 'Live location sharing is active for this delivery, including while the app is in the background.'
+                        : (_tracking.state.value.message ??
+                              'Live location sharing is inactive for this delivery.'),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -115,56 +123,14 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
     );
   }
 
-  Future<void> _loadCurrentLocation() async {
-    final permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      return;
-    }
-    final position = await Geolocator.getCurrentPosition();
-    if (mounted) {
-      setState(() => _position = position);
-    }
-  }
-
   Future<void> _updateLocation() async {
-    await _loadCurrentLocation();
-    final position = _position;
-    if (position == null) return;
-    final ok = await ref.read(riderLocationProvider).updateRiderLocation(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          deliveryId: widget.deliveryId,
-        );
+    final ok = await _tracking.captureNow();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(ok ? 'Location updated.' : 'Unable to update location.'),
       ),
     );
-  }
-
-  void _startTracking() {
-    final status =
-        ref.read(riderDeliveryProvider).selectedDelivery?.status.toLowerCase();
-    if (!const {'accepted', 'picked_up', 'on_the_way'}.contains(status)) {
-      return;
-    }
-    _tracking?.cancel();
-    _tracking = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 20,
-      ),
-    ).listen((position) {
-      if (mounted) setState(() => _position = position);
-      ref.read(riderLocationProvider).updateRiderLocation(
-            latitude: position.latitude,
-            longitude: position.longitude,
-            deliveryId: widget.deliveryId,
-          );
-    });
-    if (mounted) setState(() {});
   }
 
   Future<void> _openNavigation(LatLng destination) async {

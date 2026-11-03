@@ -32,6 +32,8 @@
                         <div><div class="text-sm text-gray-500">{{ __('Status') }}</div><div class="font-semibold">{{ str_replace('_', ' ', ucfirst($order->order_status)) }}</div></div>
                     </div>
 
+                    <x-active-delivery-tracking :order="$order" />
+
                     <div class="mt-5 rounded-xl border border-green-100 bg-green-50 p-4">
                         <p class="text-xs font-bold uppercase tracking-wide text-green-700">{{ __('Payment before confirmation') }}</p>
                         <p class="mt-1 font-semibold text-gray-900">{{ str_replace('_', ' ', ucfirst($order->payment?->payment_method ?? 'pending')) }}</p>
