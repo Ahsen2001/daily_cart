@@ -301,6 +301,7 @@
                 const freshness = document.getElementById('customer-tracking-freshness');
                 let lastRealtimeAt = 0;
                 let terminal = false;
+                const channelName = @json('delivery.'.$order->delivery->id);
 
                 const applyTracking = (payload) => {
                     terminal = ['delivered', 'failed', 'cancelled'].includes(payload.delivery_status)
@@ -337,7 +338,8 @@
                     map.panTo(position);
                 };
 
-                const trackingStream = window.EventSource
+                const echoChannel = window.Echo?.private?.(channelName) || null;
+                const trackingStream = !echoChannel && window.EventSource
                     ? new EventSource(@json(route('orders.tracking.stream', $order)))
                     : null;
                 trackingStream?.addEventListener('location', (event) => {
@@ -345,11 +347,17 @@
                     applyTracking(JSON.parse(event.data));
                     if (terminal) trackingStream?.close();
                 });
+                echoChannel?.listen('.delivery.location.updated', payload => {
+                    lastRealtimeAt = Date.now();
+                    applyTracking(payload);
+                    if (terminal) window.Echo?.leave(channelName);
+                });
 
                 const poll = window.setInterval(async () => {
                     if (terminal) {
                         window.clearInterval(poll);
                         trackingStream?.close();
+                        if (echoChannel) window.Echo?.leave(channelName);
                         return;
                     }
                     if (Date.now() - lastRealtimeAt < 25000) return;
@@ -373,7 +381,9 @@
                 if (!freshness) return;
                 let lastRealtimeAt = 0;
                 let terminal = false;
-                const stream = window.EventSource
+                const channelName = @json('delivery.'.$order->delivery->id);
+                const echoChannel = window.Echo?.private?.(channelName) || null;
+                const stream = !echoChannel && window.EventSource
                     ? new EventSource(@json(route('orders.tracking.stream', $order)))
                     : null;
                 const applyTracking = payload => {
@@ -394,10 +404,16 @@
                     applyTracking(JSON.parse(event.data));
                     if (terminal) stream.close();
                 });
+                echoChannel?.listen('.delivery.location.updated', payload => {
+                    lastRealtimeAt = Date.now();
+                    applyTracking(payload);
+                    if (terminal) window.Echo?.leave(channelName);
+                });
                 const poll = window.setInterval(async () => {
                     if (terminal) {
                         window.clearInterval(poll);
                         stream?.close();
+                        if (echoChannel) window.Echo?.leave(channelName);
                         return;
                     }
                     if (Date.now() - lastRealtimeAt < 25000) return;

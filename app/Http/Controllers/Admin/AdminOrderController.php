@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Rider;
 use App\Models\Vendor;
 use App\Services\DeliveryService;
+use App\Services\DeliveryTrackingRelationLoader;
 use App\Services\OrderStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,11 +37,12 @@ class AdminOrderController extends Controller
         ]);
     }
 
-    public function show(Order $order): View
+    public function show(Order $order, DeliveryTrackingRelationLoader $trackingRelations): View
     {
-        return view('admin.orders.show', [
-            'order' => $order->load(['customer.user', 'vendor', 'items.product', 'delivery.rider.user', 'delivery.trackingState', 'delivery.currentLocation', 'payment']),
-        ]);
+        $order->load(['customer.user', 'vendor', 'items.product', 'delivery.rider.user', 'payment']);
+        $trackingRelations->load($order);
+
+        return view('admin.orders.show', ['order' => $order]);
     }
 
     public function assignRiderForm(Order $order): View

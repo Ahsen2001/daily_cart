@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CancelOrderRequest;
 use App\Models\Order;
+use App\Services\DeliveryTrackingRelationLoader;
 use App\Services\OrderStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,12 +23,17 @@ class CustomerOrderController extends Controller
         return view('customer.orders.index', compact('orders'));
     }
 
-    public function show(Request $request, Order $order): View
-    {
+    public function show(
+        Request $request,
+        Order $order,
+        DeliveryTrackingRelationLoader $trackingRelations,
+    ): View {
         $this->authorize('view', $order);
+        $order->load(['items.product', 'vendor', 'payment', 'delivery.rider.user', 'delivery.proofs', 'riderRating']);
+        $trackingRelations->load($order);
 
         return view('customer.orders.show', [
-            'order' => $order->load(['items.product', 'vendor', 'payment', 'delivery.rider.user', 'delivery.trackingState', 'delivery.currentLocation', 'delivery.proofs', 'riderRating']),
+            'order' => $order,
             'googleMapsBrowserKey' => config('services.google_maps.browser_key'),
         ]);
     }

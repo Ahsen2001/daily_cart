@@ -8,6 +8,7 @@ use App\Http\Requests\StoreDeliveryLocationRequest;
 use App\Models\Delivery;
 use App\Models\Order;
 use App\Services\DeliveryLocationFreshness;
+use App\Services\DeliveryTrackingRelationLoader;
 use App\Services\DeliveryTrackingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class DeliveryTrackingController extends Controller
     public function __construct(
         private readonly DeliveryTrackingService $tracking,
         private readonly DeliveryLocationFreshness $freshness,
+        private readonly DeliveryTrackingRelationLoader $trackingRelations,
     ) {}
 
     public function active(Request $request): JsonResponse
@@ -138,6 +140,7 @@ class DeliveryTrackingController extends Controller
 
     private function orderPayload(Order $order): array
     {
+        $this->trackingRelations->load($order);
         $delivery = $order->delivery;
         $state = $delivery?->trackingState;
         $isActive = $delivery

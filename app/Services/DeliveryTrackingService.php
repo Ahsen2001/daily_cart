@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\DeliveryLocationUpdated;
 use App\Models\Delivery;
 use App\Models\DeliveryCurrentLocation;
 use App\Models\DeliveryTrackingState;
@@ -84,8 +85,11 @@ class DeliveryTrackingService
             ];
 
             $location = RiderLocation::query()->create($payload);
-            $this->updateCurrentLocation($lockedDelivery, $rider, $payload);
+            $current = $this->updateCurrentLocation($lockedDelivery, $rider, $payload);
             $this->updateTrackingSnapshot($state, $payload);
+            if ($current) {
+                $this->broadcastCurrentLocationAfterCommit($lockedDelivery, $current);
+            }
 
             return $location;
         });
@@ -155,8 +159,11 @@ class DeliveryTrackingService
                         'sequence_number' => $point['sequence_number'],
                     ];
                     RiderLocation::query()->create($payload);
-                    $this->updateCurrentLocation($lockedDelivery, $rider, $payload);
+                    $current = $this->updateCurrentLocation($lockedDelivery, $rider, $payload);
                     $this->updateTrackingSnapshot($state, $payload);
+                    if ($current) {
+                        $this->broadcastCurrentLocationAfterCommit($lockedDelivery, $current);
+                    }
                     $accepted[] = $pointUuid;
                 } catch (ValidationException $exception) {
                     $rejected[] = [
@@ -246,8 +253,11 @@ class DeliveryTrackingService
         );
     }
 
-    private function updateCurrentLocation(Delivery $delivery, Rider $rider, array $payload): void
-    {
+    private function updateCurrentLocation(
+        Delivery $delivery,
+        Rider $rider,
+        array $payload,
+    ): ?DeliveryCurrentLocation {
         $current = DeliveryCurrentLocation::query()
             ->where('delivery_id', $delivery->id)
             ->lockForUpdate()
@@ -260,10 +270,10 @@ class DeliveryTrackingService
                 && $sequenceNumber !== null
                 && ($current->sequence_number === null || $sequenceNumber > $current->sequence_number));
         if (! $isNewer) {
-            return;
+            return null;
         }
 
-        DeliveryCurrentLocation::query()->updateOrCreate(
+        return DeliveryCurrentLocation::query()->updateOrCreate(
             ['delivery_id' => $delivery->id],
             [
                 'rider_id' => $rider->id,
@@ -277,6 +287,55 @@ class DeliveryTrackingService
                 'sequence_number' => $sequenceNumber,
             ],
         );
+    }
+
+    private function broadcastCurrentLocationAfterCommit(
+        Delivery $delivery,
+        DeliveryCurrentLocation $current,
+    ): void {
+        $delivery->loadMissing(['order', 'rider.user']);
+        $order = $delivery->order;
+        $freshness = app(DeliveryLocationFreshness::class)->describe(
+            $current->recorded_at,
+            true,
+            $delivery->status,
+        );
+        $payload = [
+            'order_id' => $order?->id,
+            'delivery_id' => $delivery->id,
+            'order_status' => $order?->order_status,
+            'delivery_status' => $delivery->status,
+            'rider_display_name' => $delivery->rider?->user?->name,
+            'destination' => [
+                'address' => $order?->delivery_address,
+                'latitude' => $order?->delivery_latitude !== null
+                    ? (float) $order->delivery_latitude
+                    : null,
+                'longitude' => $order?->delivery_longitude !== null
+                    ? (float) $order->delivery_longitude
+                    : null,
+            ],
+            'scheduled_delivery_time' => $order?->scheduled_delivery_at ?? $delivery->scheduled_at,
+            'tracking' => [
+                'status' => 'active',
+                'is_active' => true,
+            ],
+            'freshness' => $freshness,
+            'location' => [
+                'latitude' => (float) $current->latitude,
+                'longitude' => (float) $current->longitude,
+                'accuracy' => $current->accuracy_meters !== null ? (float) $current->accuracy_meters : null,
+                'heading' => $current->heading !== null ? (float) $current->heading : null,
+                'speed' => $current->speed !== null ? (float) $current->speed : null,
+                'recorded_at' => $current->recorded_at,
+                'age_seconds' => $freshness['age_seconds'],
+                'is_stale' => $freshness['is_stale'],
+                'is_outdated' => $freshness['is_outdated'],
+                'sequence_number' => $current->sequence_number,
+            ],
+        ];
+
+        DB::afterCommit(fn () => DeliveryLocationUpdated::dispatch($delivery->id, $payload));
     }
 
     private function updateTrackingSnapshot(DeliveryTrackingState $state, array $payload): void

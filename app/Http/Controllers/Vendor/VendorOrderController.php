@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Vendor;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CancelOrderRequest;
 use App\Models\Order;
+use App\Services\DeliveryTrackingRelationLoader;
 use App\Services\OrderStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,14 +33,15 @@ class VendorOrderController extends Controller
         return view('vendor.orders.index', compact('orders'));
     }
 
-    public function show(Order $order): View
+    public function show(Order $order, DeliveryTrackingRelationLoader $trackingRelations): View
     {
         $this->authorize('manage', $order);
         $this->ensureBankTransferIsVerified($order);
 
-        return view('vendor.orders.show', [
-            'order' => $order->load(['customer.user', 'items.product', 'delivery.rider.user', 'delivery.trackingState', 'delivery.currentLocation', 'payment']),
-        ]);
+        $order->load(['customer.user', 'items.product', 'delivery.rider.user', 'payment']);
+        $trackingRelations->load($order);
+
+        return view('vendor.orders.show', ['order' => $order]);
     }
 
     public function confirm(Order $order, OrderStatusService $orders): RedirectResponse
