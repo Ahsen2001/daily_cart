@@ -460,16 +460,21 @@ class _HeaderFilter extends StatelessWidget {
       button: true,
       selected: selected,
       child: ChoiceChip(
-        label: Text(label),
+        label: Text(
+          label,
+          style: TextStyle(
+            color: selected ? const Color(0xFF0B5D2A) : Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         selected: selected,
         onSelected: (_) => onTap(),
-        backgroundColor: Colors.white.withValues(alpha: 0.12),
+        showCheckmark: false,
+        backgroundColor: Colors.white.withValues(alpha: 0.20),
         selectedColor: Colors.white,
-        labelStyle: TextStyle(
-          color: selected ? const Color(0xFF0B5D2A) : Colors.white,
-          fontWeight: FontWeight.w800,
+        side: BorderSide(
+          color: Colors.white.withValues(alpha: selected ? 1 : 0.65),
         ),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
       ),
     );
   }
