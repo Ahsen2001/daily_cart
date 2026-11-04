@@ -73,6 +73,7 @@ class ApiCoreFlowTest extends TestCase
         Sanctum::actingAs($user, ['customer']);
 
         $payload = [
+            'idempotency_key' => 'api-core-checkout-0001',
             'delivery_address' => '1 Test Street, Colombo',
             'payment_method' => 'online_payment',
             'scheduled_delivery_at' => now()->addHour()->toISOString(),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Exceptions\CheckoutIdempotencyConflictException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApplyCouponRequest;
 use App\Http\Requests\CheckoutRequest;
@@ -12,6 +13,7 @@ use App\Services\DeliveryScheduleService;
 use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CheckoutController extends Controller
@@ -43,6 +45,7 @@ class CheckoutController extends Controller
             'minimumDeliveryTime' => $schedule->minimumDeliveryTime(),
             'currentDateTime' => now(),
             'googleMapsBrowserKey' => config('services.google_maps.browser_key'),
+            'idempotencyKey' => old('idempotency_key', (string) Str::uuid()),
         ]);
     }
 
@@ -70,7 +73,16 @@ class CheckoutController extends Controller
         $data['coupon_code'] = $data['coupon_code'] ?: session('checkout_coupon_code');
         $data['loyalty_points'] = $data['loyalty_points'] ?? session('checkout_loyalty_points', 0);
 
-        $orders = $orderService->createFromCart($request->user()->customer, $data);
+        try {
+            $result = $orderService->createFromCartIdempotently(
+                $request->user()->customer,
+                $data,
+                $data['idempotency_key'],
+            );
+        } catch (CheckoutIdempotencyConflictException $exception) {
+            return back()->withInput()->withErrors(['checkout' => $exception->getMessage()]);
+        }
+        $orders = $result['orders'];
 
         session()->forget(['checkout_coupon_code', 'checkout_loyalty_points']);
         session(['placed_order_ids' => collect($orders)->pluck('id')->all()]);

@@ -24,6 +24,8 @@ class SecureStorageHelper {
   static const trackingDeliveryIdKey = 'active_tracking_delivery_id';
   static const trackingTokenKey = 'active_tracking_token';
   static const trackingStatusKey = 'active_tracking_status';
+  static const checkoutIdempotencyKey = 'checkout_idempotency_key';
+  static const checkoutRequestFingerprintKey = 'checkout_request_fingerprint';
 
   Future<void> saveToken(String token) {
     return _storage.write(key: authTokenKey, value: token);
@@ -116,7 +118,32 @@ class SecureStorageHelper {
     await _storage.delete(key: userEmailVerifiedKey);
     await _storage.delete(key: userPhoneVerifiedKey);
     await _storage.delete(key: userApprovedKey);
+    await clearCheckoutIdempotency();
     await clearTrackingSession();
+  }
+
+  Future<void> saveCheckoutIdempotency({
+    required String key,
+    required String requestFingerprint,
+  }) async {
+    await _storage.write(key: checkoutIdempotencyKey, value: key);
+    await _storage.write(
+      key: checkoutRequestFingerprintKey,
+      value: requestFingerprint,
+    );
+  }
+
+  Future<String?> getCheckoutIdempotencyKey() {
+    return _storage.read(key: checkoutIdempotencyKey);
+  }
+
+  Future<String?> getCheckoutRequestFingerprint() {
+    return _storage.read(key: checkoutRequestFingerprintKey);
+  }
+
+  Future<void> clearCheckoutIdempotency() async {
+    await _storage.delete(key: checkoutIdempotencyKey);
+    await _storage.delete(key: checkoutRequestFingerprintKey);
   }
 
   Future<void> saveTrackingSession(

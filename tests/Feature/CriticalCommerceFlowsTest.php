@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -195,6 +196,50 @@ class CriticalCommerceFlowsTest extends TestCase
         $this->assertSame((float) $quote['delivery_fee'], round((float) Order::query()->sum('delivery_fee'), 2));
         $this->assertSame((float) $quote['service_charge'], round((float) Order::query()->sum('service_charge'), 2));
         $this->assertSame('converted', $cart->refresh()->status);
+    }
+
+    public function test_checkout_idempotency_replays_the_original_orders_without_duplicate_side_effects(): void
+    {
+        Mail::fake();
+        Bus::fake();
+        [$user, $customer] = $this->createCustomer();
+        $product = $this->createProduct($this->createVendor(), $this->createCategory(), price: 125, stock: 5);
+        $this->createCart($customer, [[$product, 2]]);
+        $payload = $this->checkoutPayload(['idempotency_key' => (string) Str::uuid()]);
+
+        Sanctum::actingAs($user, ['customer']);
+
+        $first = $this->postJson('/api/v1/orders', $payload)
+            ->assertCreated()
+            ->assertJsonPath('idempotency_replayed', false);
+        $second = $this->postJson('/api/v1/orders', $payload)
+            ->assertOk()
+            ->assertJsonPath('idempotency_replayed', true);
+
+        $this->assertSame($first->json('orders.0.id'), $second->json('orders.0.id'));
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertSame(3, $product->refresh()->stock_quantity);
+        $this->assertDatabaseCount('checkout_idempotency_records', 1);
+    }
+
+    public function test_checkout_idempotency_key_cannot_be_reused_for_different_details(): void
+    {
+        Mail::fake();
+        Bus::fake();
+        [$user, $customer] = $this->createCustomer();
+        $product = $this->createProduct($this->createVendor(), $this->createCategory(), stock: 5);
+        $this->createCart($customer, [[$product, 1]]);
+        $key = (string) Str::uuid();
+        $payload = $this->checkoutPayload(['idempotency_key' => $key]);
+
+        Sanctum::actingAs($user, ['customer']);
+        $this->postJson('/api/v1/orders', $payload)->assertCreated();
+        $this->postJson('/api/v1/orders', array_merge($payload, [
+            'delivery_address' => 'A different delivery address',
+        ]))->assertStatus(409);
+
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertSame(4, $product->refresh()->stock_quantity);
     }
 
     public function test_placing_an_order_queues_customer_email_and_vendor_channel_notifications(): void
@@ -665,6 +710,7 @@ class CriticalCommerceFlowsTest extends TestCase
     private function checkoutPayload(array $overrides = []): array
     {
         return array_merge([
+            'idempotency_key' => (string) Str::uuid(),
             'delivery_address' => '1 Test Street, Colombo',
             'scheduled_delivery_at' => now()->addHour()->toISOString(),
             'payment_method' => 'cash_on_delivery',

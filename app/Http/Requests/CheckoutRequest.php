@@ -9,6 +9,13 @@ use Illuminate\Validation\Rule;
 
 class CheckoutRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if (! $this->filled('idempotency_key') && $this->hasHeader('Idempotency-Key')) {
+            $this->merge(['idempotency_key' => $this->header('Idempotency-Key')]);
+        }
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->customer !== null;
@@ -17,6 +24,7 @@ class CheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'idempotency_key' => ['required', 'string', 'min:16', 'max:100', 'regex:/^[A-Za-z0-9._:-]+$/'],
             'delivery_address' => ['required', 'string', 'max:1000'],
             'delivery_district' => ['nullable', 'string', 'max:255'],
             'delivery_latitude' => ['nullable', 'numeric', 'between:-90,90'],

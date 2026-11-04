@@ -28,7 +28,21 @@ class OrderService
         private readonly NotificationService $notificationService,
         private readonly LoyaltyPointService $loyaltyPointService,
         private readonly DeliveryFeeService $deliveryFees,
+        private readonly CheckoutIdempotencyService $checkoutIdempotency,
     ) {}
+
+    /**
+     * @return array{orders: array<int, Order>, replayed: bool}
+     */
+    public function createFromCartIdempotently(Customer $customer, array $data, string $key): array
+    {
+        return $this->checkoutIdempotency->execute(
+            $customer,
+            $key,
+            $data,
+            fn (): array => $this->createFromCart($customer, $data),
+        );
+    }
 
     /**
      * @return array<int, Order>

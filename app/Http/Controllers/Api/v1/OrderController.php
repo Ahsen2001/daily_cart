@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Exceptions\CheckoutIdempotencyConflictException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CheckoutRequest;
 use App\Http\Resources\OrderResource;
@@ -104,13 +105,24 @@ class OrderController extends Controller
             return response()->json(['message' => 'Customer profile not found.'], 404);
         }
 
-        $orders = collect($this->orderService->createFromCart($customer, $request->validated()))
+        try {
+            $result = $this->orderService->createFromCartIdempotently(
+                $customer,
+                $request->validated(),
+                $request->validated('idempotency_key'),
+            );
+        } catch (CheckoutIdempotencyConflictException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 409);
+        }
+
+        $orders = collect($result['orders'])
             ->map(fn (Order $order) => $order->load($this->orderRelations()));
 
         return response()->json([
             'message' => 'Orders placed successfully.',
             'orders' => OrderResource::collection($orders),
-        ], 201);
+            'idempotency_replayed' => $result['replayed'],
+        ], $result['replayed'] ? 200 : 201);
     }
 
     private function orderRelations(): array

@@ -47,6 +47,7 @@
                     <form id="checkout-form" method="POST" action="{{ route('customer.checkout.store') }}" class="space-y-5">
                         @csrf
 
+                        <input type="hidden" name="idempotency_key" value="{{ $idempotencyKey }}">
                         <input type="hidden" name="coupon_code" value="{{ $couponCode }}">
                         <input type="hidden" name="loyalty_points" value="{{ $loyaltyPoints }}">
                         <input type="hidden" id="client_current_at" name="client_current_at" value="{{ old('client_current_at') }}">
