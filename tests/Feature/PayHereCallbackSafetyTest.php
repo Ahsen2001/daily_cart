@@ -8,14 +8,16 @@ use App\Models\PaymentGatewayCallbackEvent;
 use App\Models\PaymentGatewayTransaction;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\PayHereService;
+use App\Services\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Concurrency;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PayHereCallbackSafetyTest extends TestCase
 {
     use RefreshDatabase;
-
-    private int $phoneSequence = 0;
 
     protected function setUp(): void
     {
@@ -40,7 +42,7 @@ class PayHereCallbackSafetyTest extends TestCase
         $this->assertDatabaseCount('payment_gateway_callback_events', 1);
         $this->assertDatabaseHas('payment_gateway_callback_events', [
             'payment_id' => $payment->id,
-            'gateway_payment_id' => 'PH-10001',
+            'gateway_payment_id' => 'PH-'.$payment->id,
             'normalized_status' => 'paid',
             'signature_valid' => true,
             'identity_valid' => true,
@@ -62,6 +64,30 @@ class PayHereCallbackSafetyTest extends TestCase
             'payment_id' => $payment->id,
             'status_code' => '-2',
             'processing_result' => 'ignored_transition',
+        ]);
+    }
+
+    public function test_initial_failed_and_cancelled_callbacks_follow_the_legal_transition(): void
+    {
+        [$failedPayment, $failedTransaction] = $this->pendingPayment('SAFE-FAILED');
+        $this->post(route('payhere.notify'), $this->signedPayload($failedPayment, '-2'))->assertOk();
+
+        [$cancelledPayment, $cancelledTransaction] = $this->pendingPayment('SAFE-CANCELLED');
+        $this->post(route('payhere.notify'), $this->signedPayload($cancelledPayment, '-1'))->assertOk();
+
+        $this->assertSame('failed', $failedPayment->refresh()->status);
+        $this->assertSame('failed', $failedTransaction->refresh()->status);
+        $this->assertSame('failed', $cancelledPayment->refresh()->status);
+        $this->assertSame('failed', $cancelledTransaction->refresh()->status);
+        $this->assertDatabaseHas('payment_gateway_callback_events', [
+            'payment_id' => $failedPayment->id,
+            'status_code' => '-2',
+            'processing_result' => 'applied',
+        ]);
+        $this->assertDatabaseHas('payment_gateway_callback_events', [
+            'payment_id' => $cancelledPayment->id,
+            'status_code' => '-1',
+            'processing_result' => 'applied',
         ]);
     }
 
@@ -133,6 +159,61 @@ class PayHereCallbackSafetyTest extends TestCase
         ]);
     }
 
+    public function test_concurrent_duplicate_callbacks_are_applied_once(): void
+    {
+        [$payment] = $this->pendingPayment('SAFE-CONCURRENT-'.uniqid());
+        $payload = $this->signedPayload($payment, '0');
+        $order = $payment->order()->with(['customer', 'vendor'])->firstOrFail();
+        $customer = $order->customer;
+        $vendor = $order->vendor;
+        $userIds = [$customer->user_id, $vendor->user_id];
+
+        // Child PHP processes need committed fixtures. This is exclusively the
+        // isolated dailycart_test database; application data is never used.
+        DB::commit();
+        try {
+            $callbacks = array_fill(0, 2, function () use ($payload) {
+                config([
+                    'database.default' => 'mysql',
+                    'database.connections.mysql.database' => 'dailycart_test',
+                    'payhere.merchant_id' => '1210000',
+                    'payhere.merchant_secret' => 'sandbox-secret',
+                ]);
+                DB::purge('mysql');
+                DB::reconnect('mysql');
+
+                return app(PayHereService::class)->processNotification(
+                    $payload,
+                    app(PaymentService::class),
+                );
+            });
+            $results = Concurrency::run($callbacks);
+
+            $this->assertSame(['OK', 'OK'], array_values($results));
+            $this->assertSame(1, PaymentGatewayCallbackEvent::query()
+                ->where('payment_id', $payment->id)
+                ->where('status_code', '0')
+                ->count());
+            $this->assertSame('pending', $payment->refresh()->status);
+        } finally {
+            DB::table('payment_gateway_callback_events')->where('payment_id', $payment->id)->delete();
+            DB::table('payment_gateway_transactions')->where('payment_id', $payment->id)->delete();
+            DB::table('payments')->where('id', $payment->id)->delete();
+            DB::table('order_status_history')->where('order_id', $order->id)->delete();
+            DB::table('orders')->where('id', $order->id)->delete();
+            DB::table('customers')->where('id', $customer->id)->delete();
+            DB::table('vendors')->where('id', $vendor->id)->delete();
+            DB::table('model_has_roles')
+                ->where('model_type', User::class)
+                ->whereIn('model_id', $userIds)
+                ->delete();
+            DB::table('users')->whereIn('id', $userIds)->delete();
+            // Balance RefreshDatabase's teardown transaction after the manual
+            // commit required to expose fixtures to the child processes.
+            DB::beginTransaction();
+        }
+    }
+
     /** @return array{Payment, PaymentGatewayTransaction} */
     private function pendingPayment(?string $orderNumber = null): array
     {
@@ -181,7 +262,7 @@ class PayHereCallbackSafetyTest extends TestCase
         $payload = array_merge([
             'merchant_id' => '1210000',
             'order_id' => $payment->order->order_number,
-            'payment_id' => 'PH-10001',
+            'payment_id' => 'PH-'.$payment->id,
             'payhere_amount' => '100.00',
             'payhere_currency' => 'LKR',
             'status_code' => $statusCode,
@@ -209,8 +290,6 @@ class PayHereCallbackSafetyTest extends TestCase
 
     private function nextPhone(): string
     {
-        $this->phoneSequence++;
-
-        return '07741'.str_pad((string) $this->phoneSequence, 5, '0', STR_PAD_LEFT);
+        return '077'.str_pad((string) random_int(0, 9_999_999), 7, '0', STR_PAD_LEFT);
     }
 }
