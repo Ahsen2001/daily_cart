@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\ContentPageController;
 use App\Http\Controllers\Admin\DeliveryController;
+use App\Http\Controllers\Admin\DeliveryRecoveryController;
 use App\Http\Controllers\Admin\DeliveryEngineController;
 use App\Http\Controllers\Admin\NewsletterManagementController;
 use App\Http\Controllers\Admin\RefundController as AdminRefundController;
@@ -93,6 +94,14 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::patch('/orders/{order}/assign-rider', [AdminOrderController::class, 'assignRider'])->name('orders.assign-rider.store');
 
     Route::get('/deliveries', [DeliveryController::class, 'index'])->name('deliveries.index');
+    Route::get('/delivery-recoveries', [DeliveryRecoveryController::class, 'index'])->name('delivery-recoveries.index');
+    Route::get('/delivery-recoveries/{deliveryRecovery}', [DeliveryRecoveryController::class, 'show'])->name('delivery-recoveries.show');
+    Route::post('/delivery-recoveries/{deliveryRecovery}/retry', [DeliveryRecoveryController::class, 'retry'])->name('delivery-recoveries.retry');
+    Route::post('/delivery-recoveries/{deliveryRecovery}/reassign', [DeliveryRecoveryController::class, 'reassign'])->name('delivery-recoveries.reassign');
+    Route::post('/delivery-recoveries/{deliveryRecovery}/return', [DeliveryRecoveryController::class, 'startReturn'])->name('delivery-recoveries.return.start');
+    Route::post('/delivery-recoveries/{deliveryRecovery}/return/complete', [DeliveryRecoveryController::class, 'completeReturn'])->name('delivery-recoveries.return.complete');
+    Route::post('/delivery-recoveries/{deliveryRecovery}/refund/approve', [DeliveryRecoveryController::class, 'approveRefund'])->name('delivery-recoveries.refund.approve');
+    Route::post('/delivery-recoveries/{deliveryRecovery}/refund/reject', [DeliveryRecoveryController::class, 'rejectRefund'])->name('delivery-recoveries.refund.reject');
 
     Route::get('/delivery-management/rules', [DeliveryEngineController::class, 'adminRules'])->name('delivery.rules.index');
     Route::post('/delivery-management/rules', [DeliveryEngineController::class, 'storeRule'])->name('delivery.rules.store');

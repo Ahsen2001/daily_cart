@@ -101,6 +101,19 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                         _Info('Picked up', _date(delivery.pickedUpAt!)),
                       if (delivery.deliveredAt != null)
                         _Info('Delivered', _date(delivery.deliveredAt!)),
+                      if (delivery.failedReasonCategory.isNotEmpty)
+                        _Info(
+                          'Failure category',
+                          delivery.failedReasonCategory
+                              .replaceAll('_', ' ')
+                              .split(' ')
+                              .map(
+                                (word) => word.isEmpty
+                                    ? word
+                                    : '${word[0].toUpperCase()}${word.substring(1)}',
+                              )
+                              .join(' '),
+                        ),
                       if (delivery.failedReason.isNotEmpty)
                         _Info('Failure reason', delivery.failedReason),
                     ],
@@ -282,29 +295,86 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
 
   Future<void> _failed(int id) async {
     final controller = TextEditingController();
-    final reason = await showDialog<String>(
+    String selectedCategory = 'customer_unavailable';
+    final result = await showDialog<Map<String, String>>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Mark failed'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(labelText: 'Failure reason'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Report failed delivery'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: selectedCategory,
+                  decoration: const InputDecoration(
+                    labelText: 'What happened?',
+                  ),
+                  items:
+                      const {
+                            'customer_unavailable': 'Customer unavailable',
+                            'incorrect_address':
+                                'Incorrect or incomplete address',
+                            'customer_refused': 'Customer refused delivery',
+                            'payment_issue': 'Payment issue',
+                            'vehicle_breakdown': 'Vehicle breakdown',
+                            'rider_incident': 'Rider incident',
+                            'unsafe_conditions': 'Unsafe conditions',
+                            'damaged_items': 'Damaged items',
+                            'vendor_issue': 'Vendor issue',
+                            'other': 'Other',
+                          }.entries
+                          .map(
+                            (entry) => DropdownMenuItem(
+                              value: entry.key,
+                              child: Text(entry.value),
+                            ),
+                          )
+                          .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setDialogState(() => selectedCategory = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  minLines: 3,
+                  maxLines: 5,
+                  decoration: const InputDecoration(
+                    labelText: 'Details',
+                    hintText:
+                        'Explain what happened and any action already taken.',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final reason = controller.text.trim();
+                if (reason.isEmpty) return;
+                Navigator.of(
+                  context,
+                ).pop({'category': selectedCategory, 'reason': reason});
+              },
+              child: const Text('Submit'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Submit'),
-          ),
-        ],
       ),
     );
     controller.dispose();
-    if (reason == null || reason.isEmpty) return;
-    final ok = await ref.read(riderDeliveryProvider).markFailed(id, reason);
+    if (result == null) return;
+    final ok = await ref
+        .read(riderDeliveryProvider)
+        .markFailed(id, result['category']!, result['reason']!);
     _show(ok ? 'Delivery marked failed.' : 'Unable to update delivery.');
   }
 

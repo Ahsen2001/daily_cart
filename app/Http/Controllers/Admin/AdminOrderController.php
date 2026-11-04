@@ -39,7 +39,7 @@ class AdminOrderController extends Controller
 
     public function show(Order $order, DeliveryTrackingRelationLoader $trackingRelations): View
     {
-        $order->load(['customer.user', 'vendor', 'items.product', 'delivery.rider.user', 'payment']);
+        $order->load(['customer.user', 'vendor', 'items.product', 'delivery.rider.user', 'delivery.latestRecoveryCase', 'payment']);
         $trackingRelations->load($order);
 
         return view('admin.orders.show', ['order' => $order]);

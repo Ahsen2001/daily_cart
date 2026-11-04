@@ -31,6 +31,25 @@ class RefundService
 
         $this->ensureRefundAmountIsValid($order, $amount);
 
+        return $this->createRequest($order, $payment, $amount, $reason);
+    }
+
+    public function requestForFailedDelivery(Order $order, float $amount, string $reason): Refund
+    {
+        $payment = $order->payment;
+        if (! $payment || $payment->status !== 'paid') {
+            throw ValidationException::withMessages(['order' => 'Only paid failed deliveries can be refunded.']);
+        }
+        if ($order->delivery?->status !== 'failed') {
+            throw ValidationException::withMessages(['order' => 'This order does not have a failed delivery.']);
+        }
+        $this->ensureRefundAmountIsValid($order, $amount);
+
+        return $this->createRequest($order, $payment, $amount, $reason);
+    }
+
+    private function createRequest(Order $order, $payment, float $amount, string $reason): Refund
+    {
         return DB::transaction(function () use ($order, $payment, $amount, $reason) {
             $refund = Refund::create([
                 'order_id' => $order->id,

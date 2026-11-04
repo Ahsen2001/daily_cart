@@ -24,6 +24,7 @@ class Delivery extends Model
         'delivered_at',
         'rider_payout',
         'failed_reason',
+        'failed_reason_category',
         'status',
     ];
 
@@ -77,5 +78,15 @@ class Delivery extends Model
     public function locations(): HasMany
     {
         return $this->hasMany(RiderLocation::class);
+    }
+
+    public function recoveryCases(): HasMany
+    {
+        return $this->hasMany(DeliveryRecoveryCase::class);
+    }
+
+    public function latestRecoveryCase(): HasOne
+    {
+        return $this->hasOne(DeliveryRecoveryCase::class)->latestOfMany();
     }
 }

@@ -109,7 +109,14 @@
                         <form method="POST" action="{{ route('rider.deliveries.failed', $delivery) }}" class="space-y-3">
                             @csrf
                             @method('PATCH')
-                            <textarea name="failed_reason" rows="3" class="w-full rounded-md border-gray-300 shadow-sm" required placeholder="{{ __('Failed delivery reason') }}"></textarea>
+                            <label class="block text-sm font-medium text-gray-700" for="failed_reason_category">{{ __('Failure category') }}</label>
+                            <select id="failed_reason_category" name="failed_reason_category" class="mt-1 w-full rounded-md border-gray-300 shadow-sm" required>
+                                <option value="">{{ __('Select a category') }}</option>
+                                @foreach (config('delivery_recovery.reason_categories', []) as $value => $label)
+                                    <option value="{{ $value }}">{{ __($label) }}</option>
+                                @endforeach
+                            </select>
+                            <textarea name="failed_reason" rows="3" class="mt-3 w-full rounded-md border-gray-300 shadow-sm" required placeholder="{{ __('Explain what happened') }}"></textarea>
                             <x-danger-button class="w-full justify-center">{{ __('Mark Failed') }}</x-danger-button>
                         </form>
                     </div>

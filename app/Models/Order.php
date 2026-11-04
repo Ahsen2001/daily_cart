@@ -151,4 +151,9 @@ class Order extends Model
     {
         return $this->hasMany(OrderStatusHistory::class);
     }
+
+    public function recoveryCases(): HasMany
+    {
+        return $this->hasMany(DeliveryRecoveryCase::class);
+    }
 }

@@ -173,6 +173,7 @@ class RiderController extends Controller
 
         $request->validate([
             'status' => ['required', 'string', 'in:accepted,picked_up,on_the_way,delivered,failed'],
+            'failed_reason_category' => ['required_if:status,failed', 'string', \Illuminate\Validation\Rule::in(array_keys(config('delivery_recovery.reason_categories', [])))],
             'failed_reason' => ['required_if:status,failed', 'string'],
             'proof_image' => ['required_if:status,delivered', 'image'],
             'customer_signature' => ['nullable', 'image'],
@@ -199,7 +200,7 @@ class RiderController extends Controller
                 );
                 break;
             case 'failed':
-                $this->deliveryService->markFailed($delivery, $request->failed_reason, $request->user());
+                $this->deliveryService->markFailed($delivery, $request->failed_reason_category, $request->failed_reason, $request->user());
                 break;
         }
 
@@ -372,6 +373,7 @@ class RiderController extends Controller
             'accepted_at' => $delivery->accepted_at,
             'picked_up_at' => $delivery->picked_up_at,
             'delivered_at' => $delivery->delivered_at,
+            'failed_reason_category' => $delivery->failed_reason_category,
             'failed_reason' => $delivery->failed_reason,
             'latitude' => $order?->delivery_latitude,
             'longitude' => $order?->delivery_longitude,

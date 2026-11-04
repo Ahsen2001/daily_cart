@@ -10,3 +10,5 @@ Artisan::command('inspire', function () {
 
 Schedule::command('dailycart:process-subscriptions')->dailyAt('00:10');
 Schedule::command('sanctum:prune-expired --hours=24')->dailyAt('01:00');
+Schedule::call(fn () => app(\App\Services\DeliveryRecoveryService::class)->escalateOverdue())
+    ->name('delivery-recovery-escalation')->everyFiveMinutes()->withoutOverlapping();

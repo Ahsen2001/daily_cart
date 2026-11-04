@@ -52,8 +52,8 @@ class RiderDeliveryProvider extends ChangeNotifier {
     return _update(() => _apiService.markOnTheWay(deliveryId));
   }
 
-  Future<bool> markFailed(int deliveryId, String reason) {
-    return _update(() => _apiService.markFailed(deliveryId, reason));
+  Future<bool> markFailed(int deliveryId, String category, String reason) {
+    return _update(() => _apiService.markFailed(deliveryId, category, reason));
   }
 
   Future<bool> markDelivered({

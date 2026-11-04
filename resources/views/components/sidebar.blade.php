@@ -38,6 +38,7 @@
             <a class="dc-sidebar-link {{ request()->routeIs('admin.brands.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.brands.index') }}">{{ __('Brands') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('admin.products.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.products.index') }}">{{ __('Products') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('admin.orders.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.orders.index') }}">{{ __('Orders') }}</a>
+            <a class="dc-sidebar-link {{ request()->routeIs('admin.delivery-recoveries.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.delivery-recoveries.index') }}">{{ __('Delivery Recovery') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('admin.finance.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.finance.index') }}">{{ __('Finance') }}</a>
             <a class="dc-sidebar-link {{ request()->routeIs('admin.bank-transfer-verifications.*', 'admin.bank-transfer-slips.*') ? 'dc-sidebar-link-active' : '' }}" href="{{ route('admin.bank-transfer-verifications.index') }}">{{ __('Bank Transfer Verification') }}</a>
             @if (! Auth::user()->isSuperAdmin())

@@ -88,7 +88,7 @@ class RiderDeliveryController extends Controller
 
     public function failed(FailedDeliveryRequest $request, Delivery $delivery, DeliveryService $deliveries): RedirectResponse
     {
-        $deliveries->markFailed($delivery, $request->failed_reason, $request->user());
+        $deliveries->markFailed($delivery, $request->failed_reason_category, $request->failed_reason, $request->user());
 
         return back()->with('status', 'Delivery marked as failed.');
     }

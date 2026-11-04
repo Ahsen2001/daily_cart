@@ -21,6 +21,7 @@ class DeliveryService
         private readonly OrderUpdateNotificationService $orderUpdates,
         private readonly NotificationService $notifications,
         private readonly PaymentService $payments,
+        private readonly DeliveryRecoveryService $recoveries,
     ) {}
 
     public function assignRider(Order $order, Rider $rider, ?User $actor = null): Delivery
@@ -218,18 +219,20 @@ class DeliveryService
         return $delivery->refresh();
     }
 
-    public function markFailed(Delivery $delivery, string $reason, ?User $actor = null): Delivery
+    public function markFailed(Delivery $delivery, string $category, string $reason, ?User $actor = null): Delivery
     {
-        if (! in_array($delivery->status, ['assigned', 'picked_up', 'on_the_way'], true)) {
+        if (! in_array($delivery->status, ['assigned', 'accepted', 'picked_up', 'on_the_way'], true)) {
             throw ValidationException::withMessages(['status' => 'This delivery cannot be marked failed.']);
         }
 
-        return DB::transaction(function () use ($delivery, $reason, $actor) {
+        return DB::transaction(function () use ($delivery, $category, $reason, $actor) {
             $delivery->update([
                 'status' => 'failed',
                 'failed_reason' => $reason,
+                'failed_reason_category' => $category,
             ]);
             $delivery->rider?->update(['availability_status' => 'available']);
+            $this->recoveries->open($delivery, $category, $reason, $actor);
             $this->orderUpdates->statusChanged($delivery->order, 'delivery_failed', $actor);
 
             return $delivery->refresh();

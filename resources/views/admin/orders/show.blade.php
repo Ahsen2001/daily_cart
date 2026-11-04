@@ -27,6 +27,10 @@
 
                 <x-active-delivery-tracking :order="$order" />
 
+                @if ($order->delivery?->latestRecoveryCase)
+                    <div class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4"><div class="font-semibold text-amber-900">{{ __('Failed-delivery recovery') }}</div><p class="mt-1 text-sm text-amber-800">{{ str_replace('_', ' ', ucfirst($order->delivery->latestRecoveryCase->status)) }} · {{ config('delivery_recovery.reason_categories.'.$order->delivery->latestRecoveryCase->reason_category) }}</p><a class="mt-2 inline-block text-sm font-semibold text-indigo-700 underline" href="{{ route('admin.delivery-recoveries.show', $order->delivery->latestRecoveryCase) }}">{{ __('Open recovery case') }}</a></div>
+                @endif
+
                 <div class="mt-6 border-t pt-6">
                     <h3 class="mb-3 font-semibold">{{ __('Items') }}</h3>
                     @foreach ($order->items as $item)

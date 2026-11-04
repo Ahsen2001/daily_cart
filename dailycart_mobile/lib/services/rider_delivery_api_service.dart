@@ -10,8 +10,8 @@ import 'authenticated_api_mixin.dart';
 
 class RiderDeliveryApiService with AuthenticatedApiMixin {
   RiderDeliveryApiService({Dio? dio, SecureStorageHelper? storage})
-      : _dio = dio ?? ApiClient.shared.dio,
-        _storage = storage ?? SecureStorageHelper();
+    : _dio = dio ?? ApiClient.shared.dio,
+      _storage = storage ?? SecureStorageHelper();
 
   final Dio _dio;
   final SecureStorageHelper _storage;
@@ -29,7 +29,9 @@ class RiderDeliveryApiService with AuthenticatedApiMixin {
     try {
       final response = await _dio.get<dynamic>(
         '/rider/deliveries',
-        queryParameters: {if (status != null && status != 'all') 'status': status},
+        queryParameters: {
+          if (status != null && status != 'all') 'status': status,
+        },
         options: await authOptions(),
       );
       return ApiPage<DeliveryModel>.fromJson(
@@ -93,11 +95,15 @@ class RiderDeliveryApiService with AuthenticatedApiMixin {
     return updateDeliveryStatus(deliveryId: deliveryId, status: 'on_the_way');
   }
 
-  Future<DeliveryModel> markFailed(int deliveryId, String reason) {
+  Future<DeliveryModel> markFailed(
+    int deliveryId,
+    String category,
+    String reason,
+  ) {
     return updateDeliveryStatus(
       deliveryId: deliveryId,
       status: 'failed',
-      data: {'failed_reason': reason},
+      data: {'failed_reason_category': category, 'failed_reason': reason},
     );
   }
 
@@ -111,14 +117,10 @@ class RiderDeliveryApiService with AuthenticatedApiMixin {
       final response = await _dio.patch<dynamic>(
         '/rider/deliveries/$deliveryId/status',
         data: await ApiClient.shared.multipart(
-          fields: {
-            'status': 'delivered',
-            'note': note,
-          },
+          fields: {'status': 'delivered', 'note': note},
           files: [
             ApiUploadFile(field: 'proof_image', path: proofImagePath),
-            if (signatureImagePath != null &&
-                signatureImagePath.isNotEmpty)
+            if (signatureImagePath != null && signatureImagePath.isNotEmpty)
               ApiUploadFile(
                 field: 'customer_signature',
                 path: signatureImagePath,
@@ -146,8 +148,7 @@ class RiderDeliveryApiService with AuthenticatedApiMixin {
           fields: {'note': note},
           files: [
             ApiUploadFile(field: 'proof_image', path: proofImagePath),
-            if (signatureImagePath != null &&
-                signatureImagePath.isNotEmpty)
+            if (signatureImagePath != null && signatureImagePath.isNotEmpty)
               ApiUploadFile(
                 field: 'customer_signature',
                 path: signatureImagePath,

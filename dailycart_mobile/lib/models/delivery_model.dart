@@ -18,6 +18,7 @@ class DeliveryModel {
     this.acceptedAt,
     this.pickedUpAt,
     this.deliveredAt,
+    this.failedReasonCategory = '',
     this.failedReason = '',
   });
 
@@ -39,6 +40,7 @@ class DeliveryModel {
   final DateTime? acceptedAt;
   final DateTime? pickedUpAt;
   final DateTime? deliveredAt;
+  final String failedReasonCategory;
   final String failedReason;
 
   bool get canAccept => status.toLowerCase() == 'assigned';
@@ -110,6 +112,7 @@ class DeliveryModel {
       acceptedAt: _nullableDate(json['accepted_at']),
       pickedUpAt: _nullableDate(json['picked_up_at']),
       deliveredAt: _nullableDate(json['delivered_at']),
+      failedReasonCategory: (json['failed_reason_category'] ?? '').toString(),
       failedReason: (json['failed_reason'] ?? '').toString(),
     );
   }
