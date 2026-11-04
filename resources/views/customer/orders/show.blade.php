@@ -216,6 +216,17 @@
                                     {{ $latestLocation ? __('Last updated: :time', ['time' => $latestLocation->recorded_at?->format('M d, Y h:i:s A')]) : '' }}
                                 </p>
                             </div>
+                            <div id="customer-tracking-connection" class="mt-3 hidden rounded-2xl border border-orange-200 bg-orange-50 p-4 text-orange-900" role="status" aria-live="polite">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p data-connection-title class="text-sm font-bold"></p>
+                                        <p data-connection-message class="mt-1 text-xs leading-5"></p>
+                                    </div>
+                                    <button data-tracking-retry type="button" class="hidden shrink-0 rounded-full border border-orange-300 bg-white px-3 py-1.5 text-xs font-bold text-orange-800 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                                        {{ __('Retry now') }}
+                                    </button>
+                                </div>
+                            </div>
                         @endif
                         @if (! $trackingTerminal && $googleMapsBrowserKey && $order->delivery_latitude && $order->delivery_longitude)
                             <div id="order-tracking-map" class="mt-4 h-72 rounded-2xl border border-green-100 bg-green-50"></div>
@@ -299,9 +310,32 @@
                     : null;
 
                 const freshness = document.getElementById('customer-tracking-freshness');
+                const connection = document.getElementById('customer-tracking-connection');
+                const retryButton = connection?.querySelector('[data-tracking-retry]');
                 let lastRealtimeAt = 0;
                 let terminal = false;
+                let pollInFlight = false;
                 const channelName = @json('delivery.'.$order->delivery->id);
+
+                const showConnection = state => {
+                    if (!connection) return;
+                    const title = connection.querySelector('[data-connection-title]');
+                    const message = connection.querySelector('[data-connection-message]');
+                    const states = {
+                        offline: [@json(__('Offline')), @json(__('Showing the last known rider location. Updates will resume automatically when you reconnect.'))],
+                        reconnecting: [@json(__('Reconnecting to live tracking')), @json(__('Checking for the latest rider location…'))],
+                        failed: [@json(__('Live updates unavailable')), @json(__('The live stream and latest refresh could not connect. Your last known rider location remains visible.'))],
+                    };
+                    if (!states[state]) {
+                        connection.classList.add('hidden');
+                        retryButton?.classList.add('hidden');
+                        return;
+                    }
+                    connection.classList.remove('hidden');
+                    if (title) title.textContent = states[state][0];
+                    if (message) message.textContent = states[state][1];
+                    retryButton?.classList.toggle('hidden', state !== 'failed');
+                };
 
                 const applyTracking = (payload) => {
                     terminal = ['delivered', 'failed', 'cancelled'].includes(payload.delivery_status)
@@ -344,33 +378,59 @@
                     : null;
                 trackingStream?.addEventListener('location', (event) => {
                     lastRealtimeAt = Date.now();
+                    showConnection('live');
                     applyTracking(JSON.parse(event.data));
                     if (terminal) trackingStream?.close();
                 });
                 echoChannel?.listen('.delivery.location.updated', payload => {
                     lastRealtimeAt = Date.now();
+                    showConnection('live');
                     applyTracking(payload);
                     if (terminal) window.Echo?.leave(channelName);
                 });
 
-                const poll = window.setInterval(async () => {
+                const pollNow = async () => {
                     if (terminal) {
                         window.clearInterval(poll);
                         trackingStream?.close();
                         if (echoChannel) window.Echo?.leave(channelName);
                         return;
                     }
-                    if (Date.now() - lastRealtimeAt < 25000) return;
+                    if (!navigator.onLine) {
+                        showConnection('offline');
+                        return;
+                    }
+                    if (pollInFlight) return;
+                    if (Date.now() - lastRealtimeAt < 25000) {
+                        showConnection('live');
+                        return;
+                    }
+                    pollInFlight = true;
                     try {
                         const response = await fetch(@json(route('orders.tracking.show', $order)), {
                             headers: { 'Accept': 'application/json' },
                             credentials: 'same-origin',
                         });
-                        if (response.ok) applyTracking(await response.json());
+                        if (!response.ok) throw new Error(`Tracking refresh failed (${response.status})`);
+                        applyTracking(await response.json());
+                        showConnection('live');
                     } catch (_) {
-                        // Keep the last known marker while the network reconnects.
+                        showConnection(navigator.onLine ? 'failed' : 'offline');
+                    } finally {
+                        pollInFlight = false;
                     }
-                }, {{ max(15, min(30, (int) config('delivery_tracking.poll_seconds', 20))) * 1000 }});
+                };
+                const poll = window.setInterval(pollNow, {{ max(15, min(30, (int) config('delivery_tracking.poll_seconds', 20))) * 1000 }});
+                retryButton?.addEventListener('click', () => {
+                    showConnection('reconnecting');
+                    pollNow();
+                });
+                window.addEventListener('offline', () => showConnection('offline'));
+                window.addEventListener('online', () => {
+                    showConnection('reconnecting');
+                    pollNow();
+                });
+                if (!navigator.onLine) showConnection('offline');
             };
         </script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ $googleMapsBrowserKey }}&callback=initDailyCartTrackingMap"></script>
@@ -379,13 +439,35 @@
             (() => {
                 const freshness = document.getElementById('customer-tracking-freshness');
                 if (!freshness) return;
+                const connection = document.getElementById('customer-tracking-connection');
+                const retryButton = connection?.querySelector('[data-tracking-retry]');
                 let lastRealtimeAt = 0;
                 let terminal = false;
+                let pollInFlight = false;
                 const channelName = @json('delivery.'.$order->delivery->id);
                 const echoChannel = window.Echo?.private?.(channelName) || null;
                 const stream = !echoChannel && window.EventSource
                     ? new EventSource(@json(route('orders.tracking.stream', $order)))
                     : null;
+                const showConnection = state => {
+                    if (!connection) return;
+                    const title = connection.querySelector('[data-connection-title]');
+                    const message = connection.querySelector('[data-connection-message]');
+                    const states = {
+                        offline: [@json(__('Offline')), @json(__('Showing the last known rider location. Updates will resume automatically when you reconnect.'))],
+                        reconnecting: [@json(__('Reconnecting to live tracking')), @json(__('Checking for the latest rider location…'))],
+                        failed: [@json(__('Live updates unavailable')), @json(__('The live stream and latest refresh could not connect. Your last known rider location remains visible.'))],
+                    };
+                    if (!states[state]) {
+                        connection.classList.add('hidden');
+                        retryButton?.classList.add('hidden');
+                        return;
+                    }
+                    connection.classList.remove('hidden');
+                    if (title) title.textContent = states[state][0];
+                    if (message) message.textContent = states[state][1];
+                    retryButton?.classList.toggle('hidden', state !== 'failed');
+                };
                 const applyTracking = payload => {
                     terminal = payload.freshness?.status === 'completed';
                     freshness.querySelector('[data-freshness-message]').textContent = payload.freshness?.message
@@ -401,32 +483,58 @@
                 };
                 stream?.addEventListener('location', event => {
                     lastRealtimeAt = Date.now();
+                    showConnection('live');
                     applyTracking(JSON.parse(event.data));
                     if (terminal) stream.close();
                 });
                 echoChannel?.listen('.delivery.location.updated', payload => {
                     lastRealtimeAt = Date.now();
+                    showConnection('live');
                     applyTracking(payload);
                     if (terminal) window.Echo?.leave(channelName);
                 });
-                const poll = window.setInterval(async () => {
+                const pollNow = async () => {
                     if (terminal) {
                         window.clearInterval(poll);
                         stream?.close();
                         if (echoChannel) window.Echo?.leave(channelName);
                         return;
                     }
-                    if (Date.now() - lastRealtimeAt < 25000) return;
+                    if (!navigator.onLine) {
+                        showConnection('offline');
+                        return;
+                    }
+                    if (pollInFlight) return;
+                    if (Date.now() - lastRealtimeAt < 25000) {
+                        showConnection('live');
+                        return;
+                    }
+                    pollInFlight = true;
                     try {
                         const response = await fetch(@json(route('orders.tracking.show', $order)), {
                             headers: { 'Accept': 'application/json' },
                             credentials: 'same-origin',
                         });
-                        if (response.ok) applyTracking(await response.json());
+                        if (!response.ok) throw new Error(`Tracking refresh failed (${response.status})`);
+                        applyTracking(await response.json());
+                        showConnection('live');
                     } catch (_) {
-                        // Keep the last known freshness status while offline.
+                        showConnection(navigator.onLine ? 'failed' : 'offline');
+                    } finally {
+                        pollInFlight = false;
                     }
-                }, {{ max(15, min(30, (int) config('delivery_tracking.poll_seconds', 20))) * 1000 }});
+                };
+                const poll = window.setInterval(pollNow, {{ max(15, min(30, (int) config('delivery_tracking.poll_seconds', 20))) * 1000 }});
+                retryButton?.addEventListener('click', () => {
+                    showConnection('reconnecting');
+                    pollNow();
+                });
+                window.addEventListener('offline', () => showConnection('offline'));
+                window.addEventListener('online', () => {
+                    showConnection('reconnecting');
+                    pollNow();
+                });
+                if (!navigator.onLine) showConnection('offline');
             })();
         </script>
     @endif

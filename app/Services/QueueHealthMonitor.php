@@ -11,12 +11,13 @@ class QueueHealthMonitor
 {
     public function __construct(private readonly NotificationService $notifications) {}
 
-    /** @return array{queued_jobs:int,oldest_job_age_minutes:int,failed_jobs_24h:int,stale_subscription_runs:int,healthy:bool} */
+    /** @return array{queued_jobs:int,oldest_job_age_seconds:int,oldest_job_age_minutes:int,failed_jobs_24h:int,stale_subscription_runs:int,healthy:bool} */
     public function inspect(bool $notify = true): array
     {
         $queued = Schema::hasTable('jobs') ? (int) DB::table('jobs')->count() : 0;
         $oldestAvailable = Schema::hasTable('jobs') ? DB::table('jobs')->min('available_at') : null;
-        $oldestAge = $oldestAvailable ? max(0, (int) floor((time() - (int) $oldestAvailable) / 60)) : 0;
+        $oldestAgeSeconds = $oldestAvailable ? max(0, time() - (int) $oldestAvailable) : 0;
+        $oldestAge = (int) floor($oldestAgeSeconds / 60);
         $failed = Schema::hasTable('failed_jobs')
             ? (int) DB::table('failed_jobs')->where('failed_at', '>=', now()->subDay())->count()
             : 0;
@@ -29,7 +30,7 @@ class QueueHealthMonitor
             && $failed < (int) config('recurring_orders.failed_jobs_warning_count', 1)
             && $staleRuns === 0;
         $metrics = [
-            'queued_jobs' => $queued, 'oldest_job_age_minutes' => $oldestAge,
+            'queued_jobs' => $queued, 'oldest_job_age_seconds' => $oldestAgeSeconds, 'oldest_job_age_minutes' => $oldestAge,
             'failed_jobs_24h' => $failed, 'stale_subscription_runs' => $staleRuns,
             'healthy' => $healthy,
         ];
