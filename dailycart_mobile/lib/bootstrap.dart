@@ -29,6 +29,10 @@ Future<void> bootstrap(DailyCartAppFlavor flavor) async {
     // application UI from starting.
   }
 
+  if (flavor == DailyCartAppFlavor.rider) {
+    await RiderDeliveryTrackingService.initializeBackgroundWorker();
+  }
+
   runApp(const ProviderScope(child: DailyCartApp()));
   if (flavor == DailyCartAppFlavor.rider) {
     unawaited(RiderDeliveryTrackingService.instance.resumeIfNeeded());

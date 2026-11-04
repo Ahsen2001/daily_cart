@@ -23,6 +23,7 @@ class SecureStorageHelper {
   static const tokenExpiresAtKey = 'auth_token_expires_at';
   static const trackingDeliveryIdKey = 'active_tracking_delivery_id';
   static const trackingTokenKey = 'active_tracking_token';
+  static const trackingStatusKey = 'active_tracking_status';
 
   Future<void> saveToken(String token) {
     return _storage.write(key: authTokenKey, value: token);
@@ -118,12 +119,19 @@ class SecureStorageHelper {
     await clearTrackingSession();
   }
 
-  Future<void> saveTrackingSession(int deliveryId, String token) async {
+  Future<void> saveTrackingSession(
+    int deliveryId,
+    String token, {
+    String? status,
+  }) async {
     await _storage.write(
       key: trackingDeliveryIdKey,
       value: deliveryId.toString(),
     );
     await _storage.write(key: trackingTokenKey, value: token);
+    if (status != null) {
+      await _storage.write(key: trackingStatusKey, value: status);
+    }
   }
 
   Future<int?> getTrackingDeliveryId() async {
@@ -134,8 +142,13 @@ class SecureStorageHelper {
     return _storage.read(key: trackingTokenKey);
   }
 
+  Future<String?> getTrackingStatus() {
+    return _storage.read(key: trackingStatusKey);
+  }
+
   Future<void> clearTrackingSession() async {
     await _storage.delete(key: trackingDeliveryIdKey);
     await _storage.delete(key: trackingTokenKey);
+    await _storage.delete(key: trackingStatusKey);
   }
 }

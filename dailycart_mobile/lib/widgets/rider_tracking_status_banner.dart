@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../services/rider_delivery_tracking_service.dart';
 
@@ -45,9 +46,20 @@ class RiderTrackingStatusBanner extends StatelessWidget {
                           'Delivery #${state.deliveryId} · location is shared only during this active delivery.',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
+                      if (state.phase == RiderTrackingPhase.permissionRequired)
+                        Text(
+                          state.message ??
+                              'Allow location all the time to resume an active delivery after restart.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                     ],
                   ),
                 ),
+                if (state.phase == RiderTrackingPhase.permissionRequired)
+                  TextButton(
+                    onPressed: Geolocator.openAppSettings,
+                    child: const Text('Settings'),
+                  ),
               ],
             ),
           ),

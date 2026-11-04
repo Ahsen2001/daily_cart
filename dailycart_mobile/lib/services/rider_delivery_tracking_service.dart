@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../config/app_identity.dart';
 import '../models/rider_location_queue_point.dart';
 import '../networking/api_exception.dart';
 import '../utils/secure_storage_helper.dart';
@@ -32,9 +36,21 @@ class RiderDeliveryTrackingState {
 }
 
 class RiderDeliveryTrackingService {
-  RiderDeliveryTrackingService._();
+  RiderDeliveryTrackingService._({bool backgroundWorker = false})
+    : _backgroundWorker = backgroundWorker;
 
   static final instance = RiderDeliveryTrackingService._();
+  static final _workerInstance = RiderDeliveryTrackingService._(
+    backgroundWorker: true,
+  );
+
+  static const _trackingStateEvent = 'rider_tracking_state';
+  static const _startTrackingEvent = 'rider_tracking_start';
+  static const _stopTrackingEvent = 'rider_tracking_stop';
+  static bool _androidServiceConfigured = false;
+
+  final bool _backgroundWorker;
+  StreamSubscription<Map<String, dynamic>?>? _workerStateSubscription;
 
   final state = ValueNotifier<RiderDeliveryTrackingState>(
     const RiderDeliveryTrackingState(),
@@ -50,9 +66,49 @@ class RiderDeliveryTrackingService {
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   Timer? _stationaryTimer;
   bool _sending = false;
+  Future<bool>? _startOperation;
   String? _deliveryStatus;
   Position? _lastAcceptedPosition;
   DateTime? _lastSentAt;
+
+  static Future<void> initializeBackgroundWorker() async {
+    if (!Platform.isAndroid || _androidServiceConfigured) return;
+    final service = FlutterBackgroundService();
+    await service.configure(
+      androidConfiguration: AndroidConfiguration(
+        onStart: riderTrackingBackgroundEntryPoint,
+        autoStart: false,
+        autoStartOnBoot: true,
+        isForegroundMode: true,
+        notificationChannelId: 'dailycart_active_delivery_tracking',
+        initialNotificationTitle: 'DailyCart active delivery',
+        initialNotificationContent:
+            'DailyCart is sharing your location for an active delivery.',
+        foregroundServiceNotificationId: 4182,
+        foregroundServiceTypes: const [AndroidForegroundType.location],
+      ),
+      iosConfiguration: IosConfiguration(autoStart: false),
+    );
+    _androidServiceConfigured = true;
+    instance._listenToWorkerState(service);
+  }
+
+  void _listenToWorkerState(FlutterBackgroundService service) {
+    _workerStateSubscription ??= service.on(_trackingStateEvent).listen((data) {
+      if (data == null) return;
+      final phaseName = data['phase']?.toString();
+      final phase = RiderTrackingPhase.values.firstWhere(
+        (value) => value.name == phaseName,
+        orElse: () => RiderTrackingPhase.stopped,
+      );
+      state.value = RiderDeliveryTrackingState(
+        deliveryId: int.tryParse(data['delivery_id']?.toString() ?? ''),
+        isTracking: data['is_tracking'] == true,
+        message: data['message']?.toString(),
+        phase: phase,
+      );
+    });
+  }
 
   Future<void> resumeIfNeeded() async {
     if (await _storage.getToken() == null) return;
@@ -80,6 +136,78 @@ class RiderDeliveryTrackingService {
       await stop();
       return false;
     }
+    if (Platform.isAndroid && !_backgroundWorker) {
+      return _startAndroidWorker(deliveryId, normalizedStatus);
+    }
+    return _startInProcess(deliveryId, normalizedStatus);
+  }
+
+  Future<bool> _startAndroidWorker(int deliveryId, String status) async {
+    await initializeBackgroundWorker();
+    final permissionGranted = await _ensurePermission();
+    if (!permissionGranted) {
+      state.value = RiderDeliveryTrackingState(
+        deliveryId: deliveryId,
+        message: Platform.isAndroid
+            ? 'Location permission required: allow all the time'
+            : 'Location permission required',
+        phase: RiderTrackingPhase.permissionRequired,
+      );
+      return false;
+    }
+    try {
+      final token = await _api.startTracking(deliveryId);
+      await _storage.saveTrackingSession(deliveryId, token, status: status);
+      final service = FlutterBackgroundService();
+      if (!await service.isRunning()) {
+        await service.startService();
+      }
+      service.invoke(_startTrackingEvent, {
+        'delivery_id': deliveryId,
+        'status': status,
+      });
+      state.value = RiderDeliveryTrackingState(
+        deliveryId: deliveryId,
+        isTracking: true,
+        message: 'Tracking active',
+        phase: RiderTrackingPhase.active,
+      );
+      return true;
+    } on ApiException catch (error) {
+      state.value = RiderDeliveryTrackingState(
+        deliveryId: deliveryId,
+        message: error.message,
+        phase: RiderTrackingPhase.stopped,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> _startInProcess(
+    int deliveryId,
+    String normalizedStatus, {
+    bool reuseStoredSession = false,
+  }) async {
+    final ongoing = _startOperation;
+    if (ongoing != null) return ongoing;
+    final operation = _startInProcessOnce(
+      deliveryId,
+      normalizedStatus,
+      reuseStoredSession: reuseStoredSession,
+    );
+    _startOperation = operation;
+    try {
+      return await operation;
+    } finally {
+      _startOperation = null;
+    }
+  }
+
+  Future<bool> _startInProcessOnce(
+    int deliveryId,
+    String normalizedStatus, {
+    required bool reuseStoredSession,
+  }) async {
     if (_subscription != null &&
         state.value.deliveryId == deliveryId &&
         _deliveryStatus == normalizedStatus) {
@@ -98,15 +226,28 @@ class RiderDeliveryTrackingService {
     if (!permissionGranted) {
       state.value = RiderDeliveryTrackingState(
         deliveryId: deliveryId,
-        message: 'Location permission required',
+        message: Platform.isAndroid
+            ? 'Location permission required: allow all the time'
+            : 'Location permission required',
         phase: RiderTrackingPhase.permissionRequired,
       );
       return false;
     }
 
     try {
-      final token = await _api.startTracking(deliveryId);
-      await _storage.saveTrackingSession(deliveryId, token);
+      final existingDeliveryId = await _storage.getTrackingDeliveryId();
+      final existingToken = await _storage.getTrackingToken();
+      final token =
+          reuseStoredSession &&
+              existingDeliveryId == deliveryId &&
+              existingToken != null
+          ? existingToken
+          : await _api.startTracking(deliveryId);
+      await _storage.saveTrackingSession(
+        deliveryId,
+        token,
+        status: normalizedStatus,
+      );
       state.value = RiderDeliveryTrackingState(
         deliveryId: deliveryId,
         isTracking: true,
@@ -149,21 +290,21 @@ class RiderDeliveryTrackingService {
         }
       });
 
-      _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
-        (results) {
-          if (results.any((result) => result != ConnectivityResult.none)) {
-            unawaited(_flushQueue());
-          } else {
-            state.value = RiderDeliveryTrackingState(
-              deliveryId: deliveryId,
-              position: state.value.position,
-              isTracking: true,
-              message: 'Offline: location updates waiting',
-              phase: RiderTrackingPhase.offlineWaiting,
-            );
-          }
-        },
-      );
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+        results,
+      ) {
+        if (results.any((result) => result != ConnectivityResult.none)) {
+          unawaited(_flushQueue());
+        } else {
+          state.value = RiderDeliveryTrackingState(
+            deliveryId: deliveryId,
+            position: state.value.position,
+            isTracking: true,
+            message: 'Offline: location updates waiting',
+            phase: RiderTrackingPhase.offlineWaiting,
+          );
+        }
+      });
 
       unawaited(_flushQueue());
       try {
@@ -231,6 +372,28 @@ class RiderDeliveryTrackingService {
   }) async {
     final deliveryId =
         state.value.deliveryId ?? await _storage.getTrackingDeliveryId();
+    if (Platform.isAndroid && !_backgroundWorker) {
+      final service = FlutterBackgroundService();
+      if (await service.isRunning()) {
+        service.invoke(_stopTrackingEvent);
+      }
+      state.value = const RiderDeliveryTrackingState(
+        message: 'Tracking stopped',
+        phase: RiderTrackingPhase.stopped,
+      );
+      if (sendToServer &&
+          deliveryId != null &&
+          await _storage.getToken() != null) {
+        try {
+          await _api.stopTracking(deliveryId);
+        } catch (_) {}
+      }
+      await _storage.clearTrackingSession();
+      if (clearQueuedPoints && deliveryId != null) {
+        await _queue.clearDelivery(deliveryId);
+      }
+      return;
+    }
     await _subscription?.cancel();
     _subscription = null;
     _stationaryTimer?.cancel();
@@ -326,6 +489,16 @@ class RiderDeliveryTrackingService {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
     }
+    if (Platform.isAndroid && permission == LocationPermission.whileInUse) {
+      // A second request upgrades supported Android versions. Android 11+
+      // may instead require the rider to choose "Allow all the time" from
+      // system app settings. Without it Android cannot restart location access
+      // after a device reboot while the application UI is not visible.
+      permission = await Geolocator.requestPermission();
+    }
+    if (Platform.isAndroid) {
+      return permission == LocationPermission.always;
+    }
     return permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse;
   }
@@ -386,13 +559,15 @@ class RiderDeliveryTrackingService {
         accuracy: LocationAccuracy.high,
         distanceFilter: distanceFilter,
         intervalDuration: interval,
-        foregroundNotificationConfig: const ForegroundNotificationConfig(
-          notificationTitle: 'DailyCart active delivery',
-          notificationText:
-              'DailyCart is sharing your location for an active delivery.',
-          enableWakeLock: true,
-          setOngoing: true,
-        ),
+        foregroundNotificationConfig: _backgroundWorker
+            ? null
+            : const ForegroundNotificationConfig(
+                notificationTitle: 'DailyCart active delivery',
+                notificationText:
+                    'DailyCart is sharing your location for an active delivery.',
+                enableWakeLock: true,
+                setOngoing: true,
+              ),
       );
     }
     if (Platform.isIOS) {
@@ -409,4 +584,68 @@ class RiderDeliveryTrackingService {
       distanceFilter: distanceFilter,
     );
   }
+}
+
+@pragma('vm:entry-point')
+Future<void> riderTrackingBackgroundEntryPoint(ServiceInstance service) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
+  AppIdentity.configure(DailyCartAppFlavor.rider);
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (_) {}
+
+  final tracker = RiderDeliveryTrackingService._workerInstance;
+
+  void publishState() {
+    final current = tracker.state.value;
+    service.invoke(RiderDeliveryTrackingService._trackingStateEvent, {
+      'delivery_id': current.deliveryId,
+      'is_tracking': current.isTracking,
+      'message': current.message,
+      'phase': current.phase.name,
+    });
+  }
+
+  tracker.state.addListener(publishState);
+  service.on(RiderDeliveryTrackingService._startTrackingEvent).listen((data) {
+    final deliveryId = int.tryParse(data?['delivery_id']?.toString() ?? '');
+    final status = data?['status']?.toString();
+    if (deliveryId != null && status != null) {
+      unawaited(
+        tracker._startInProcess(
+          deliveryId,
+          status.toLowerCase(),
+          reuseStoredSession: true,
+        ),
+      );
+    }
+  });
+  service.on(RiderDeliveryTrackingService._stopTrackingEvent).listen((_) async {
+    await tracker.stop(sendToServer: false);
+    tracker.state.removeListener(publishState);
+    await service.stopSelf();
+  });
+
+  if (service is AndroidServiceInstance) {
+    await service.setAsForegroundService();
+    service.setForegroundNotificationInfo(
+      title: 'DailyCart active delivery',
+      content: 'DailyCart is sharing your location for an active delivery.',
+    );
+  }
+
+  final deliveryId = await tracker._storage.getTrackingDeliveryId();
+  final status = await tracker._storage.getTrackingStatus();
+  final token = await tracker._storage.getTrackingToken();
+  if (deliveryId == null ||
+      status == null ||
+      token == null ||
+      !RiderTrackingLifecycle.shouldTrack(status)) {
+    tracker.state.removeListener(publishState);
+    await service.stopSelf();
+    return;
+  }
+  await tracker._startInProcess(deliveryId, status, reuseStoredSession: true);
+  publishState();
 }

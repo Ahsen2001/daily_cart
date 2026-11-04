@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:dailycart_mobile/models/rider_location_queue_point.dart';
 import 'package:dailycart_mobile/networking/api_exception.dart';
 import 'package:dailycart_mobile/services/rider_location_api_service.dart';
 import 'package:dailycart_mobile/services/rider_location_queue.dart';
+import 'package:dailycart_mobile/services/rider_location_queue_storage.dart';
 import 'package:dailycart_mobile/services/rider_location_queue_synchronizer.dart';
 import 'package:dailycart_mobile/services/rider_tracking_lifecycle.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,20 +37,39 @@ void main() {
   });
 
   test('offline points persist and duplicate UUIDs are stored once', () async {
-    final queue = RiderLocationQueue();
+    final storage = _MemoryQueueStorage();
+    final queue = RiderLocationQueue(storage: storage);
     final point = _point('point-1', 1);
 
     await queue.add(point);
     await queue.add(point);
 
-    final restoredQueue = RiderLocationQueue();
+    final restoredQueue = RiderLocationQueue(storage: storage);
     final restored = await restoredQueue.readAll();
     expect(restored, hasLength(1));
     expect(restored.single.pointUuid, 'point-1');
   });
 
+  test('legacy plaintext points migrate to encrypted queue storage', () async {
+    final point = _point('legacy-point', 1);
+    SharedPreferences.setMockInitialValues({
+      'rider_delivery_location_queue_v2': jsonEncode([point.toJson()]),
+    });
+    final storage = _MemoryQueueStorage();
+
+    final restored = await RiderLocationQueue(storage: storage).readAll();
+
+    expect(restored.single.pointUuid, 'legacy-point');
+    expect(await storage.read('rider_delivery_location_queue_v2'), isNotNull);
+    final preferences = await SharedPreferences.getInstance();
+    expect(
+      preferences.containsKey('rider_delivery_location_queue_v2'),
+      isFalse,
+    );
+  });
+
   test('queued points retry after reconnect and are not resubmitted', () async {
-    final queue = RiderLocationQueue();
+    final queue = RiderLocationQueue(storage: _MemoryQueueStorage());
     await queue.add(_point('point-1', 1));
     await queue.add(_point('point-2', 2));
 
@@ -88,6 +110,19 @@ void main() {
     );
     expect(submittedBatches, 1);
   });
+}
+
+class _MemoryQueueStorage implements RiderLocationQueueStorage {
+  final _values = <String, String>{};
+
+  @override
+  Future<void> delete(String key) async => _values.remove(key);
+
+  @override
+  Future<String?> read(String key) async => _values[key];
+
+  @override
+  Future<void> write(String key, String value) async => _values[key] = value;
 }
 
 RiderLocationQueuePoint _point(String uuid, int sequence) {
