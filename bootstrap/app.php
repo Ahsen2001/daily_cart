@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
 
         $middleware->validateCsrfTokens(except: [
-            'payments/payhere/notify',
+            'payment/payhere/notify',
             'logout',
         ]);
 

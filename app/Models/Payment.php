@@ -53,6 +53,11 @@ class Payment extends Model
         return $this->hasMany(PaymentGatewayTransaction::class);
     }
 
+    public function gatewayCallbackEvents(): HasMany
+    {
+        return $this->hasMany(PaymentGatewayCallbackEvent::class);
+    }
+
     public function bankTransferPayment(): HasOne
     {
         return $this->hasOne(BankTransferPayment::class);

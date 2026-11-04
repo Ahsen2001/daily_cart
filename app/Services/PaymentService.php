@@ -26,6 +26,23 @@ class PaymentService
         'refunded',
     ];
 
+    /** @var array<string, list<string>> */
+    private const LEGAL_TRANSITIONS = [
+        'pending' => ['paid', 'failed'],
+        // A cryptographically valid late success may reconcile a previously
+        // failed gateway callback, but terminal paid/refunded states cannot
+        // move backwards to failed.
+        'failed' => ['paid'],
+        'paid' => ['refunded'],
+        'refunded' => [],
+        'partially_refunded' => ['refunded'],
+    ];
+
+    public function canTransition(string $from, string $to): bool
+    {
+        return $from === $to || in_array($to, self::LEGAL_TRANSITIONS[$from] ?? [], true);
+    }
+
     public function createPlaceholder(Order $order, string $method): Payment
     {
         if (! in_array($method, self::METHODS, true)) {
@@ -184,6 +201,11 @@ class PaymentService
 
     public function markPaid(Payment $payment, ?string $reference = null): Payment
     {
+        if ($payment->status === 'paid') {
+            return $payment->refresh();
+        }
+        $this->assertTransition($payment, 'paid');
+
         $payment->update([
             'status' => 'paid',
             'transaction_reference' => $reference ?? $this->reference($payment),
@@ -198,6 +220,11 @@ class PaymentService
 
     public function markFailed(Payment $payment): Payment
     {
+        if ($payment->status === 'failed') {
+            return $payment->refresh();
+        }
+        $this->assertTransition($payment, 'failed');
+
         $payment->update(['status' => 'failed', 'paid_at' => null]);
         $payment->order()->update(['payment_status' => 'failed']);
         $this->notifyStatus($payment, 'failed');
@@ -207,11 +234,25 @@ class PaymentService
 
     public function markRefunded(Payment $payment): Payment
     {
+        if ($payment->status === 'refunded') {
+            return $payment->refresh();
+        }
+        $this->assertTransition($payment, 'refunded');
+
         $payment->update(['status' => 'refunded']);
         $payment->order()->update(['payment_status' => 'refunded']);
         $this->notifyStatus($payment, 'refunded');
 
         return $payment->refresh();
+    }
+
+    private function assertTransition(Payment $payment, string $target): void
+    {
+        if (! $this->canTransition($payment->status, $target)) {
+            throw ValidationException::withMessages([
+                'payment' => 'Payment status cannot transition from '.$payment->status.' to '.$target.'.',
+            ]);
+        }
     }
 
     private function reference(Payment $payment, string $prefix = 'PAY'): string

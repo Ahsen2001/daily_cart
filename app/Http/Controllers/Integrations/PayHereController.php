@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Integrations;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order;
 use App\Models\Payment;
 use App\Services\PayHereService;
 use App\Services\PaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PayHereController extends Controller
@@ -35,32 +33,7 @@ class PayHereController extends Controller
 
     public function notify(Request $request, PayHereService $payHere, PaymentService $payments): string
     {
-        $payload = $request->all();
-
-        if (! $payHere->verifyNotification($payload)) {
-            return 'INVALID_SIGNATURE';
-        }
-
-        $order = Order::where('order_number', $payload['order_id'] ?? null)->with('payment', 'customer.user')->first();
-
-        if (! $order || ! $order->payment) {
-            return 'ORDER_NOT_FOUND';
-        }
-
-        DB::transaction(function () use ($order, $payload, $payHere, $payments) {
-            $payment = $order->payment()->lockForUpdate()->firstOrFail();
-            $transaction = $payHere->recordNotification($payment, $payload);
-
-            if ((string) ($payload['status_code'] ?? '') === '2') {
-                $payment = $payments->markPaid($payment, $payload['payment_id'] ?? null);
-            } else {
-                $payment = $payments->markFailed($payment);
-            }
-
-            $transaction->update(['payment_id' => $payment->id]);
-        });
-
-        return 'OK';
+        return $payHere->processNotification($request->all(), $payments);
     }
 
     public function return(Payment $payment): RedirectResponse
