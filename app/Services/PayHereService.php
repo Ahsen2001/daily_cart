@@ -227,6 +227,11 @@ class PayHereService
         if ($current === $target) {
             return 'idempotent';
         }
+        if ($current === 'partially_refunded' && $target === 'refunded') {
+            // A checkout callback does not include the cumulative refunded amount.
+            // Only the Refund API result may promote a partial refund to full.
+            return 'observed';
+        }
 
         return $payments->canTransition($current, $target) ? 'applied' : 'ignored_transition';
     }

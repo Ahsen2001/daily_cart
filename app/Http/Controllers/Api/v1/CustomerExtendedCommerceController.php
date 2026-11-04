@@ -292,6 +292,8 @@ class CustomerExtendedCommerceController extends Controller
             'order_number' => $refund->order?->order_number,
             'amount' => (float) $refund->amount,
             'refund_method' => $refund->refund_method,
+            'refund_type' => $refund->refund_type,
+            'gateway_refund_id' => $refund->gateway_refund_id,
             'reason' => $refund->reason,
             'admin_note' => $refund->admin_note,
             'status' => $refund->status,

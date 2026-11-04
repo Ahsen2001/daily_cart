@@ -84,7 +84,7 @@ class FailedDeliveryRecoveryTest extends TestCase
         Bus::fake();
         [$delivery, $riderUser] = $this->deliveryContext();
         Payment::create([
-            'order_id' => $delivery->order_id, 'payment_method' => 'card',
+            'order_id' => $delivery->order_id, 'payment_method' => 'wallet',
             'amount' => 1100, 'currency' => 'LKR', 'status' => 'paid', 'paid_at' => now(),
         ]);
         $delivery->order()->update(['payment_status' => 'paid']);

@@ -12,4 +12,12 @@ return [
     'checkout_url' => env('PAYHERE_MODE') === 'live'
         ? 'https://www.payhere.lk/pay/checkout'
         : 'https://sandbox.payhere.lk/pay/checkout',
+
+    'oauth_url' => env('PAYHERE_MODE') === 'live'
+        ? 'https://www.payhere.lk/merchant/v1/oauth/token'
+        : 'https://sandbox.payhere.lk/merchant/v1/oauth/token',
+
+    'refund_url' => env('PAYHERE_MODE') === 'live'
+        ? 'https://www.payhere.lk/merchant/v1/payment/refund'
+        : 'https://sandbox.payhere.lk/merchant/v1/payment/refund',
 ];

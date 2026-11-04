@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Refund extends Model
@@ -16,6 +17,8 @@ class Refund extends Model
         'payment_id',
         'amount',
         'refund_method',
+        'refund_type',
+        'gateway_refund_id',
         'reason',
         'admin_note',
         'vendor_note',
@@ -23,6 +26,8 @@ class Refund extends Model
         'status',
         'requested_at',
         'processed_at',
+        'processed_by',
+        'failure_reason',
     ];
 
     protected function casts(): array
@@ -44,5 +49,15 @@ class Refund extends Model
     public function payment(): BelongsTo
     {
         return $this->belongsTo(Payment::class);
+    }
+
+    public function processedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'processed_by');
+    }
+
+    public function attemptEvents(): HasMany
+    {
+        return $this->hasMany(RefundAttemptEvent::class);
     }
 }

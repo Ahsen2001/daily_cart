@@ -30,49 +30,52 @@ class _RefundsScreenState extends ConsumerState<RefundsScreen> {
       body: state.isLoading && state.refunds.isEmpty
           ? const LoadingWidget(message: 'Loading refunds...')
           : state.errorMessage != null && state.refunds.isEmpty
-              ? DailyCartErrorWidget(
-                  title: 'Unable to load refunds',
-                  message: state.errorMessage!,
-                  onRetry: () =>
-                      ref.read(customerExtendedProvider).loadRefunds(),
-                )
-              : RefreshIndicator(
-                  onRefresh: () =>
-                      ref.read(customerExtendedProvider).loadRefunds(),
-                  child: ListView(
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      if (state.refunds.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.all(30),
-                          child: Center(child: Text('No refund requests.')),
-                        ),
-                      for (final refund in state.refunds)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: DailyCartCard(
-                            child: ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(
-                                refund.orderNumber.isEmpty
-                                    ? 'Order #${refund.orderId}'
-                                    : refund.orderNumber,
-                              ),
-                              subtitle: Text(refund.reason),
-                              trailing: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(CurrencyFormatter.lkr(refund.amount)),
-                                  Text(refund.status.toUpperCase()),
-                                ],
-                              ),
-                            ),
+          ? DailyCartErrorWidget(
+              title: 'Unable to load refunds',
+              message: state.errorMessage!,
+              onRetry: () => ref.read(customerExtendedProvider).loadRefunds(),
+            )
+          : RefreshIndicator(
+              onRefresh: () => ref.read(customerExtendedProvider).loadRefunds(),
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  if (state.refunds.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(30),
+                      child: Center(child: Text('No refund requests.')),
+                    ),
+                  for (final refund in state.refunds)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: DailyCartCard(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            refund.orderNumber.isEmpty
+                                ? 'Order #${refund.orderId}'
+                                : refund.orderNumber,
+                          ),
+                          subtitle: Text(
+                            '${refund.refundType == 'partial' ? 'Partial refund' : 'Full refund'} • '
+                            '${refund.refundMethod == 'payhere_gateway' ? 'PayHere' : 'Wallet'}\n'
+                            '${refund.reason}'
+                            '${refund.gatewayRefundId == null ? '' : '\nGateway reference: ${refund.gatewayRefundId}'}',
+                          ),
+                          trailing: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(CurrencyFormatter.lkr(refund.amount)),
+                              Text(refund.status.toUpperCase()),
+                            ],
                           ),
                         ),
-                    ],
-                  ),
-                ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 }

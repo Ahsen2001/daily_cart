@@ -171,6 +171,12 @@ class _VendorBusinessScreenState extends ConsumerState<VendorBusinessScreen> {
                   ),
                   Text('${refund.customerName} • ${refund.status}'),
                   Text(CurrencyFormatter.lkr(refund.amount)),
+                  Text(
+                    '${refund.refundType == 'partial' ? 'Partial' : 'Full'} refund • '
+                    '${refund.refundMethod == 'payhere_gateway' ? 'PayHere' : 'Wallet'}',
+                  ),
+                  if (refund.gatewayRefundId != null)
+                    Text('Gateway reference: ${refund.gatewayRefundId}'),
                   Text(refund.reason),
                   if (refund.vendorNote != null)
                     Text('Your response: ${refund.vendorNote}'),

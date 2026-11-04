@@ -25,7 +25,7 @@
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
-                        <thead><tr class="text-left text-xs font-semibold uppercase text-gray-500"><th class="px-3 py-2">{{ __('Order') }}</th><th class="px-3 py-2">{{ __('Customer') }}</th><th class="px-3 py-2">{{ __('Vendor') }}</th><th class="px-3 py-2">{{ __('Amount') }}</th><th class="px-3 py-2">{{ __('Status') }}</th><th class="px-3 py-2">{{ __('Action') }}</th></tr></thead>
+                        <thead><tr class="text-left text-xs font-semibold uppercase text-gray-500"><th class="px-3 py-2">{{ __('Order') }}</th><th class="px-3 py-2">{{ __('Customer') }}</th><th class="px-3 py-2">{{ __('Vendor') }}</th><th class="px-3 py-2">{{ __('Amount') }}</th><th class="px-3 py-2">{{ __('Refund route') }}</th><th class="px-3 py-2">{{ __('Status') }}</th><th class="px-3 py-2">{{ __('Action') }}</th></tr></thead>
                         <tbody class="divide-y divide-gray-100 text-sm">
                             @forelse ($refunds as $refund)
                                 <tr>
@@ -33,6 +33,7 @@
                                     <td class="px-3 py-3">{{ $refund->order?->customer?->user?->name }}</td>
                                     <td class="px-3 py-3">{{ $refund->order?->vendor?->store_name }}</td>
                                     <td class="px-3 py-3">{{ \App\Services\CurrencyService::formatLkr($refund->amount) }}</td>
+                                    <td class="px-3 py-3"><div>{{ $refund->refund_method === 'payhere_gateway' ? __('PayHere gateway') : __('Customer wallet') }}</div><div class="text-xs text-gray-500">{{ ucfirst($refund->refund_type ?? 'full') }}@if($refund->gateway_refund_id) · #{{ $refund->gateway_refund_id }}@endif</div>@if($refund->attemptEvents->isNotEmpty())<div class="mt-1 text-xs text-gray-500">{{ __('Audit') }}: {{ $refund->attemptEvents->map(fn($event) => ucfirst($event->event_type))->join(' → ') }}</div>@endif</td>
                                     <td class="px-3 py-3">{{ ucfirst($refund->status) }}</td>
                                     <td class="px-3 py-3">
                                         @if ($refund->status === 'requested')
@@ -56,7 +57,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">{{ __('No refunds found.') }}</td></tr>
+                                <tr><td colspan="7" class="px-3 py-6 text-center text-gray-500">{{ __('No refunds found.') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>

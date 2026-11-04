@@ -15,7 +15,7 @@ class RefundController extends Controller
     public function index(Request $request): View
     {
         $refunds = Refund::query()
-            ->with(['order.customer.user', 'order.vendor', 'payment'])
+            ->with(['order.customer.user', 'order.vendor', 'payment', 'attemptEvents'])
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->status))
             ->latest()
             ->paginate(20)
@@ -28,7 +28,9 @@ class RefundController extends Controller
     {
         $refunds->approve($refund, $request->user(), $request->admin_note);
 
-        return back()->with('status', 'Refund approved and credited to customer wallet.');
+        return back()->with('status', $refund->refresh()->refund_method === 'payhere_gateway'
+            ? 'Refund processed through PayHere.'
+            : 'Refund processed to the customer wallet.');
     }
 
     public function reject(ProcessRefundRequest $request, Refund $refund, RefundService $refunds): RedirectResponse

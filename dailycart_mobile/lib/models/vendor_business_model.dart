@@ -54,6 +54,9 @@ class VendorRefundModel {
     required this.amount,
     required this.reason,
     required this.status,
+    this.refundMethod = 'wallet',
+    this.refundType = 'full',
+    this.gatewayRefundId,
     this.vendorNote,
   });
 
@@ -64,6 +67,9 @@ class VendorRefundModel {
   final double amount;
   final String reason;
   final String status;
+  final String refundMethod;
+  final String refundType;
+  final String? gatewayRefundId;
   final String? vendorNote;
 
   factory VendorRefundModel.fromJson(Map<String, dynamic> json) {
@@ -75,6 +81,9 @@ class VendorRefundModel {
       amount: _toDouble(json['amount']),
       reason: (json['reason'] ?? '').toString(),
       status: (json['status'] ?? '').toString(),
+      refundMethod: (json['refund_method'] ?? 'wallet').toString(),
+      refundType: (json['refund_type'] ?? 'full').toString(),
+      gatewayRefundId: json['gateway_refund_id']?.toString(),
       vendorNote: json['vendor_note']?.toString(),
     );
   }

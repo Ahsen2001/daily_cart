@@ -50,6 +50,9 @@ class RefundModel {
     required this.amount,
     required this.status,
     required this.reason,
+    this.refundMethod = 'wallet',
+    this.refundType = 'full',
+    this.gatewayRefundId,
     this.adminNote,
     this.requestedAt,
   });
@@ -60,6 +63,9 @@ class RefundModel {
   final double amount;
   final String status;
   final String reason;
+  final String refundMethod;
+  final String refundType;
+  final String? gatewayRefundId;
   final String? adminNote;
   final DateTime? requestedAt;
 
@@ -71,6 +77,9 @@ class RefundModel {
       amount: _toDouble(json['amount']),
       status: (json['status'] ?? '').toString(),
       reason: (json['reason'] ?? '').toString(),
+      refundMethod: (json['refund_method'] ?? 'wallet').toString(),
+      refundType: (json['refund_type'] ?? 'full').toString(),
+      gatewayRefundId: json['gateway_refund_id']?.toString(),
       adminNote: json['admin_note']?.toString(),
       requestedAt: DateTime.tryParse(json['requested_at']?.toString() ?? ''),
     );

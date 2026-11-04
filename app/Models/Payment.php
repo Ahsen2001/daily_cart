@@ -24,6 +24,7 @@ class Payment extends Model
         'service_charge',
         'grand_total',
         'amount',
+        'refunded_amount',
         'currency',
         'status',
         'paid_at',
@@ -38,6 +39,7 @@ class Payment extends Model
             'service_charge' => 'decimal:2',
             'grand_total' => 'decimal:2',
             'amount' => 'decimal:2',
+            'refunded_amount' => 'decimal:2',
             'paid_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];

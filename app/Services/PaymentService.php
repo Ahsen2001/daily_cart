@@ -24,6 +24,7 @@ class PaymentService
         'paid',
         'failed',
         'refunded',
+        'partially_refunded',
     ];
 
     /** @var array<string, list<string>> */
@@ -33,7 +34,7 @@ class PaymentService
         // failed gateway callback, but terminal paid/refunded states cannot
         // move backwards to failed.
         'failed' => ['paid'],
-        'paid' => ['refunded'],
+        'paid' => ['partially_refunded', 'refunded'],
         'refunded' => [],
         'partially_refunded' => ['refunded'],
     ];
@@ -82,7 +83,7 @@ class PaymentService
             throw ValidationException::withMessages(['payment_method' => 'Invalid payment method.']);
         }
 
-        if (in_array($payment->status, ['paid', 'refunded'], true)) {
+        if (in_array($payment->status, ['paid', 'partially_refunded', 'refunded'], true)) {
             throw ValidationException::withMessages(['payment' => 'Completed payments cannot be changed.']);
         }
 
@@ -113,14 +114,14 @@ class PaymentService
 
     public function syncPendingOrderAmounts(Payment $payment): Payment
     {
-        if (in_array($payment->status, ['paid', 'refunded'], true)) {
+        if (in_array($payment->status, ['paid', 'partially_refunded', 'refunded'], true)) {
             return $payment;
         }
 
         $payment->loadMissing('order.items');
         $order = $payment->order;
 
-        if (! $order || in_array($order->payment_status, ['paid', 'refunded'], true)) {
+        if (! $order || in_array($order->payment_status, ['paid', 'partially_refunded', 'refunded'], true)) {
             return $payment;
         }
 
@@ -144,7 +145,7 @@ class PaymentService
             $payment = Payment::whereKey($payment->id)->lockForUpdate()->with('order')->firstOrFail();
             $order = $payment->order()->lockForUpdate()->firstOrFail();
 
-            if (in_array($payment->status, ['paid', 'refunded'], true) || in_array($order->payment_status, ['paid', 'refunded'], true)) {
+            if (in_array($payment->status, ['paid', 'partially_refunded', 'refunded'], true) || in_array($order->payment_status, ['paid', 'partially_refunded', 'refunded'], true)) {
                 return $payment;
             }
 
@@ -237,11 +238,28 @@ class PaymentService
         if ($payment->status === 'refunded') {
             return $payment->refresh();
         }
-        $this->assertTransition($payment, 'refunded');
+        $remaining = max(0, (float) $payment->amount - (float) $payment->refunded_amount);
 
-        $payment->update(['status' => 'refunded']);
-        $payment->order()->update(['payment_status' => 'refunded']);
-        $this->notifyStatus($payment, 'refunded');
+        return $this->applyRefund($payment, $remaining);
+    }
+
+    public function applyRefund(Payment $payment, float $amount): Payment
+    {
+        if ($amount <= 0) {
+            throw ValidationException::withMessages(['amount' => 'Refund amount must be greater than zero.']);
+        }
+
+        $newRefundedAmount = round((float) $payment->refunded_amount + $amount, 2);
+        $paidAmount = round((float) $payment->amount, 2);
+        if ($newRefundedAmount > $paidAmount) {
+            throw ValidationException::withMessages(['amount' => 'Cumulative refunds cannot exceed the paid amount.']);
+        }
+
+        $target = $newRefundedAmount >= $paidAmount ? 'refunded' : 'partially_refunded';
+        $this->assertTransition($payment, $target);
+        $payment->update(['status' => $target, 'refunded_amount' => $newRefundedAmount]);
+        $payment->order()->update(['payment_status' => $target]);
+        $this->notifyStatus($payment->refresh(), $target);
 
         return $payment->refresh();
     }
@@ -272,6 +290,7 @@ class PaymentService
             'paid' => ['Payment successful', 'Payment for order '.$order->order_number.' was successful.'],
             'failed' => ['Payment failed', 'Payment for order '.$order->order_number.' failed. Please try again.'],
             'refunded' => ['Payment refunded', 'Payment for order '.$order->order_number.' was refunded.'],
+            'partially_refunded' => ['Payment partially refunded', CurrencyService::formatLkr($payment->refunded_amount).' of order '.$order->order_number.' has been refunded.'],
         ];
         [$title, $message] = $labels[$status] ?? ['Payment updated', 'Payment for order '.$order->order_number.' is now '.$status.'.'];
         $data = ['order_id' => $order->id, 'payment_id' => $payment->id, 'status' => $status];
@@ -286,7 +305,7 @@ class PaymentService
                 $data,
                 '/order-details/'.$order->id,
                 'customer',
-                'payment-'.$status.'-customer-'.$payment->id,
+                'payment-'.$status.'-customer-'.$payment->id.'-'.number_format((float) $payment->refunded_amount, 2, '-', ''),
             );
         }
         if ($order->vendor?->user) {
@@ -299,10 +318,10 @@ class PaymentService
                 $data,
                 '/vendor-order-details/'.$order->id,
                 'vendor',
-                'payment-'.$status.'-vendor-'.$payment->id,
+                'payment-'.$status.'-vendor-'.$payment->id.'-'.number_format((float) $payment->refunded_amount, 2, '-', ''),
             );
         }
-        if (in_array($status, ['failed', 'refunded'], true)) {
+        if (in_array($status, ['failed', 'partially_refunded', 'refunded'], true)) {
             $this->notifications->notifyAdmins(
                 $title.': '.$order->order_number,
                 $message,

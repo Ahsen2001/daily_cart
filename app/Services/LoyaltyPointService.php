@@ -126,4 +126,41 @@ class LoyaltyPointService
             ]);
         });
     }
+
+    public function reverseForRefund(Order $order, float $cumulativeRefunded, float $paidAmount): ?LoyaltyPoint
+    {
+        $earned = (int) $order->customer->loyaltyPoints()
+            ->where('order_id', $order->id)->where('type', 'earned')->sum('points');
+        if ($earned <= 0 || $paidAmount <= 0) {
+            return null;
+        }
+
+        $alreadyReversed = abs((int) $order->customer->loyaltyPoints()
+            ->where('order_id', $order->id)->where('type', 'reversed')->sum('points'));
+        $target = $cumulativeRefunded >= $paidAmount
+            ? $earned
+            : (int) floor($earned * ($cumulativeRefunded / $paidAmount));
+        $points = max(0, $target - $alreadyReversed);
+        if ($points === 0) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($order, $points, $cumulativeRefunded, $paidAmount) {
+            $customer = Customer::whereKey($order->customer_id)->lockForUpdate()->firstOrFail();
+            $balance = $this->balance($customer);
+            $pointsToReverse = min($points, $balance);
+            if ($pointsToReverse === 0) {
+                return null;
+            }
+
+            return LoyaltyPoint::create([
+                'customer_id' => $customer->id,
+                'order_id' => $order->id,
+                'points' => -$pointsToReverse,
+                'type' => 'reversed',
+                'description' => 'Proportional reversal for '.CurrencyService::formatLkr($cumulativeRefunded).' refunded from '.CurrencyService::formatLkr($paidAmount).'.',
+                'balance_after' => $balance - $pointsToReverse,
+            ]);
+        });
+    }
 }
