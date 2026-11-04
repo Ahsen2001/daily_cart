@@ -37,6 +37,8 @@ $env:DURATION='5m'
 k6 run --summary-export=storage/app/load-tests/k6-summary.json load-tests/k6/dailycart.js
 ```
 
+Use `ENABLE_CATALOG=false` to isolate authenticated workloads. Catalog arrival rate can be expressed over a larger window with `CATALOG_RATE` and `CATALOG_TIME_UNIT`, for example one iteration every five seconds.
+
 For staging, set `LOAD_ENVIRONMENT=staging`, `BASE_URL`, and `STAGING_HOST_ALLOWLIST` to the exact staging hostname.
 
 ## Authenticated and mutating scenarios

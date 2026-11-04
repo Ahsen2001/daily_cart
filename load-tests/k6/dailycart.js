@@ -34,20 +34,22 @@ const thresholds = {
   dailycart_rider_update_duration: [`p(95)<${targets.p95}`, `p(99)<${targets.p99}`],
 };
 
-const scenarios = {
-  catalog: {
+const scenarios = {};
+
+if ((__ENV.ENABLE_CATALOG || 'true').toLowerCase() === 'true') {
+  scenarios.catalog = {
     executor: 'constant-arrival-rate',
     exec: 'catalog',
     rate: Number(__ENV.CATALOG_RATE || 10),
-    timeUnit: '1s',
+    timeUnit: __ENV.CATALOG_TIME_UNIT || '1s',
     duration: __ENV.DURATION || '5m',
     preAllocatedVUs: Number(__ENV.CATALOG_VUS || 10),
     maxVUs: Number(__ENV.CATALOG_MAX_VUS || 50),
     tags: { workload: 'catalog' },
-  },
-};
+  };
+}
 
-if (customerTokens.length > 0) {
+if (customerTokens.length > 0 && (__ENV.ENABLE_NOTIFICATIONS || 'true').toLowerCase() === 'true') {
   scenarios.notifications = {
     executor: 'constant-vus',
     exec: 'notifications',
@@ -89,6 +91,10 @@ if (mutatingScenarioEnabled('PayHere callback', 'ENABLE_PAYHERE_CALLBACKS', [pay
     maxVUs: 10,
     tags: { workload: 'payhere_callbacks' },
   };
+}
+
+if (Object.keys(scenarios).length === 0) {
+  throw new Error('No load scenario is enabled.');
 }
 
 export const options = {
@@ -181,6 +187,7 @@ export function riderLocations() {
       tracking_token: trackingTokens[index],
       points: [{
         point_uuid: pointId,
+        delivery_id: Number(deliveryIds[index]),
         latitude: Number(__ENV.RIDER_LATITUDE || 7.2906),
         longitude: Number(__ENV.RIDER_LONGITUDE || 80.6337),
         accuracy_meters: 10,

@@ -10,14 +10,18 @@ if (!baseUrl) {
   throw new Error('BASE_URL is required.');
 }
 
-const parsedUrl = new URL(baseUrl);
 const localHosts = ['127.0.0.1', 'localhost', 'host.docker.internal'];
+const hostnameMatch = baseUrl.match(/^https?:\/\/([^/:?#]+)/i);
+if (!hostnameMatch) {
+  throw new Error('BASE_URL must be an absolute http:// or https:// URL.');
+}
+const targetHostname = hostnameMatch[1].toLowerCase();
 const allowedStagingHosts = (__ENV.STAGING_HOST_ALLOWLIST || '')
   .split(',')
   .map((host) => host.trim().toLowerCase())
   .filter(Boolean);
-const isLocal = localHosts.includes(parsedUrl.hostname.toLowerCase());
-const isAllowedStaging = allowedStagingHosts.includes(parsedUrl.hostname.toLowerCase());
+const isLocal = localHosts.includes(targetHostname);
+const isAllowedStaging = allowedStagingHosts.includes(targetHostname);
 
 if (!isLocal && !isAllowedStaging) {
   throw new Error('Refusing to run: add the exact staging hostname to STAGING_HOST_ALLOWLIST.');
