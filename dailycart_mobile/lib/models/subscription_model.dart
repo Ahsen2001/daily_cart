@@ -11,6 +11,11 @@ class SubscriptionModel {
     required this.status,
     this.variantName,
     this.nextDeliveryDate,
+    this.runStatus = '',
+    this.runAttemptCount = 0,
+    this.runMaxAttempts = 0,
+    this.runNextRetryAt,
+    this.runFailureReason = '',
   });
 
   final int id;
@@ -24,6 +29,11 @@ class SubscriptionModel {
   final String paymentMethod;
   final String status;
   final DateTime? nextDeliveryDate;
+  final String runStatus;
+  final int runAttemptCount;
+  final int runMaxAttempts;
+  final DateTime? runNextRetryAt;
+  final String runFailureReason;
 
   factory SubscriptionModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionModel(
@@ -37,8 +47,16 @@ class SubscriptionModel {
       deliveryAddress: (json['delivery_address'] ?? '').toString(),
       paymentMethod: (json['payment_method'] ?? '').toString(),
       status: (json['status'] ?? '').toString(),
-      nextDeliveryDate:
-          DateTime.tryParse(json['next_delivery_date']?.toString() ?? ''),
+      nextDeliveryDate: DateTime.tryParse(
+        json['next_delivery_date']?.toString() ?? '',
+      ),
+      runStatus: (json['run_status'] ?? '').toString(),
+      runAttemptCount: _toInt(json['run_attempt_count']),
+      runMaxAttempts: _toInt(json['run_max_attempts']),
+      runNextRetryAt: DateTime.tryParse(
+        json['run_next_retry_at']?.toString() ?? '',
+      ),
+      runFailureReason: (json['run_failure_reason'] ?? '').toString(),
     );
   }
 

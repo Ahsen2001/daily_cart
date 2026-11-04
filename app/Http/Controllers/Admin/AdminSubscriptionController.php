@@ -7,6 +7,8 @@ use App\Http\Requests\Subscription\AdminSubscriptionFilterRequest;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Subscription;
+use App\Models\SubscriptionRun;
+use App\Services\ReliableRecurringOrderService;
 use App\Models\Vendor;
 use App\Services\SubscriptionService;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +22,7 @@ class AdminSubscriptionController extends Controller
         $filters = $request->validated();
 
         return view('admin.subscriptions.index', [
-            'subscriptions' => Subscription::with(['customer.user', 'vendor', 'product', 'variant', 'generatedOrders'])
+            'subscriptions' => Subscription::with(['customer.user', 'vendor', 'product', 'variant', 'generatedOrders', 'latestRun.attempts'])
                 ->when($filters['customer_id'] ?? null, fn ($query, $id) => $query->where('customer_id', $id))
                 ->when($filters['vendor_id'] ?? null, fn ($query, $id) => $query->where('vendor_id', $id))
                 ->when($filters['product_id'] ?? null, fn ($query, $id) => $query->where('product_id', $id))
@@ -29,7 +31,7 @@ class AdminSubscriptionController extends Controller
                 ->latest()
                 ->paginate(15)
                 ->withQueryString(),
-            'failedCount' => Subscription::whereNotNull('failed_reason')->count(),
+            'failedCount' => SubscriptionRun::where('status', 'exhausted')->count(),
             'customers' => Customer::with('user:id,name')->get(),
             'vendors' => Vendor::orderBy('store_name')->get(),
             'products' => Product::orderBy('name')->get(),
@@ -48,6 +50,13 @@ class AdminSubscriptionController extends Controller
         $subscriptions->cancel($subscription->load('customer.user'));
 
         return back()->with('status', 'Subscription cancelled.');
+    }
+
+    public function retryRun(SubscriptionRun $subscriptionRun, ReliableRecurringOrderService $recurringOrders): RedirectResponse
+    {
+        $recurringOrders->retryExhausted($subscriptionRun);
+
+        return back()->with('status', 'One supervised retry was queued for the failed subscription run.');
     }
 
     public function eligibleProducts(): View

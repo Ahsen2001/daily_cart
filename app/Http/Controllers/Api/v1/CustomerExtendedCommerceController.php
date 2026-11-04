@@ -88,7 +88,7 @@ class CustomerExtendedCommerceController extends Controller
     public function subscriptions(Request $request): JsonResponse
     {
         $subscriptions = $request->user()->customer->subscriptions()
-            ->with(['product', 'variant', 'vendor'])
+            ->with(['product', 'variant', 'vendor', 'latestRun'])
             ->latest()
             ->paginate(15);
 
@@ -105,7 +105,7 @@ class CustomerExtendedCommerceController extends Controller
 
         return response()->json([
             'subscription' => $this->subscriptionPayload(
-                $subscription->load(['product', 'variant', 'vendor', 'generatedOrders.statusHistories'])
+                $subscription->load(['product', 'variant', 'vendor', 'latestRun', 'generatedOrders.statusHistories'])
             ),
         ]);
     }
@@ -169,7 +169,7 @@ class CustomerExtendedCommerceController extends Controller
     public function upcomingSubscriptions(Request $request): JsonResponse
     {
         $subscriptions = $request->user()->customer->subscriptions()
-            ->with(['product', 'variant', 'vendor'])
+            ->with(['product', 'variant', 'vendor', 'latestRun'])
             ->where('status', 'active')
             ->whereNotNull('next_delivery_date')
             ->orderBy('next_delivery_date')
@@ -326,6 +326,11 @@ class CustomerExtendedCommerceController extends Controller
             'payment_method' => $subscription->payment_method,
             'notes' => $subscription->notes,
             'status' => $subscription->status,
+            'run_status' => $subscription->latestRun?->status,
+            'run_attempt_count' => $subscription->latestRun?->attempt_count ?? 0,
+            'run_max_attempts' => $subscription->latestRun?->max_attempts ?? 0,
+            'run_next_retry_at' => $subscription->latestRun?->next_retry_at,
+            'run_failure_reason' => $subscription->latestRun?->failure_reason,
             'orders' => $subscription->relationLoaded('generatedOrders')
                 ? OrderResource::collection($subscription->generatedOrders)
                 : [],

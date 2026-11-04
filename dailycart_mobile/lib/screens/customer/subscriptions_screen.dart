@@ -34,32 +34,32 @@ class _SubscriptionsScreenState extends ConsumerState<SubscriptionsScreen> {
       body: state.isLoading && state.subscriptions.isEmpty
           ? const LoadingWidget(message: 'Loading subscriptions...')
           : state.errorMessage != null && state.subscriptions.isEmpty
-              ? DailyCartErrorWidget(
-                  title: 'Unable to load subscriptions',
-                  message: state.errorMessage!,
-                  onRetry: () =>
-                      ref.read(customerExtendedProvider).loadSubscriptions(),
-                )
-              : RefreshIndicator(
-                  onRefresh: () =>
-                      ref.read(customerExtendedProvider).loadSubscriptions(),
-                  child: ListView(
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      if (state.subscriptions.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.all(30),
-                          child: Center(
-                            child: Text(
-                              'No subscriptions. Open an eligible product to subscribe.',
-                            ),
-                          ),
+          ? DailyCartErrorWidget(
+              title: 'Unable to load subscriptions',
+              message: state.errorMessage!,
+              onRetry: () =>
+                  ref.read(customerExtendedProvider).loadSubscriptions(),
+            )
+          : RefreshIndicator(
+              onRefresh: () =>
+                  ref.read(customerExtendedProvider).loadSubscriptions(),
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  if (state.subscriptions.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(30),
+                      child: Center(
+                        child: Text(
+                          'No subscriptions. Open an eligible product to subscribe.',
                         ),
-                      for (final subscription in state.subscriptions)
-                        _SubscriptionCard(subscription: subscription),
-                    ],
-                  ),
-                ),
+                      ),
+                    ),
+                  for (final subscription in state.subscriptions)
+                    _SubscriptionCard(subscription: subscription),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -79,10 +79,9 @@ class _SubscriptionCard extends ConsumerWidget {
           children: [
             Text(
               subscription.productName,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w900),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
             ),
             Text(
               '${subscription.quantity} × ${subscription.frequency} • ${CurrencyFormatter.lkr(subscription.totalAmount)}',
@@ -91,6 +90,20 @@ class _SubscriptionCard extends ConsumerWidget {
               'Next: ${subscription.nextDeliveryDate?.toLocal().toString().split(' ').first ?? '-'}',
             ),
             Text('Status: ${subscription.status.toUpperCase()}'),
+            if (subscription.runStatus.isNotEmpty)
+              Text(
+                'Latest order run: ${subscription.runStatus.replaceAll('_', ' ')}'
+                '${subscription.runMaxAttempts > 0 ? ' (${subscription.runAttemptCount}/${subscription.runMaxAttempts})' : ''}',
+              ),
+            if (subscription.runNextRetryAt != null)
+              Text(
+                'Retry scheduled: ${subscription.runNextRetryAt!.toLocal()}',
+              ),
+            if (subscription.runFailureReason.isNotEmpty)
+              Text(
+                subscription.runFailureReason,
+                style: const TextStyle(color: Colors.redAccent),
+              ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,

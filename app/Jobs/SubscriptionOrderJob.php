@@ -2,30 +2,34 @@
 
 namespace App\Jobs;
 
-use App\Models\Subscription;
-use App\Services\RecurringOrderService;
+use App\Models\SubscriptionRun;
+use App\Services\ReliableRecurringOrderService;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Validation\ValidationException;
 
-class SubscriptionOrderJob implements ShouldQueue
+class SubscriptionOrderJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public readonly int $subscriptionId) {}
+    public int $tries = 1;
 
-    public function handle(RecurringOrderService $recurringOrders): void
+    public int $timeout = 180;
+
+    public int $uniqueFor = 900;
+
+    public function __construct(public readonly int $subscriptionRunId) {}
+
+    public function uniqueId(): string
     {
-        $subscription = Subscription::with(['customer.user', 'vendor.user', 'product', 'variant'])->find($this->subscriptionId);
+        return 'subscription-run-'.$this->subscriptionRunId;
+    }
 
-        if (! $subscription || $subscription->status !== 'active') {
-            return;
-        }
-
-        try {
-            $recurringOrders->generate($subscription);
-        } catch (ValidationException $exception) {
-            $recurringOrders->markFailed($subscription, $exception->errors()[array_key_first($exception->errors())][0] ?? 'Recurring order generation failed.');
+    public function handle(ReliableRecurringOrderService $recurringOrders): void
+    {
+        $run = SubscriptionRun::query()->find($this->subscriptionRunId);
+        if ($run) {
+            $recurringOrders->processRun($run);
         }
     }
 }

@@ -79,4 +79,14 @@ class Subscription extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    public function runs(): HasMany
+    {
+        return $this->hasMany(SubscriptionRun::class);
+    }
+
+    public function latestRun(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(SubscriptionRun::class)->latestOfMany();
+    }
 }

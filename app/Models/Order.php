@@ -20,6 +20,7 @@ class Order extends Model
         'vendor_id',
         'coupon_id',
         'subscription_id',
+        'subscription_run_id',
         'delivery_schedule_id',
         'subtotal',
         'discount_amount',
@@ -100,6 +101,11 @@ class Order extends Model
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);
+    }
+
+    public function subscriptionRun(): BelongsTo
+    {
+        return $this->belongsTo(SubscriptionRun::class);
     }
 
     public function items(): HasMany

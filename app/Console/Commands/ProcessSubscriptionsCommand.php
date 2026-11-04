@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\RecurringOrderService;
+use App\Services\ReliableRecurringOrderService;
 use Illuminate\Console\Command;
 
 class ProcessSubscriptionsCommand extends Command
@@ -11,7 +11,7 @@ class ProcessSubscriptionsCommand extends Command
 
     protected $description = 'Dispatch due DailyCart subscription recurring orders.';
 
-    public function handle(RecurringOrderService $recurringOrders): int
+    public function handle(ReliableRecurringOrderService $recurringOrders): int
     {
         $count = $recurringOrders->dispatchDueSubscriptions();
 

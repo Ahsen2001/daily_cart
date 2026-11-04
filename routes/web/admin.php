@@ -152,6 +152,7 @@ Route::middleware(['auth', 'verified', 'role:Super Admin,Admin'])->prefix('admin
     Route::get('/subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index');
     Route::patch('/subscriptions/{subscription}/pause', [AdminSubscriptionController::class, 'pause'])->name('subscriptions.pause');
     Route::patch('/subscriptions/{subscription}/cancel', [AdminSubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+    Route::post('/subscription-runs/{subscriptionRun}/retry', [AdminSubscriptionController::class, 'retryRun'])->name('subscription-runs.retry');
     Route::get('/subscription-products', [AdminSubscriptionController::class, 'eligibleProducts'])->name('subscriptions.products');
     Route::patch('/subscription-products/{product}', [AdminSubscriptionController::class, 'updateEligibility'])->name('subscriptions.products.update');
     Route::get('/scheduled-orders', [ScheduledOrderController::class, 'admin'])->name('scheduled-orders.index');
