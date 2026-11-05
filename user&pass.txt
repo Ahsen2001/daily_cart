@@ -137,3 +137,148 @@ API_BASE_URL=http://192.168.1.20:8000/api/v1
 ```
 
 Then rebuild/reinstall the app. Both the PC and phone must be on the same Wi‑Fi, and Windows Firewall must allow port `8000`.
+
+
+
+Run DailyCart from `D:\FullStack\DailyCart1`. Do not run migrations, seeds, or database reset commands for normal startup.
+
+## 1. Start MySQL
+
+Open XAMPP Control Panel and start **MySQL**.
+
+## 2. Start the Laravel backend for web and physical phone
+
+Open PowerShell:
+
+```powershell
+cd D:\FullStack\DailyCart1
+php artisan optimize:clear
+php artisan serve --host=0.0.0.0 --port=8000
+```
+
+If `php` is not recognised:
+
+```powershell
+& C:\xampp\php\php.exe artisan serve --host=0.0.0.0 --port=8000
+```
+
+Use `--host=0.0.0.0` for a physical phone. The normal localhost server cannot be reached from your phone.
+
+## 3. Start background services
+
+Open separate PowerShell windows in `D:\FullStack\DailyCart1`.
+
+Queue worker — emails, notifications, invoices, SMS:
+
+```powershell
+php artisan queue:work --tries=3 --timeout=90
+```
+
+Scheduler — subscriptions and scheduled work:
+
+```powershell
+php artisan schedule:work
+```
+
+Reverb — web live rider tracking:
+
+```powershell
+php artisan reverb:start --host=0.0.0.0 --port=8080
+```
+
+Vite — needed when changing web CSS/JavaScript:
+
+```powershell
+npm run dev
+```
+
+Open the web app on the computer:
+
+```text
+http://127.0.0.1:8000
+```
+
+## 4. Connect the phone to the local backend
+
+Find your computer’s Wi-Fi IPv4 address:
+
+```powershell
+ipconfig
+```
+
+Example:
+
+```text
+IPv4 Address: 192.168.1.25
+```
+
+Your phone and computer must use the same Wi-Fi network. Then update:
+
+[mobile .env](/D:/FullStack/DailyCart1/dailycart_mobile/.env)
+
+```dotenv
+API_BASE_URL=http://192.168.1.25:8000/api/v1
+WEB_BASE_URL=http://192.168.1.25:8000
+```
+
+Do not use `127.0.0.1` or `localhost` in the mobile `.env`; on the phone, those refer to the phone itself.
+
+If Windows Firewall blocks access, allow private-network inbound access for ports `8000` and `8080`.
+
+Test from the phone browser:
+
+```text
+http://192.168.1.25:8000
+```
+
+## 5. Run a mobile role app
+
+Open another PowerShell:
+
+```powershell
+cd D:\FullStack\DailyCart1\dailycart_mobile
+flutter pub get --enforce-lockfile
+flutter devices
+```
+
+Run one app at a time:
+
+```powershell
+flutter run --flavor customer -t lib/main_customer.dart
+```
+
+```powershell
+flutter run --flavor vendor -t lib/main_vendor.dart
+```
+
+```powershell
+flutter run --flavor rider -t lib/main_rider.dart
+```
+
+To target your physical phone explicitly:
+
+```powershell
+flutter run --flavor customer -t lib/main_customer.dart -d YOUR_DEVICE_ID
+```
+
+Use the device ID shown by `flutter devices` or `adb devices`.
+
+## 6. First-time permission choices
+
+- Customer: allow notifications; allow location only when using the address map.
+- Vendor: allow notifications; allow photos/camera only when uploading product or store images.
+- Rider: allow notifications, precise location, and “Allow all the time” location access for active-delivery tracking; allow camera/photos for proof images.
+
+## 7. Firebase requirement
+
+Push notifications require the role-specific Firebase files to be present:
+
+```text
+dailycart_mobile/android/app/src/customer/google-services.json
+dailycart_mobile/android/app/src/vendor/google-services.json
+dailycart_mobile/android/app/src/rider/google-services.json
+```
+
+For local API testing, the apps still work without Firebase push, but push notifications will not arrive.
+
+Stop any process with `Ctrl + C`.
