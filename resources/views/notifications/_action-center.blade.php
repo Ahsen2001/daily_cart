@@ -25,20 +25,20 @@
     });
 @endphp
 
-<section class="overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-white shadow-xl shadow-emerald-950/5">
-    <div class="relative overflow-hidden bg-gradient-to-br {{ $roleAccent }} px-6 py-7 text-white sm:px-8">
+<section class="min-w-0 overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-white shadow-xl shadow-emerald-950/5">
+    <div class="relative overflow-hidden bg-gradient-to-br {{ $roleAccent }} px-5 py-7 text-white sm:px-8 sm:py-8">
         <div class="absolute -right-16 -top-24 h-64 w-64 rounded-full border border-white/10 bg-white/5"></div>
         <div class="absolute -bottom-24 right-32 h-48 w-48 rounded-full border border-white/10"></div>
-        <div class="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-emerald-50"><span class="h-2 w-2 rounded-full bg-emerald-300"></span>{{ __('Role-aware inbox') }}</div>
-                <h2 class="text-2xl font-black tracking-tight sm:text-3xl">{{ __($roleCopy[0]) }}</h2>
+        <div class="relative grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <div class="min-w-0">
+                <div class="mb-3 inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-50 sm:text-xs sm:tracking-[0.18em]"><span class="h-2 w-2 shrink-0 rounded-full bg-emerald-300"></span><span class="truncate">{{ __('Role-aware inbox') }}</span></div>
+                <h2 class="break-words text-2xl font-black tracking-tight text-white sm:text-3xl">{{ __($roleCopy[0]) }}</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-white/75 sm:text-base">{{ __($roleCopy[1]) }}</p>
             </div>
-            <div class="grid grid-cols-3 gap-2 sm:gap-3">
+            <div class="grid w-full min-w-0 grid-cols-3 gap-2 lg:w-auto sm:gap-3">
                 @foreach (['all' => 'All', 'unread' => 'Unread', 'action' => 'Action'] as $key => $label)
-                    <a href="{{ route($indexRoute, array_filter(['view' => $key, 'category' => request('category'), 'q' => request('q')])) }}" class="min-w-20 rounded-2xl border px-3 py-2.5 text-center transition {{ $activeView === $key ? 'border-white bg-white text-slate-900 shadow-lg' : 'border-white/15 bg-white/10 text-white hover:bg-white/15' }}">
-                        <span class="block text-lg font-black">{{ $notificationStats[$key] }}</span><span class="text-[11px] font-bold uppercase tracking-wider">{{ __($label) }}</span>
+                    <a href="{{ route($indexRoute, array_filter(['view' => $key, 'category' => request('category'), 'q' => request('q')])) }}" class="min-w-0 rounded-2xl border px-2 py-3 text-center transition sm:min-w-24 sm:px-3 {{ $activeView === $key ? 'border-white bg-white text-slate-900 shadow-lg' : 'border-white/15 bg-white/10 text-white hover:bg-white/15' }}">
+                        <span class="block truncate text-lg font-black sm:text-xl">{{ $notificationStats[$key] }}</span><span class="block truncate text-[9px] font-bold uppercase tracking-wide sm:text-[11px] sm:tracking-wider">{{ __($label) }}</span>
                     </a>
                 @endforeach
             </div>
@@ -46,11 +46,11 @@
     </div>
 
     <div class="border-b border-slate-100 bg-slate-50/70 px-5 py-4 sm:px-8">
-        <form method="GET" action="{{ route($indexRoute) }}" class="grid gap-3 md:grid-cols-[1fr_220px_auto]">
+        <form method="GET" action="{{ route($indexRoute) }}" class="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
             <input type="hidden" name="view" value="{{ $activeView }}">
-            <label class="relative block"><span class="sr-only">{{ __('Search notifications') }}</span><svg class="absolute left-4 top-3.5 h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke-width="2" stroke-linecap="round"/></svg><input name="q" value="{{ request('q') }}" placeholder="{{ __('Search messages, orders or updates') }}" class="w-full rounded-xl border-slate-200 bg-white py-3 pl-11 pr-4 text-sm focus:border-emerald-500 focus:ring-emerald-500"></label>
-            <select name="category" class="rounded-xl border-slate-200 bg-white py-3 text-sm focus:border-emerald-500 focus:ring-emerald-500"><option value="">{{ __('All categories') }}</option>@foreach ($categories as $key => $label)<option value="{{ $key }}" @selected(request('category') === $key)>{{ __($label) }}</option>@endforeach</select>
-            <button class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800">{{ __('Apply filters') }}</button>
+            <label class="relative block min-w-0"><span class="sr-only">{{ __('Search notifications') }}</span><svg class="absolute left-4 top-3.5 h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke-width="2" stroke-linecap="round"/></svg><input name="q" value="{{ request('q') }}" placeholder="{{ __('Search messages, orders or updates') }}" class="w-full min-w-0 rounded-xl border-slate-200 bg-white py-3 pl-11 pr-4 text-sm focus:border-emerald-500 focus:ring-emerald-500"></label>
+            <select name="category" class="w-full min-w-0 rounded-xl border-slate-200 bg-white py-3 text-sm focus:border-emerald-500 focus:ring-emerald-500"><option value="">{{ __('All categories') }}</option>@foreach ($categories as $key => $label)<option value="{{ $key }}" @selected(request('category') === $key)>{{ __($label) }}</option>@endforeach</select>
+            <button class="w-full whitespace-nowrap rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 lg:w-auto">{{ __('Apply filters') }}</button>
         </form>
         @if ($notificationStats['unread'] > 0)<form method="POST" action="{{ route($readAllRoute) }}" class="mt-3 text-right">@csrf @method('PATCH')<button class="text-sm font-bold text-emerald-700 hover:text-emerald-900">{{ __('Mark all as read') }} ✓</button></form>@endif
     </div>
@@ -86,11 +86,11 @@
                                 <div class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 {{ $toneClasses[0] }}"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $iconPath }}"/></svg>@unless ($notification->read_at)<span class="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white {{ $toneClasses[1] }}"></span>@endunless</div>
                                 <div class="min-w-0 flex-1">
                                     <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                                        <div><div class="flex flex-wrap items-center gap-2"><span class="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ring-1 {{ $toneClasses[0] }}">{{ __(NotificationPresenter::label($notification)) }}</span>@if ($actionRequired)<span class="rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white">{{ __('Action required') }}</span>@endif</div><h4 class="mt-2 text-base font-black text-slate-900 sm:text-lg">{{ $notification->title }}</h4></div>
+                                        <div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><span class="max-w-full break-words rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ring-1 {{ $toneClasses[0] }}">{{ __(NotificationPresenter::label($notification)) }}</span>@if ($actionRequired)<span class="rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white">{{ __('Action required') }}</span>@endif</div><h4 class="mt-2 break-words text-base font-black text-slate-900 sm:text-lg">{{ $notification->title }}</h4></div>
                                         <time class="shrink-0 text-xs font-medium text-slate-400"><x-local-time :date="$notification->created_at" /></time>
                                     </div>
-                                    <p class="mt-1 text-sm leading-6 text-slate-600">{{ $notification->message }}</p>
-                                    @if (filled($notification->data['email_details'] ?? null))<dl class="mt-4 grid gap-2 rounded-xl bg-slate-50 p-4 text-sm sm:grid-cols-2">@foreach ($notification->data['email_details'] as $label => $value)<div><dt class="text-[10px] font-black uppercase tracking-wider text-slate-400">{{ $label }}</dt><dd class="mt-0.5 font-semibold text-slate-700">{{ $value }}</dd></div>@endforeach</dl>@endif
+                                    <p class="mt-1 break-words text-sm leading-6 text-slate-600">{{ $notification->message }}</p>
+                                    @if (filled($notification->data['email_details'] ?? null))<dl class="mt-4 grid min-w-0 gap-2 rounded-xl bg-slate-50 p-4 text-sm sm:grid-cols-2">@foreach ($notification->data['email_details'] as $label => $value)<div class="min-w-0"><dt class="break-words text-[10px] font-black uppercase tracking-wider text-slate-400">{{ $label }}</dt><dd class="mt-0.5 break-words font-semibold text-slate-700">{{ $value }}</dd></div>@endforeach</dl>@endif
 
                                     @if (NotificationPresenter::isOrderActivity($notification) && $notification->order)
                                         @php($histories = $notification->order->statusHistories->sortBy('created_at'))
