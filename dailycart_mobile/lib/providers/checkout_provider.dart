@@ -104,6 +104,12 @@ class CheckoutProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    if (!selectedAddress!.hasValidCoordinates) {
+      errorMessage =
+          'Choose the exact delivery location on the map before placing the order.';
+      notifyListeners();
+      return false;
+    }
     if (selectedDeliveryTime == null) {
       errorMessage = 'Please select a delivery time.';
       notifyListeners();

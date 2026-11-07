@@ -43,6 +43,19 @@ class DeliveryModel {
   final String failedReasonCategory;
   final String failedReason;
 
+  bool get hasValidDestinationCoordinates {
+    final lat = latitude;
+    final lng = longitude;
+    return lat != null &&
+        lng != null &&
+        lat.isFinite &&
+        lng.isFinite &&
+        lat >= -90 &&
+        lat <= 90 &&
+        lng >= -180 &&
+        lng <= 180;
+  }
+
   bool get canAccept => status.toLowerCase() == 'assigned';
   bool get canMarkPickedUp => status.toLowerCase() == 'accepted';
   bool get canMarkOnTheWay => status.toLowerCase() == 'picked_up';

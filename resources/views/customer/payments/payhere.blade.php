@@ -107,7 +107,7 @@
                     <section class="sticky top-6 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
                         <h2 class="text-lg font-bold text-gray-900">{{ __('Your Order') }}</h2>
 
-                        <div class="mt-5 max-h-[360px] space-y-4 overflow-y-auto pr-1">
+                        <div class="mt-5 max-h-[360px] space-y-4 overflow-y-auto pt-1 pr-1">
                             @foreach ($order->items as $item)
                                 <div class="flex gap-3 border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
                                     <div class="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-50 text-sm font-bold text-green-700">

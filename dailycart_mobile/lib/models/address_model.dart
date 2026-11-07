@@ -27,6 +27,19 @@ class AddressModel {
   final double? longitude;
   final bool isDefault;
 
+  bool get hasValidCoordinates {
+    final lat = latitude;
+    final lng = longitude;
+    return lat != null &&
+        lng != null &&
+        lat.isFinite &&
+        lng.isFinite &&
+        lat >= -90 &&
+        lat <= 90 &&
+        lng >= -180 &&
+        lng <= 180;
+  }
+
   factory AddressModel.fromJson(Map<String, dynamic> json) {
     return AddressModel(
       id: _toInt(json['id']),

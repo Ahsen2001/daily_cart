@@ -55,10 +55,10 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
   Widget build(BuildContext context) {
     final deliveryState = ref.watch(riderDeliveryProvider);
     final delivery = deliveryState.selectedDelivery;
-    final destination = LatLng(
-      delivery?.latitude ?? 6.9271,
-      delivery?.longitude ?? 79.8612,
-    );
+    final hasDestination = delivery?.hasValidDestinationCoordinates ?? false;
+    final destination = hasDestination
+        ? LatLng(delivery!.latitude!, delivery.longitude!)
+        : null;
     final riderLatLng = _position == null
         ? destination
         : LatLng(_position!.latitude, _position!.longitude);
@@ -70,31 +70,39 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: SizedBox(
-                    height: 320,
-                    child: GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: destination,
-                        zoom: 14,
+                if (destination != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: SizedBox(
+                      height: 320,
+                      child: GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: destination,
+                          zoom: 16,
+                        ),
+                        myLocationEnabled: true,
+                        markers: {
+                          Marker(
+                            markerId: const MarkerId('customer'),
+                            position: destination,
+                            infoWindow: const InfoWindow(
+                              title: 'Customer delivery location',
+                            ),
+                          ),
+                          if (riderLatLng != null)
+                            Marker(
+                              markerId: const MarkerId('rider'),
+                              position: riderLatLng,
+                              infoWindow: const InfoWindow(title: 'You'),
+                            ),
+                        },
                       ),
-                      myLocationEnabled: true,
-                      markers: {
-                        Marker(
-                          markerId: const MarkerId('customer'),
-                          position: destination,
-                          infoWindow: const InfoWindow(title: 'Customer'),
-                        ),
-                        Marker(
-                          markerId: const MarkerId('rider'),
-                          position: riderLatLng,
-                          infoWindow: const InfoWindow(title: 'You'),
-                        ),
-                      },
                     ),
+                  )
+                else
+                  _MissingDeliveryLocation(
+                    address: delivery?.deliveryAddress ?? '',
                   ),
-                ),
                 const SizedBox(height: 16),
                 const RiderTrackingStatusBanner(),
                 const SizedBox(height: 16),
@@ -111,7 +119,7 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
                   label: 'Open Google Maps Navigation',
                   icon: Icons.navigation_outlined,
                   variant: CustomButtonVariant.secondary,
-                  onPressed: delivery == null
+                  onPressed: destination == null
                       ? null
                       : () => _openNavigation(destination),
                 ),
@@ -148,5 +156,54 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
         const SnackBar(content: Text('Unable to open a maps application.')),
       );
     }
+  }
+}
+
+class _MissingDeliveryLocation extends StatelessWidget {
+  const _MissingDeliveryLocation({required this.address});
+
+  final String address;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 260,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.location_off_outlined,
+            size: 48,
+            color: Theme.of(context).colorScheme.onErrorContainer,
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Customer map location unavailable',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: Theme.of(context).colorScheme.onErrorContainer,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            address.isEmpty
+                ? 'This order has no saved delivery coordinates.'
+                : '$address\n\nThis order has no saved delivery coordinates.',
+            textAlign: TextAlign.center,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onErrorContainer,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

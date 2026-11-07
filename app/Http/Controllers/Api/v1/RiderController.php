@@ -175,8 +175,8 @@ class RiderController extends Controller
             'status' => ['required', 'string', 'in:accepted,picked_up,on_the_way,delivered,failed'],
             'failed_reason_category' => ['required_if:status,failed', 'string', \Illuminate\Validation\Rule::in(array_keys(config('delivery_recovery.reason_categories', [])))],
             'failed_reason' => ['required_if:status,failed', 'string'],
-            'proof_image' => ['required_if:status,delivered', 'image'],
-            'customer_signature' => ['nullable', 'image'],
+            'proof_image' => ['required_if:status,delivered', 'image', 'max:5120'],
+            'customer_signature' => ['nullable', 'image', 'max:5120'],
             'note' => ['nullable', 'string'],
         ]);
 

@@ -121,9 +121,9 @@ class _DeliveryProofScreenState extends ConsumerState<DeliveryProofScreen> {
         content: Text(
           ok
               ? widget.replaceExisting
-                  ? 'Delivery proof replaced.'
-                  : 'Delivery completed.'
-              : 'Unable to save proof.',
+                    ? 'Delivery proof replaced.'
+                    : 'Delivery completed.'
+              : provider.errorMessage ?? 'Unable to save proof.',
         ),
       ),
     );

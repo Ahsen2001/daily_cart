@@ -22,18 +22,25 @@ class MapPickerScreen extends StatefulWidget {
 
 class _MapPickerScreenState extends State<MapPickerScreen> {
   static const _colombo = LatLng(6.9271, 79.8612);
-  late LatLng _selected;
+  late LatLng _cameraTarget;
+  LatLng? _selected;
   GoogleMapController? _controller;
   bool _locating = false;
+  bool _cameraMoved = false;
 
   @override
   void initState() {
     super.initState();
-    _selected = widget.initialLatitude != null && widget.initialLongitude != null
+    final hasInitialLocation =
+        widget.initialLatitude != null && widget.initialLongitude != null;
+    _cameraTarget = hasInitialLocation
         ? LatLng(widget.initialLatitude!, widget.initialLongitude!)
         : _colombo;
+    _selected = hasInitialLocation ? _cameraTarget : null;
     if (widget.initialLatitude == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _useCurrentLocation());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _useCurrentLocation(),
+      );
     }
   }
 
@@ -50,19 +57,30 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       body: Stack(
         children: [
           GoogleMap(
-            initialCameraPosition: CameraPosition(target: _selected, zoom: 16),
+            initialCameraPosition: CameraPosition(
+              target: _cameraTarget,
+              zoom: 16,
+            ),
             myLocationButtonEnabled: false,
             myLocationEnabled: true,
             onMapCreated: (controller) => _controller = controller,
-            onCameraMove: (position) => _selected = position.target,
+            onCameraMoveStarted: () => _cameraMoved = true,
+            onCameraMove: (position) => _cameraTarget = position.target,
+            onCameraIdle: () {
+              if (!_cameraMoved || !mounted) return;
+              setState(() {
+                _selected = _cameraTarget;
+                _cameraMoved = false;
+              });
+            },
           ),
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.only(bottom: 38),
+              padding: const EdgeInsets.only(bottom: 38),
               child: Icon(
                 Icons.location_pin,
                 size: 48,
-                color: Colors.red,
+                color: _selected == null ? Colors.grey : Colors.red,
               ),
             ),
           ),
@@ -85,9 +103,11 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             right: 20,
             bottom: 24,
             child: CustomButton(
-              label: 'Use this location',
+              label: _selected == null
+                  ? 'Move map or use current location'
+                  : 'Use this location',
               icon: Icons.check_circle_outline,
-              onPressed: _confirm,
+              onPressed: _selected == null ? null : _confirm,
             ),
           ),
         ],
@@ -109,7 +129,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       }
       final position = await Geolocator.getCurrentPosition();
       _selected = LatLng(position.latitude, position.longitude);
-      await _controller?.animateCamera(CameraUpdate.newLatLngZoom(_selected, 16));
+      _cameraTarget = _selected!;
+      await _controller?.animateCamera(
+        CameraUpdate.newLatLngZoom(_selected!, 16),
+      );
     } catch (_) {
       _showMessage('Unable to get your current location.');
     } finally {
@@ -118,11 +141,16 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   }
 
   Future<void> _confirm() async {
+    final selected = _selected;
+    if (selected == null) {
+      _showMessage('Choose the exact delivery point first.');
+      return;
+    }
     Placemark? place;
     try {
       final places = await placemarkFromCoordinates(
-        _selected.latitude,
-        _selected.longitude,
+        selected.latitude,
+        selected.longitude,
       );
       place = places.isEmpty ? null : places.first;
     } catch (_) {
@@ -130,8 +158,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     }
     if (!mounted) return;
     Navigator.of(context).pop(<String, Object?>{
-      'latitude': _selected.latitude,
-      'longitude': _selected.longitude,
+      'latitude': selected.latitude,
+      'longitude': selected.longitude,
       'address_line_1': place?.street,
       'city': place?.locality ?? place?.subAdministrativeArea,
       'district': place?.administrativeArea,
@@ -141,6 +169,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

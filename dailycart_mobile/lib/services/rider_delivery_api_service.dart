@@ -114,10 +114,13 @@ class RiderDeliveryApiService with AuthenticatedApiMixin {
     String note = '',
   }) async {
     try {
-      final response = await _dio.patch<dynamic>(
+      // PHP only populates multipart file uploads reliably for POST requests.
+      // Laravel method spoofing preserves the PATCH route semantics while
+      // allowing proof_image and customer_signature to reach validation.
+      final response = await _dio.post<dynamic>(
         '/rider/deliveries/$deliveryId/status',
         data: await ApiClient.shared.multipart(
-          fields: {'status': 'delivered', 'note': note},
+          fields: {'_method': 'PATCH', 'status': 'delivered', 'note': note},
           files: [
             ApiUploadFile(field: 'proof_image', path: proofImagePath),
             if (signatureImagePath != null && signatureImagePath.isNotEmpty)

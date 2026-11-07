@@ -8,6 +8,8 @@ use App\Models\Order;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -15,6 +17,29 @@ use Tests\TestCase;
 class ActiveDeliveryTrackingTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_rider_can_upload_delivery_proof_using_multipart_method_spoofing(): void
+    {
+        [, $rider, $order, $delivery] = $this->activeDelivery();
+        $delivery->update(['status' => 'on_the_way']);
+        $order->update(['order_status' => 'out_for_delivery']);
+        Sanctum::actingAs($rider, ['rider']);
+
+        $response = $this->post("/api/v1/rider/deliveries/{$delivery->id}/status", [
+            '_method' => 'PATCH',
+            'status' => 'delivered',
+            'note' => 'Handed to the customer.',
+            'proof_image' => UploadedFile::fake()->image('delivery-proof.jpg', 800, 600),
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('delivery.status', 'delivered');
+        $this->assertSame('delivered', $delivery->refresh()->status);
+        $proof = $delivery->proofs()->sole();
+        $this->assertSame('Handed to the customer.', $proof->note);
+
+        File::delete(storage_path('app/public/'.$proof->proof_image));
+    }
 
     public function test_rider_cannot_submit_a_point_for_another_riders_delivery(): void
     {
