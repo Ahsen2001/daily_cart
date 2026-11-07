@@ -22,6 +22,7 @@ class RiderMapScreen extends ConsumerStatefulWidget {
 
 class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
   Position? _position;
+  bool _isUpdatingLocation = false;
   final _tracking = RiderDeliveryTrackingService.instance;
 
   @override
@@ -100,7 +101,10 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
                 CustomButton(
                   label: 'Update Current Location',
                   icon: Icons.my_location_rounded,
-                  onPressed: _updateLocation,
+                  isLoading: _isUpdatingLocation,
+                  onPressed: _tracking.state.value.isTracking
+                      ? _updateLocation
+                      : null,
                 ),
                 const SizedBox(height: 10),
                 CustomButton(
@@ -117,11 +121,19 @@ class _RiderMapScreenState extends ConsumerState<RiderMapScreen> {
   }
 
   Future<void> _updateLocation() async {
+    if (_isUpdatingLocation) return;
+    setState(() => _isUpdatingLocation = true);
     final ok = await _tracking.captureNow();
     if (!mounted) return;
+    setState(() => _isUpdatingLocation = false);
+    final trackingMessage = _tracking.state.value.message;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(ok ? 'Location updated.' : 'Unable to update location.'),
+        content: Text(
+          ok
+              ? 'Location updated.'
+              : trackingMessage ?? 'Unable to update location.',
+        ),
       ),
     );
   }

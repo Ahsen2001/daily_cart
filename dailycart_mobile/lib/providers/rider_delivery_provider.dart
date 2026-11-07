@@ -27,17 +27,54 @@ class RiderDeliveryProvider extends ChangeNotifier {
   DeliveryModel? selectedDelivery;
   bool isLoading = false;
   String? errorMessage;
+  int _deliveriesRequestId = 0;
+  int _detailsRequestId = 0;
 
   Future<void> getAssignedDeliveries({String status = 'all'}) async {
-    await _run(() async {
-      deliveries = await _apiService.getAssignedDeliveries(status: status);
-    });
+    final requestId = ++_deliveriesRequestId;
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      final result = await _apiService.getAssignedDeliveries(status: status);
+      if (requestId != _deliveriesRequestId) return;
+      deliveries = result;
+    } on ApiException catch (error) {
+      if (requestId == _deliveriesRequestId) errorMessage = error.message;
+    } catch (_) {
+      if (requestId == _deliveriesRequestId) {
+        errorMessage = 'Something went wrong. Please try again.';
+      }
+    } finally {
+      if (requestId == _deliveriesRequestId) {
+        isLoading = false;
+        notifyListeners();
+      }
+    }
   }
 
   Future<void> getDeliveryDetails(int deliveryId) async {
-    await _run(() async {
-      selectedDelivery = await _apiService.getDeliveryDetails(deliveryId);
-    });
+    final requestId = ++_detailsRequestId;
+    if (selectedDelivery?.id != deliveryId) selectedDelivery = null;
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      final result = await _apiService.getDeliveryDetails(deliveryId);
+      if (requestId != _detailsRequestId) return;
+      selectedDelivery = result;
+    } on ApiException catch (error) {
+      if (requestId == _detailsRequestId) errorMessage = error.message;
+    } catch (_) {
+      if (requestId == _detailsRequestId) {
+        errorMessage = 'Something went wrong. Please try again.';
+      }
+    } finally {
+      if (requestId == _detailsRequestId) {
+        isLoading = false;
+        notifyListeners();
+      }
+    }
   }
 
   Future<bool> markPickedUp(int deliveryId) {

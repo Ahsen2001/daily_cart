@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../config/app_identity.dart';
@@ -47,6 +48,7 @@ class RiderDeliveryTrackingService {
   static const _trackingStateEvent = 'rider_tracking_state';
   static const _startTrackingEvent = 'rider_tracking_start';
   static const _stopTrackingEvent = 'rider_tracking_stop';
+  static const _androidTrackingChannelId = 'dailycart_active_delivery_tracking';
   static bool _androidServiceConfigured = false;
 
   final bool _backgroundWorker;
@@ -73,6 +75,7 @@ class RiderDeliveryTrackingService {
 
   static Future<void> initializeBackgroundWorker() async {
     if (!Platform.isAndroid || _androidServiceConfigured) return;
+    await _ensureAndroidTrackingNotificationChannel();
     final service = FlutterBackgroundService();
     await service.configure(
       androidConfiguration: AndroidConfiguration(
@@ -80,7 +83,7 @@ class RiderDeliveryTrackingService {
         autoStart: false,
         autoStartOnBoot: true,
         isForegroundMode: true,
-        notificationChannelId: 'dailycart_active_delivery_tracking',
+        notificationChannelId: _androidTrackingChannelId,
         initialNotificationTitle: 'DailyCart active delivery',
         initialNotificationContent:
             'DailyCart is sharing your location for an active delivery.',
@@ -91,6 +94,26 @@ class RiderDeliveryTrackingService {
     );
     _androidServiceConfigured = true;
     instance._listenToWorkerState(service);
+  }
+
+  static Future<void> _ensureAndroidTrackingNotificationChannel() async {
+    final notifications = FlutterLocalNotificationsPlugin();
+    final android = notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    await android?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        _androidTrackingChannelId,
+        'Active delivery tracking',
+        description:
+            'Shows when DailyCart is sharing location for an active delivery.',
+        importance: Importance.low,
+        playSound: false,
+        enableVibration: false,
+        showBadge: false,
+      ),
+    );
   }
 
   void _listenToWorkerState(FlutterBackgroundService service) {
@@ -345,12 +368,31 @@ class RiderDeliveryTrackingService {
   }
 
   Future<bool> captureNow() async {
-    if (!state.value.isTracking) return false;
+    if (!state.value.isTracking) {
+      state.value = RiderDeliveryTrackingState(
+        deliveryId: state.value.deliveryId,
+        position: state.value.position,
+        message: state.value.phase == RiderTrackingPhase.permissionRequired
+            ? 'Location permission is required before updating your location.'
+            : 'Location updates are available only during an active delivery.',
+        phase: state.value.phase,
+      );
+      return false;
+    }
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: _locationSettings(_deliveryStatus ?? 'accepted'),
+        locationSettings: _singleFixLocationSettings(),
       );
-      if (!_isValidPosition(position)) return false;
+      if (!_isValidPosition(position)) {
+        state.value = RiderDeliveryTrackingState(
+          deliveryId: state.value.deliveryId,
+          position: state.value.position,
+          isTracking: true,
+          message: 'GPS accuracy is too low. Move to an open area and retry.',
+          phase: RiderTrackingPhase.active,
+        );
+        return false;
+      }
       _lastAcceptedPosition = position;
       state.value = RiderDeliveryTrackingState(
         deliveryId: state.value.deliveryId,
@@ -359,9 +401,27 @@ class RiderDeliveryTrackingService {
         message: 'Tracking active',
         phase: RiderTrackingPhase.active,
       );
-      await _send(position);
+      // Persist the manual fix first and let the durable queue upload it in
+      // the background. The button must not remain blocked by a slow API.
+      await _send(position, waitForUpload: false);
       return state.value.isTracking;
+    } on TimeoutException {
+      state.value = RiderDeliveryTrackingState(
+        deliveryId: state.value.deliveryId,
+        position: state.value.position,
+        isTracking: true,
+        message: 'GPS timed out. Move to an open area and retry.',
+        phase: RiderTrackingPhase.active,
+      );
+      return false;
     } catch (_) {
+      state.value = RiderDeliveryTrackingState(
+        deliveryId: state.value.deliveryId,
+        position: state.value.position,
+        isTracking: true,
+        message: 'Unable to read GPS. Check that device location is enabled.',
+        phase: RiderTrackingPhase.active,
+      );
       return false;
     }
   }
@@ -423,7 +483,7 @@ class RiderDeliveryTrackingService {
     }
   }
 
-  Future<void> _send(Position position) async {
+  Future<void> _send(Position position, {bool waitForUpload = true}) async {
     final deliveryId = await _storage.getTrackingDeliveryId();
     if (deliveryId == null || !state.value.isTracking) return;
     final sequenceNumber = await _queue.nextSequence(deliveryId);
@@ -440,7 +500,11 @@ class RiderDeliveryTrackingService {
         sequenceNumber: sequenceNumber,
       ),
     );
-    await _flushQueue();
+    if (waitForUpload) {
+      await _flushQueue();
+    } else {
+      unawaited(_flushQueue());
+    }
   }
 
   Future<void> _flushQueue() async {
@@ -489,15 +553,13 @@ class RiderDeliveryTrackingService {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
     }
-    if (Platform.isAndroid && permission == LocationPermission.whileInUse) {
-      // A second request upgrades supported Android versions. Android 11+
-      // may instead require the rider to choose "Allow all the time" from
-      // system app settings. Without it Android cannot restart location access
-      // after a device reboot while the application UI is not visible.
-      permission = await Geolocator.requestPermission();
-    }
     if (Platform.isAndroid) {
-      return permission == LocationPermission.always;
+      // Tracking is always started while the Rider app is visible and then
+      // continues through Android's location foreground service. Requiring
+      // "Allow all the time" here incorrectly rejects a valid while-in-use
+      // grant and prevents the foreground service from starting.
+      return permission == LocationPermission.always ||
+          permission == LocationPermission.whileInUse;
     }
     return permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse;
@@ -582,6 +644,29 @@ class RiderDeliveryTrackingService {
     return LocationSettings(
       accuracy: LocationAccuracy.high,
       distanceFilter: distanceFilter,
+    );
+  }
+
+  LocationSettings _singleFixLocationSettings() {
+    const timeout = Duration(seconds: 15);
+    if (Platform.isAndroid) {
+      return AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 0,
+        timeLimit: timeout,
+      );
+    }
+    if (Platform.isIOS) {
+      return AppleSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 0,
+        timeLimit: timeout,
+      );
+    }
+    return const LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 0,
+      timeLimit: timeout,
     );
   }
 }

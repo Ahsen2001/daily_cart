@@ -18,6 +18,43 @@ val requestedFirebaseConfigPresent = requestedRoles.any {
     file("src/$it/google-services.json").isFile
 }
 
+fun readDotEnvValue(key: String): String? {
+    val dotEnv = rootProject.projectDir.parentFile.resolve(".env")
+    if (!dotEnv.isFile) return null
+
+    return dotEnv.useLines { lines ->
+        lines
+            .map(String::trim)
+            .firstOrNull { line ->
+                line.isNotEmpty() &&
+                    !line.startsWith("#") &&
+                    line.substringBefore('=', missingDelimiterValue = "") == key
+            }
+            ?.substringAfter('=')
+            ?.trim()
+            ?.removeSurrounding("\"")
+            ?.removeSurrounding("'")
+            ?.takeIf(String::isNotEmpty)
+    }
+}
+
+// Google Maps reads its Android SDK key from native manifest metadata. Keep
+// the secret in the ignored Flutter .env file (or a CI environment variable)
+// and inject it at build time rather than committing it to Android resources.
+val googleMapsApiKey = System.getenv("GOOGLE_MAPS_API_KEY")
+    ?.trim()
+    ?.takeIf(String::isNotEmpty)
+    ?: readDotEnvValue("GOOGLE_MAPS_API_KEY")
+    ?: ""
+
+val mapEnabledRoles = setOf("customer", "rider")
+if (requestedRoles.any(mapEnabledRoles::contains) && googleMapsApiKey.isEmpty()) {
+    throw GradleException(
+        "GOOGLE_MAPS_API_KEY is required for Customer and Rider Android builds. " +
+            "Set it in dailycart_mobile/.env or the build environment.",
+    )
+}
+
 if (allFirebaseConfigsPresent || requestedFirebaseConfigPresent) {
     pluginManager.apply("com.google.gms.google-services")
 } else {
@@ -52,6 +89,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
     }
 
     productFlavors {
